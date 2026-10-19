@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>FORGE — dziennik treningowy</title>
+<meta name="description" content="FORGE: dziennik treningowy dla ludzi, którzy podnoszą ciężko. Plany, serie, rekordy, wykresy, stoper przerw i import planów z PDF i zdjęć.">
+<meta name="theme-color" content="#0a0b0f">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FORGE">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<link rel="preload" href="fonts/barlow-condensed-latin-800-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/styles.css">
+<style>html,body{background:#0a0b0f}#splash{position:fixed;inset:0;background:#07080b;z-index:200}</style>
+</head>
+<body>
+<div id="splash" aria-hidden="true">
+  <svg class="sp-logo" viewBox="0 0 100 100"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--a2)"/><stop offset="1" stop-color="var(--a1)"/></linearGradient></defs><path d="M30 8H88L84 28H45.7L41.9 46H78L74 64H38L32 92H12Z"/></svg>
+  <div class="sp-word"><span>F</span><span>O</span><span>R</span><span>G</span><span>E</span></div>
+  <div class="sp-tag">Kuj swoją siłę</div>
+</div>
+<div id="app"><main id="view" tabindex="-1"></main></div>
+<div id="dock"></div>
+<nav id="tabbar" aria-label="Nawigacja główna"></nav>
+<div id="sheet-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<noscript><p style="padding:24px;color:#fff;font-family:sans-serif">FORGE wymaga włączonego JavaScriptu.</p></noscript>
+<script src="js/icons.js"></script>
+<script src="js/data.js"></script>
+<script src="js/core.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/app.js"></script>
+<script src="js/views2.js"></script>
+<script src="js/workout.js"></script>
+<script src="js/importer.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

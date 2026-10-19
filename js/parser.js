@@ -1,0 +1,257 @@
+/* FORGE — parser planów: rozpoznawanie ćwiczeń, serii, powtórzeń, przerw w tekście z PDF/OCR/schowka + import historii z CSV */
+(function () {
+  const F = window.F;
+  const STOP = new Set(['ze', 'z', 'na', 'w', 'do', 'po', 'i', 'a', 'o', 'the', 'with', 'on', 'of', 'and', 'oraz', 'dla', 'przy', 'lub', 'or']);
+  const EQ = new Set(['sztan', 'hantl', 'maszy', 'wycia', 'linka', 'kettl', 'gryf', 'drazk', 'suwni', 'barbe', 'dumbb', 'cable', 'machi', 'kettle']);
+  const stem = t => t.length > 5 ? t.slice(0, 5) : t;
+  const toks = s => F.norm(s).split(' ').filter(t => t && !STOP.has(t) && !/^\d+$/.test(t)).map(stem);
+  const wt = t => EQ.has(t) ? 0.4 : 1;
+
+  /* ---------- Levenshtein ---------- */
+  function lev(a, b) {
+    if (a === b) return 0; const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+    let prev = new Array(n + 1), cur = new Array(n + 1); for (let j = 0; j <= n; j++) prev[j] = j;
+    for (let i = 1; i <= m; i++) { cur[0] = i; for (let j = 1; j <= n; j++) { cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1)); } [prev, cur] = [cur, prev]; }
+    return prev[n];
+  }
+
+  /* ---------- indeks ćwiczeń ---------- */
+  let IDX = null, IDX_N = -1;
+  const buildIdx = () => {
+    IDX = []; F.S.ex.forEach(ex => { const names = [ex.name, ...String(ex.alias || '').split(';').map(s => s.trim()).filter(Boolean)]; names.forEach((n, k) => { const s = F.norm(n); if (s) IDX.push({ ex, s, t: toks(n), primary: k === 0 }); }); }); IDX_N = F.S.ex.size;
+  };
+  F.invalidateIdx = () => { IDX = null; };
+  // zwraca posortowaną listę kandydatów [{ex, score}]
+  F.matchExercise = raw => {
+    if (!IDX || IDX_N !== F.S.ex.size) buildIdx();
+    const s = F.norm(raw.replace(/\([^)]*\)/g, ' $& ')); const a = toks(raw); if (!s || !a.length) return [];
+    const best = new Map();
+    for (const c of IDX) {
+      let score = 0;
+      if (c.s === s) score = 1;
+      else {
+        let inter = 0, ua = 0, ub = 0, interA = 0;
+        const setB = new Set(c.t), setA = new Set(a);
+        a.forEach(t => { ua += wt(t); if (setB.has(t)) { inter += wt(t); interA += wt(t); } });
+        c.t.forEach(t => { ub += wt(t); });
+        const union = ua + ub - inter; const jac = union ? inter / union : 0; const covA = ua ? interA / ua : 0, covB = ub ? inter / ub : 0;
+        score = 0.45 * jac + 0.4 * covA + 0.15 * covB;
+        // kara za sprzeczny sprzęt (hantle vs sztanga)
+        const ea = a.filter(t => EQ.has(t)), eb = c.t.filter(t => EQ.has(t)); if (ea.length && eb.length && !ea.some(t => eb.includes(t))) score -= 0.18;
+        if (score < 0.9 && Math.abs(s.length - c.s.length) <= Math.max(6, s.length * 0.4) && (s.slice(0, 2) === c.s.slice(0, 2) || score > 0.25)) {
+          const L = 1 - lev(s, c.s) / Math.max(s.length, c.s.length); score = Math.max(score, L * 0.97);
+        }
+        if (!c.primary) score *= 0.99;
+      }
+      const cur = best.get(c.ex.id); if (!cur || score > cur.score) best.set(c.ex.id, { ex: c.ex, score });
+    }
+    return [...best.values()].sort((x, y) => y.score - x.score).slice(0, 4);
+  };
+  F.guessMuscle = raw => {
+    const n = F.norm(raw);
+    const rules = [['chest', /klat|pompk|wyciskanie lez|bench|chest|rozpie|fly|dips|dipy|butterfly|pec/], ['back', /plec|wioslo|podciag|sciag|martwy|pull|row|lat |deadlift|szrug|grzbiet/], ['shoulders', /bark|ohp|zolnier|arnold|wznos|lateral|face pull|shoulder|akton|delt/], ['biceps', /biceps|uginanie|curl|mlotk|modlitew/], ['triceps', /triceps|francusk|prostowanie ramion|pushdown|skull|kickback/], ['abs', /brzuch|plank|crunch|spiec|abs|core|russian|unoszenie nog/], ['quads', /przysiad|squat|wykrok|suwnic|hack|prostowanie nog|leg press|extension|lunge|quad|czworog/], ['hams', /dwugl|leg curl|uginanie nog|rumunsk|rdl|good morning|hamstring/], ['glutes', /posladk|hip thrust|glute|odwodzenie|mostek|kickback/], ['calves', /lydk|calf|wspiecia/], ['cardio', /bieg|bieznia|rower|orbitrek|cardio|skakank|run|bike|rowing|wioslarz|stepper/]];
+    for (const [m, re] of rules) if (re.test(n)) return m; return 'full';
+  };
+
+  /* ---------- normalizacja tekstu ---------- */
+  const cleanText = t => String(t || '').replace(/\r/g, '\n').replace(/[   ]/g, ' ').replace(/[×✕✖✗хХ]/g, 'x').replace(/[–—−‒]/g, '-').replace(/[“”„]/g, '"').replace(/[’‘`´]/g, "'").replace(/…/g, '...')
+    .replace(/(\d)\s*[Oo](?=\s|$|[^a-zA-Z])/g, '$10').replace(/\b[lI](?=\d{1,2}\s*(?:x|powt|kg))/g, '1')
+    .replace(/(\d)\s*,\s*(\d)/g, '$1,$2');
+  const MARK = /^\s*(?:[-*•●▪◦►▶→■□☐✓✔]|\d{1,2}\s*[.)]|[a-dA-D]\d?\s*[.)])\s+/;
+  const LETTERS = s => (s.match(/[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]/g) || []).length;
+
+  /* ---------- rozpoznawanie schematu serii ---------- */
+  const num = s => parseFloat(String(s).replace(',', '.'));
+  function scheme(line) {
+    let t = ' ' + line + ' '; const r = { sets: 0, reps: '', w: 0, unit: '', rest: 0, time: false, rpe: 0, amrap: false, note: [], single: null };
+    const cut = (re, fn) => { const m = t.match(re); if (m) { fn(m); t = t.replace(re, ' '); return true; } return false; };
+    // przerwa
+    cut(/(?:przerwa|przerwy|odpoczynek|odp\.?|rest|r)\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*(min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|m\b|sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|s\b|'|")/i, m => { const v = num(m[1]), u = m[2].toLowerCase(); r.rest = Math.round(/^m/.test(u) || u === "'" ? v * 60 : v); })
+      || cut(/(\d+(?:[.,]\d+)?)\s*(min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|s)\s*(?:przerwy|rest|odpoczynku|przerwa)/i, m => { const v = num(m[1]), u = m[2].toLowerCase(); r.rest = Math.round(/^m/.test(u) ? v * 60 : v); });
+    // RPE
+    cut(/@\s*(\d+(?:[.,]\d)?)(?!\s*(?:kg|lb))|rpe\s*[:=]?\s*(\d+(?:[.,]\d)?)|rir\s*[:=]?\s*(\d)/i, m => { r.rpe = num(m[1] || m[2] || m[3]); r.note.push(m[3] ? 'RIR ' + m[3] : 'RPE ' + r.rpe); });
+    // % 1RM
+    cut(/(\d{2,3})\s*%\s*(?:1\s*rm|rm|max[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*)?/i, m => { r.note.push(m[1] + '% 1RM'); });
+    // ciężar
+    cut(/(\d+(?:[.,]\d+)?)\s*(kg|kilo[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|lbs?|funt[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*)\b/i, m => { r.w = num(m[1]); r.unit = /^l|^f/i.test(m[2]) ? 'lb' : 'kg'; });
+    cut(/(?:^|[^a-z0-9])(\d{1,2})\s*[x*]\s*(?=(?:amrap|max|do\s+(?:upadku|odmowy|zalamania|załamania)|failure))/i, m => { r.sets = +m[1]; });
+    // czas: SxN s
+    if (!cut(/(?:^|[^a-z0-9])(\d{1,2})\s*[x*]\s*(\d{1,3})\s*(min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|s\b|")/i, m => { r.sets = +m[1]; r.reps = String(/^m/i.test(m[3]) ? +m[2] * 60 : +m[2]); r.time = true; })) {
+      // SxN/M/K
+      if (!cut(/(?:^|[^a-z0-9])(\d{1,2})\s*[x*]\s*(\d{1,3}(?:\s*\/\s*\d{1,3})+)(?!\d)/i, m => { r.sets = +m[1]; r.reps = m[2].replace(/\s/g, ''); }) && !cut(/(?:^|[^a-z0-9])(\d{1,2})\s*[x*]\s*(\d{1,3})(?:\s*-\s*(\d{1,3}))?(?!\d)(?!\s*\/\s*\d)/i, m => { let s = +m[1], a = +m[2]; if (s > 12 && a <= 8 && !m[3]) { [s, a] = [a, s]; } r.sets = s; r.reps = m[3] ? a + '-' + m[3] : String(a); })) {
+        if (!cut(/(\d{1,2})\s*(?:serie|serii|seri[ęe]|seria|sets?)\s*(?:po|x|of|:|-|,)?\s*(\d{1,3})(?:\s*-\s*(\d{1,3}))?\s*(?:powt[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|reps?|razy)?/i, m => { r.sets = +m[1]; r.reps = m[3] ? m[2] + '-' + m[3] : m[2]; })) {
+          // osobno: serie / powtórzenia
+          cut(/(\d{1,2})\s*(?:serie|serii|seri[ęe]|seria|sets?)\b/i, m => { r.sets = +m[1]; });
+          cut(/(\d{1,3})(?:\s*-\s*(\d{1,3}))?\s*(?:powt[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|reps?|razy)\b/i, m => { r.reps = m[2] ? m[1] + '-' + m[2] : m[1]; });
+          // lista po ukośniku 12/10/8
+          if (!r.sets && !r.reps) cut(/(?:^|[^\d/])(\d{1,3}(?:\s*\/\s*\d{1,3}){1,6})(?![\d/])/, m => { const parts = m[1].split('/').map(x => +x); if (!(parts.length === 3 && parts[2] > 31) && parts.every(x => x > 0 && x <= 100)) { r.sets = parts.length; r.reps = parts.join('/'); } else t += ' ' + m[1]; });
+          // pojedyncza seria: "60 x 10" (po usunięciu ciężaru zostaje "x 10")
+          if (!r.sets && !r.reps) cut(/(?:^|\s)[x*]\s*(\d{1,3})(?!\d)/i, m => { r.sets = 1; r.reps = m[1]; r.single = true; });
+        }
+      }
+    }
+    if (cut(/\b(amrap|do upadku|do odmowy|do zalamania|max(?:imum)?|failure|to failure)\b/i, () => { r.amrap = true; })) { if (!r.reps) r.reps = 'AMRAP'; }
+    r.clean = t.replace(/\s+/g, ' ').replace(/^[\s\-:;,.|/()x*@]+|[\s\-:;,.|/()x*@]+$/g, '').trim();
+    r.has = !!(r.sets || r.reps);
+    return r;
+  }
+  F.scheme = scheme;
+
+  // linia pojedynczej serii w stylu Strong/Hevy: „1  60 kg x 10”, „80 kg × 8”
+  const setLine = line => { let m = line.match(/^\s*(?:\d{1,2}\s+)?(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\s*[x*]\s*(\d{1,3})\s*(?:[@(].*)?$/i); if (m) return { w: num(m[1]), unit: /^l/i.test(m[2]) ? 'lb' : 'kg', r: +m[3] }; m = line.match(/^\s*\d{1,2}\s+(\d{2,3}(?:[.,]\d+)?)\s*[x*]\s*(\d{1,3})\s*$/); if (m) return { w: num(m[1]), unit: 'kg', r: +m[2] }; return null; };
+
+  /* ---------- nagłówki dni ---------- */
+  const DAYRE = /^(?:dzie[nń]|day|trening|training|workout|sesja|session|jednostka|unit|blok|cz[eę]sc|part|cykl|tydzie[nń]|week)\s*[:.#-]?\s*(?:[a-z]\b|\d+|[ivx]+\b|\w+)?/i;
+  const WEEKDAY = /^(?:poniedzia[lł]ek|wtorek|[sś]roda|czwartek|pi[aą]tek|sobota|niedziela|pon\b|wt\b|[sś]r\b|czw\b|pt\b|sob\b|ndz\b|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon\b|tue\b|wed\b|thu\b|fri\b|sat\b|sun\b)/i;
+  const SPLIT = /^(?:push|pull|legs?|upper|lower|full\s*body|fbw|ppl|nogi|plecy|klatka|barki|ramiona|brzuch|g[oó]ra|d[oó][lł]|cardio|rest day|dzie[nń] wolny)\b/i;
+  const TABLE_HEAD = { name: /cwicz|exerc|nazwa|name/, sets: /^serie$|^serii$|^sets?$|^seria$|^s$/, reps: /powt|^reps?$|^rep$/, w: /ciez|obciaz|^kg$|weight|^w$/, rest: /przerw|^rest$|odpocz/ };
+
+  /* ---------- główny parser ---------- */
+  F.parsePlanText = (raw, opts = {}) => {
+    const lines = cleanText(raw).split('\n').map(l => l.replace(/\s+$/g, '')).filter(l => l.trim());
+    const plan = { name: opts.name || '', days: [] }; let day = null, pending = null, prev = null, headerMap = null, firstSeen = false;
+    const newDay = name => { day = { id: F.uid(), name: name || 'Trening ' + (plan.days.length + 1), items: [] }; plan.days.push(day); pending = null; prev = null; };
+    const addItem = (name, sc, src) => {
+      if (!day) newDay(plan.days.length ? null : null);
+      const cands = F.matchExercise(name); const top = cands[0];
+      const it = { id: F.uid(), raw: name, src: src || name, exId: top && top.score >= 0.6 ? top.ex.id : null, conf: top ? top.score : 0, alts: cands.map(c => c.ex.id), newName: name.replace(/\s+/g, ' ').trim(), sets: sc.sets || 0, reps: sc.reps || '', rest: sc.rest || 0, w: sc.w ? (sc.unit === 'lb' ? sc.w / 2.2046 : sc.w) : 0, note: sc.note && sc.note.length ? sc.note.join(', ') : '', defaulted: !sc.has, time: !!sc.time };
+      if (!it.sets) it.sets = 3; if (!it.reps) it.reps = '8-12';
+      const ex = it.exId && F.S.ex.get(it.exId); if (ex && ex.type === 'time' && !/\d/.test(it.reps)) it.reps = '45';
+      day.items.push(it); prev = it; pending = null; return it;
+    };
+    for (let idx = 0; idx < lines.length; idx++) {
+      let line = lines[idx].trim(); if (!line || /^[-_=~.\s]{3,}$/.test(line)) continue;
+      // numer strony / stopki
+      if (/^(?:strona|page|str\.?)\s*\d+(?:\s*\/\s*\d+)?$/i.test(line) || /^\d+\s*\/\s*\d+$/.test(line)) continue;
+      const hadMark = MARK.test(line); line = line.replace(MARK, '');
+      // ---- wiersz tabeli ----
+      const cells = line.split(/\s*\|\s*|\t|;|\s{3,}/).map(c => c.trim()).filter(c => c !== '');
+      if (cells.length >= 2 && /[|\t;]|\s{3,}/.test(line)) {
+        const low = cells.map(c => F.norm(c));
+        const hm = {}; low.forEach((c, i) => { for (const k in TABLE_HEAD) if (hm[k] == null && TABLE_HEAD[k].test(c) && !/\d/.test(c)) hm[k] = i; });
+        if (Object.keys(hm).length >= 2 && !scheme(line).has) { headerMap = hm; continue; }
+        if (headerMap && headerMap.name != null && cells[headerMap.name]) {
+          const nm = cells[headerMap.name]; if (LETTERS(nm) >= 3) {
+            const g = k => headerMap[k] != null ? (cells[headerMap[k]] || '') : '';
+            const sc = { sets: parseInt(g('sets')) || 0, reps: g('reps').replace(/[xX×]/g, '').replace(/(\d+)\s*min\w*/i, (m, a) => String(+a * 60)).replace(/\s*(sek[\wąćęłńóśźż]*|s|")\s*$/i, '').replace(/\s/g, '').trim(), rest: 0, w: 0, unit: '', note: [] };
+            const rs = g('rest'); if (rs) { const m = rs.match(/(\d+(?:[.,]\d+)?)\s*(min\w*|m\b|')?/i); if (m) sc.rest = Math.round(num(m[1]) * (m[2] ? 60 : (num(m[1]) <= 6 ? 60 : 1))); }
+            const ws = g('w'); if (ws) { const m = ws.match(/(\d+(?:[.,]\d+)?)\s*(lbs?|kg)?/i); if (m) { sc.w = num(m[1]); sc.unit = (m[2] || '').toLowerCase().startsWith('l') ? 'lb' : 'kg'; } }
+            const s2 = scheme(cells.filter((c, i) => i !== headerMap.name).join(' '));
+            if (!sc.sets && s2.sets) { sc.sets = s2.sets; if (!sc.reps) sc.reps = s2.reps; } if (!sc.rest && s2.rest) sc.rest = s2.rest;
+            sc.has = !!(sc.sets || sc.reps); addItem(nm.replace(/^\d+[.)]?\s*/, ''), sc, line); continue;
+          }
+        }
+      }
+      // ---- pojedyncza seria ----
+      const sl = setLine(line);
+      if (sl && (pending || prev)) {
+        const kg = sl.unit === 'lb' ? sl.w / 2.2046 : sl.w;
+        if (pending) { addItem(pending.name, { has: true, sets: 1, reps: String(sl.r), w: sl.w, unit: sl.unit, note: [] }, pending.src); }
+        else if (prev.defaulted) { prev.defaulted = false; prev.sets = 1; prev.reps = String(sl.r); prev.w = kg; }
+        else { prev.sets += 1; const rs = (prev.reps.match(/\d+/g) || []).map(Number).concat(sl.r); prev.reps = Math.min(...rs) === Math.max(...rs) ? String(rs[0]) : Math.min(...rs) + '-' + Math.max(...rs); if (kg > prev.w) prev.w = kg; }
+        continue;
+      }
+      // ---- zwykła linia ----
+      const sc = scheme(line);
+      const name = sc.clean.replace(/^\d{1,2}[.)]?\s+(?=[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż])/, '').replace(/\(\s*\)/g, '').trim();
+      const letters = LETTERS(name);
+      if (sc.has && letters < 3) { // sama liczba serii/powtórzeń — dotyczy poprzedniej nazwy
+        if (pending) { const it = addItem(pending.name, sc, pending.src + ' ' + line); continue; }
+        if (prev && prev.defaulted) { prev.sets = sc.sets || prev.sets; prev.reps = sc.reps || prev.reps; prev.rest = sc.rest || prev.rest; if (sc.w) prev.w = sc.unit === 'lb' ? sc.w / 2.2046 : sc.w; prev.defaulted = false; }
+        continue;
+      }
+      if (sc.has && letters >= 3) { // nazwa + schemat w jednej linii
+        if (!day) newDay(null); addItem(name, sc, line); continue;
+      }
+      if (!sc.has && !sc.rest && !sc.w && sc.note.length === 0 && letters < 2) continue; // śmieci OCR
+      // brak schematu: nagłówek dnia, nazwa ćwiczenia (oczekująca) lub notatka
+      const cands = letters >= 3 ? F.matchExercise(name) : []; const top = cands[0]; const exLike = top && top.score >= 0.72;
+      const isCaps = letters >= 4 && name === name.toUpperCase() && !/\d{2,}/.test(name);
+      const isHead = !exLike && letters >= 2 && name.length <= 60 && (DAYRE.test(name) || WEEKDAY.test(name) || SPLIT.test(name) || /:\s*$/.test(lines[idx].trim()) || isCaps);
+      if (isHead) {
+        const h = name.replace(/:\s*$/, '').replace(/\s+/g, ' ').trim();
+        if (!plan.days.length && !firstSeen && !DAYRE.test(h) && !WEEKDAY.test(h) && !SPLIT.test(h) && !plan.name && /plan|program|cykl|split|mikrocykl|ppl|fbw/i.test(h)) { plan.name = h; firstSeen = true; continue; }
+        firstSeen = true; if (day && !day.items.length) { day.name = h; pending = null; } else newDay(h); continue;
+      }
+      if (!firstSeen && !plan.name && letters >= 3 && name.length <= 70 && !exLike) { plan.name = name.replace(/:\s*$/, ''); firstSeen = true; continue; }
+      firstSeen = true;
+      if (exLike || (letters >= 4 && lines[idx + 1] && scheme(lines[idx + 1]).has && LETTERS(scheme(lines[idx + 1]).clean) < 3)) { pending = { name, src: line }; if (!day) newDay(null); continue; }
+      if (letters >= 4 && prev && /^(?:tempo|uwaga|notatka|note|tip|wskaz|porada)/i.test(name)) { prev.note = (prev.note ? prev.note + '; ' : '') + name; continue; }
+      if (letters >= 4 && !hadMark && !prev && !pending && name.length < 50 && cands[0] && cands[0].score >= 0.5) { pending = { name, src: line }; if (!day) newDay(null); continue; }
+      if (letters >= 4 && hadMark) { pending = { name, src: line }; if (!day) newDay(null); }
+    }
+    // oczekująca nazwa bez schematu → dodaj z domyślnymi seriami
+    if (pending) addItem(pending.name, { has: false, note: [] }, pending.src);
+    plan.days = plan.days.filter(d => d.items.length);
+    // scal oczekujące elementy (nazwa bez schematu na końcu dnia już dodane przez addItem)
+    plan.days.forEach(d => { const seen = new Set(); d.items = d.items.filter(it => { const key = (it.exId || it.newName) + '|' + it.sets + '|' + it.reps; if (seen.has(key) && it.defaulted) return false; seen.add(key); return true; }); });
+    return plan;
+  };
+
+  /* ---------- CSV ---------- */
+  F.parseCSV = text => {
+    text = String(text || '').replace(/^﻿/, ''); const first = text.split('\n')[0] || ''; const cnt = c => (first.match(new RegExp(c === '\t' ? '\t' : '\\' + c, 'g')) || []).length;
+    const delim = [',', ';', '\t'].sort((a, b) => cnt(b) - cnt(a))[0]; const rows = []; let cur = [], f = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+      else if (ch === '"') q = true; else if (ch === delim) { cur.push(f); f = ''; } else if (ch === '\n') { cur.push(f.replace(/\r$/, '')); rows.push(cur); cur = []; f = ''; } else f += ch;
+    }
+    if (f || cur.length) { cur.push(f.replace(/\r$/, '')); rows.push(cur); }
+    return rows.filter(r => r.some(c => c.trim() !== ''));
+  };
+  const HCOL = {
+    date: ['date', 'data', 'start_time', 'start time', 'workout date', 'datetime', 'created'], wname: ['workout name', 'workout', 'nazwa treningu', 'title', 'routine', 'trening', 'workout title'],
+    ex: ['exercise name', 'exercise', 'exercise_title', 'cwiczenie', 'nazwa cwiczenia', 'movement'], w: ['weight', 'weight (kg)', 'weight_kg', 'ciezar', 'ciezar (kg)', 'weight (lbs)', 'weight_lbs', 'weight (lb)', 'obciazenie'],
+    r: ['reps', 'repetitions', 'powtorzenia', 'powt', 'rep'], ord: ['set order', 'set_index', 'set', 'seria', 'set number', 'set #'], sec: ['seconds', 'duration_seconds', 'time', 'czas (s)', 'sek'],
+    dur: ['duration', 'czas trwania', 'workout duration'], note: ['notes', 'notatki', 'exercise_notes', 'notatka', 'comment'], rpe: ['rpe'], stype: ['set_type', 'set type', 'typ serii'], end: ['end_time', 'end time']
+  };
+  F.isHistoryCSV = rows => { if (rows.length < 2) return false; const h = rows[0].map(c => F.norm(c)); const has = k => HCOL[k].some(x => h.includes(F.norm(x))); return has('ex') && has('r') && has('date'); };
+  const MONTH_EN = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 }, MONTH_PL = { sty: 0, lut: 1, mar: 2, kwi: 3, maj: 4, cze: 5, lip: 6, sie: 7, wrz: 8, paz: 9, lis: 10, gru: 11 };
+  F.parseDateLoose = s => {
+    s = String(s || '').trim(); if (!s) return NaN;
+    let m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/); if (m) return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 12), +(m[5] || 0), +(m[6] || 0)).getTime();
+    m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[ ,T]+(\d{1,2}):(\d{2}))?/); if (m) { let d = +m[1], mo = +m[2]; if (mo > 12 && d <= 12) [d, mo] = [mo, d]; return new Date(+m[3], mo - 1, d, +(m[4] || 12), +(m[5] || 0)).getTime(); }
+    m = s.match(/^(\d{1,2})\s+([A-Za-zżźćńółęąś]{3})[a-z.]*\s+(\d{4})(?:[ ,]+(\d{1,2}):(\d{2}))?/i); if (m) { const k = F.norm(m[2]); const mo = MONTH_EN[k] != null ? MONTH_EN[k] : MONTH_PL[k]; if (mo != null) return new Date(+m[3], mo, +m[1], +(m[4] || 12), +(m[5] || 0)).getTime(); }
+    const t = Date.parse(s); return isNaN(t) ? NaN : t;
+  };
+  // zwraca {sessions:[...], newEx:[...], stats}
+  F.parseHistoryRows = rows => {
+    const h = rows[0].map(c => F.norm(c)); const col = k => { for (const x of HCOL[k]) { const i = h.indexOf(F.norm(x)); if (i >= 0) return i; } return -1; };
+    const C = {}; Object.keys(HCOL).forEach(k => C[k] = col(k)); const lb = C.w >= 0 && /lb/.test(h[C.w]);
+    const groups = new Map(); const exMap = new Map(); const newEx = new Map(); let skipped = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i]; const ts = F.parseDateLoose(r[C.date]); const exn = (r[C.ex] || '').trim(); if (isNaN(ts) || !exn) { skipped++; continue; }
+      const wn = C.wname >= 0 ? (r[C.wname] || '').trim() : ''; const key = ts + '|' + wn; // różne daty z godziną → osobne treningi
+      const dayKey = C.date >= 0 && /\d{1,2}:\d{2}/.test(r[C.date]) ? key : F.dayKey(ts) + '|' + wn;
+      let g = groups.get(dayKey); if (!g) { g = { start: ts, name: wn || 'Trening', dur: 0, exercises: new Map() }; groups.set(dayKey, g); }
+      if (!exMap.has(exn)) { const c = F.matchExercise(exn)[0]; if (c && c.score >= 0.72) exMap.set(exn, c.ex.id); else { const nid = 'c_' + F.norm(exn).replace(/ /g, '_').slice(0, 40); exMap.set(exn, nid); if (!newEx.has(nid) && !F.S.ex.has(nid)) newEx.set(nid, { id: nid, name: exn, muscle: F.guessMuscle(exn), equip: 'Inne', type: 'wr', compound: false, alias: '', custom: true }); } }
+      const exId = exMap.get(exn); let e = g.exercises.get(exId); if (!e) { e = { exId, note: '', rest: 0, sets: [] }; g.exercises.set(exId, e); }
+      const wv = C.w >= 0 ? num(r[C.w]) || 0 : 0; const secs = C.sec >= 0 ? num(r[C.sec]) || 0 : 0; const reps = C.r >= 0 ? num(r[C.r]) || 0 : 0;
+      const st = C.stype >= 0 ? F.norm(r[C.stype]) : ''; const type = /warm|rozgrz/.test(st) ? 'w' : /drop/.test(st) ? 'd' : /fail|upad/.test(st) ? 'f' : 'n';
+      if (!wv && !reps && !secs) continue;
+      const exObj = F.S.ex.get(exId) || newEx.get(exId);
+      if (!reps && secs && exObj && exObj.type === 'wr' && !wv) { exObj.type = 'time'; }
+      e.sets.push({ w: lb ? wv / 2.2046226 : wv, r: reps || secs, t: type, rpe: C.rpe >= 0 ? (num(r[C.rpe]) || null) : null, done: true });
+      if (C.note >= 0 && r[C.note] && !e.note) e.note = r[C.note].trim();
+      if (C.dur >= 0 && !g.dur) { const d = String(r[C.dur] || ''); const mh = d.match(/(\d+)\s*h/i), mm = d.match(/(\d+)\s*m/i); g.dur = mh || mm ? ((mh ? +mh[1] : 0) * 3600 + (mm ? +mm[1] : 0) * 60) : (num(d) > 0 ? num(d) * (num(d) < 600 ? 60 : 1) : 0); }
+      if (C.end >= 0 && !g.dur && r[C.end]) { const te = F.parseDateLoose(r[C.end]); if (!isNaN(te) && te > ts) g.dur = Math.round((te - ts) / 1000); }
+    }
+    const sessions = [...groups.values()].map(g => ({ id: F.uid(), start: g.start, end: g.start + g.dur * 1000, dur: g.dur, name: g.name, planId: null, dayId: null, note: '', exercises: [...g.exercises.values()].filter(e => e.sets.length), prs: [] })).filter(s => s.exercises.length).sort((a, b) => a.start - b.start);
+    return { sessions, newEx: [...newEx.values()], skipped, sets: sessions.reduce((a, s) => a + s.exercises.reduce((x, e) => x + e.sets.length, 0), 0) };
+  };
+
+  // Przelicza rekordy (znaczniki PR) dla całej historii chronologicznie
+  F.recomputeAllPRs = async () => {
+    const idx = {}; const ordered = [...F.S.sessions].sort((a, b) => a.start - b.start);
+    for (const se of ordered) {
+      const prs = [];
+      se.exercises.forEach(e => {
+        const ex = F.S.ex.get(e.exId); if (!ex) return;
+        e.sets.forEach(s => { s.pr = null; if (!F.isWork(s)) return; const p = F.checkPR(idx, ex, s, se.start); F.addToIdx(idx, ex, s, se.start); if (p.length) { s.pr = p.map(x => x.k); const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fw(s.w)} ${F.unit()} × ${s.r}`; const rec = { exId: e.exId, k: p[0].k, label: p[0].label, text: txt }; const i = prs.findIndex(q => q.exId === e.exId); if (i >= 0) prs[i] = rec; else prs.push(rec); } });
+      });
+      se.prs = prs;
+    }
+    await F.dbPutMany('sessions', F.S.sessions); F.rebuild();
+  };
+})();
