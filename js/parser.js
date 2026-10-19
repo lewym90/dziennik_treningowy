@@ -69,7 +69,7 @@
     cut(/(?:przerwa|przerwy|odpoczynek|odp\.?|rest|r)\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*(min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|m\b|sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|s\b|'|")/i, m => { const v = num(m[1]), u = m[2].toLowerCase(); r.rest = Math.round(/^m/.test(u) || u === "'" ? v * 60 : v); })
       || cut(/(\d+(?:[.,]\d+)?)\s*(min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|s)\s*(?:przerwy|rest|odpoczynku|przerwa)/i, m => { const v = num(m[1]), u = m[2].toLowerCase(); r.rest = Math.round(/^m/.test(u) ? v * 60 : v); });
     // RPE
-    cut(/@\s*(\d+(?:[.,]\d)?)(?!\s*(?:kg|lb))|rpe\s*[:=]?\s*(\d+(?:[.,]\d)?)|rir\s*[:=]?\s*(\d)/i, m => { r.rpe = num(m[1] || m[2] || m[3]); r.note.push(m[3] ? 'RIR ' + m[3] : 'RPE ' + r.rpe); });
+    cut(/@\s*(\d+(?:[.,]\d)?)(?![\d.,])(?!\s*(?:kg|lb|kilo|funt))|rpe\s*[:=]?\s*(\d+(?:[.,]\d)?)|rir\s*[:=]?\s*(\d)/i, m => { r.rpe = num(m[1] || m[2] || m[3]); r.note.push(m[3] ? 'RIR ' + m[3] : 'RPE ' + r.rpe); });
     // % 1RM
     cut(/(\d{2,3})\s*%\s*(?:1\s*rm|rm|max[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*)?/i, m => { r.note.push(m[1] + '% 1RM'); });
     // ciężar
@@ -91,6 +91,9 @@
       }
     }
     if (cut(/\b(amrap|do upadku|do odmowy|do zalamania|max(?:imum)?|failure|to failure)\b/i, () => { r.amrap = true; })) { if (!r.reps) r.reps = 'AMRAP'; }
+    // przerwa zapisana samym czasem na końcu linii („4x8 90s”, „3x10 2 min”)
+    if ((r.sets || r.reps) && !r.time && !r.rest) cut(/(?:^|\s)(\d{2,3})\s*(?:s|sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*)(?=\s*$)/i, m => { if (+m[1] >= 20 && +m[1] <= 600) r.rest = +m[1]; else t += ' ' + m[0]; })
+      || cut(/(?:^|\s)(\d(?:[.,]\d)?)\s*(?:min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|')(?=\s*$)/i, m => { if (num(m[1]) <= 10) r.rest = Math.round(num(m[1]) * 60); else t += ' ' + m[0]; });
     r.clean = t.replace(/\s+/g, ' ').replace(/^[\s\-:;,.|/()x*@]+|[\s\-:;,.|/()x*@]+$/g, '').trim();
     r.has = !!(r.sets || r.reps);
     return r;
@@ -109,7 +112,7 @@
   /* ---------- główny parser ---------- */
   F.parsePlanText = (raw, opts = {}) => {
     const lines = cleanText(raw).split('\n').map(l => l.replace(/\s+$/g, '')).filter(l => l.trim());
-    const plan = { name: opts.name || '', days: [] }; let day = null, pending = null, prev = null, headerMap = null, firstSeen = false;
+    const plan = { name: opts.name || '', days: [] }; let day = null, pending = null, prev = null, headerMap = null, headerOrder = null, firstSeen = false;
     const newDay = name => { day = { id: F.uid(), name: name || 'Trening ' + (plan.days.length + 1), items: [] }; plan.days.push(day); pending = null; prev = null; };
     const addItem = (name, sc, src) => {
       if (!day) newDay(plan.days.length ? null : null);
@@ -124,6 +127,27 @@
       // numer strony / stopki
       if (/^(?:strona|page|str\.?)\s*\d+(?:\s*\/\s*\d+)?$/i.test(line) || /^\d+\s*\/\s*\d+$/.test(line)) continue;
       const hadMark = MARK.test(line); line = line.replace(MARK, '');
+      // ---- tabela ze spacjami zamiast kresek (typowe dla OCR): nagłówek „Ćwiczenie  Serie Powt. Przerwa” ----
+      if (/[|\t;]/.test(line)) { /* tabela z kreskami — obsługuje ją kod poniżej */ }
+      else if (!/\d/.test(line)) {
+        const keys = []; F.norm(line).split(/[\s|;\t]+/).forEach(w => { for (const k in TABLE_HEAD) if (k !== 'name' && TABLE_HEAD[k].test(w) && !keys.includes(k)) keys.push(k); });
+        if (keys.length >= 2 && LETTERS(line) < 60) { headerOrder = keys; headerMap = null; continue; }
+      } else if (headerOrder) {
+        const mt = line.match(/^(.*?[^\d\s|;])\s+((?:\d[\d.,\-\/]*\s*(?:sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|kg|lbs?|s\b|'|")?\s*){2,})$/i);
+        const nm0 = mt && mt[1].replace(/^\d+[.)]\s*/, '').trim();
+        if (mt && LETTERS(nm0) >= 3) {
+          const vals = mt[2].match(/\d[\d.,\-\/]*\s*(?:sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|kg|lbs?|s\b|'|")?/gi) || [];
+          const sc = { sets: 0, reps: '', rest: 0, w: 0, unit: '', note: [], time: false };
+          headerOrder.forEach((k, i) => {
+            const v = (vals[i] || '').trim(); if (!v) return; const n = num(v); const un = (v.match(/[a-ząćęłńóśźż'"]+$/i) || [''])[0].toLowerCase();
+            if (k === 'sets') sc.sets = Math.round(n) || 0;
+            else if (k === 'reps') { if (/^(s|sek|min)/.test(un) || un === '"') { sc.time = true; sc.reps = String(/^m/.test(un) ? Math.round(n * 60) : Math.round(n)); } else sc.reps = v.replace(/[^\d\-\/]/g, ''); }
+            else if (k === 'rest') sc.rest = Math.round(/^m/.test(un) || un === "'" ? n * 60 : (!un && n <= 6 ? n * 60 : n));
+            else if (k === 'w') { sc.w = n; sc.unit = /^l/.test(un) ? 'lb' : 'kg'; }
+          });
+          sc.has = !!(sc.sets || sc.reps); addItem(nm0, sc, line); continue;
+        }
+      }
       // ---- wiersz tabeli ----
       const cells = line.split(/\s*\|\s*|\t|;|\s{3,}/).map(c => c.trim()).filter(c => c !== '');
       if (cells.length >= 2 && /[|\t;]|\s{3,}/.test(line)) {

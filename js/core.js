@@ -139,6 +139,7 @@
   const addToIdx = (idx, ex, s, ts) => {
     const m = F.setMetrics(ex, s, ts);
     let p = idx[ex.id]; if (!p) p = idx[ex.id] = { w: 0, e1: 0, vol: 0, reps: 0, dur: 0, repAt: {}, byW: {}, ts: {} };
+    if (p.first == null || ts < p.first) p.first = ts;
     const hit = {};
     const up = (k, v) => { if (v > p[k]) { p[k] = v; p.ts[k] = ts; hit[k] = true; } };
     if (ex.type === 'time') { up('dur', m.dur); return hit; }
@@ -165,7 +166,7 @@
     if (!ex || !isWork(s) || (!s.r && ex.type !== 'time')) return [];
     const m = F.setMetrics(ex, s, ts);
     const p = workIdx[ex.id];
-    const hadAny = p && (p.w || p.reps || p.dur);
+    const hadAny = p && (p.w || p.reps || p.dur) && p.first < ts; // rekord liczy się dopiero względem wcześniejszych treningów
     const out = [];
     if (ex.type === 'time') { if (hadAny && m.dur > p.dur) out.push({ k: 'dur', label: 'Najdłuższy czas' }); }
     else if (ex.type === 'br') { if (hadAny && m.reps > p.reps) out.push({ k: 'reps', label: 'Rekord powtórzeń' }); }

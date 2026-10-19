@@ -18,14 +18,14 @@ F.TYPES = {
 // id, nazwa, partia, sprzęt, typ, złożone(1/0), aliasy (PL/EN, oddzielone średnikiem)
 F.SEED = [
   // KLATKA
-  ['bench', 'Wyciskanie sztangi leżąc', 'chest', 'Sztanga', 'wr', 1, 'bench press;wyciskanie leżąc;wyciskanie na ławce;wyciskanie sztangi na ławce płaskiej;flat bench;wyciskanie lezac;klata'],
+  ['bench', 'Wyciskanie sztangi leżąc', 'chest', 'Sztanga', 'wr', 1, 'bench press;wyciskanie leżąc;wyciskanie na ławce;wyciskanie sztangi na ławce płaskiej;flat bench;wyciskanie lezac;klata;wyciskanie;wyciskanie sztangi;wyciskanie na klatę;wyciskanie klatka'],
   ['bench_inc', 'Wyciskanie sztangi na skosie dodatnim', 'chest', 'Sztanga', 'wr', 1, 'incline bench press;wyciskanie skos;wyciskanie na ławce skośnej;skos dodatni;incline barbell'],
   ['bench_dec', 'Wyciskanie sztangi na skosie ujemnym', 'chest', 'Sztanga', 'wr', 1, 'decline bench press;skos ujemny'],
   ['db_bench', 'Wyciskanie hantli leżąc', 'chest', 'Hantle', 'wr', 1, 'dumbbell bench press;wyciskanie hantli na ławce;wyciskanie hantli płasko;db bench'],
   ['db_inc', 'Wyciskanie hantli na skosie dodatnim', 'chest', 'Hantle', 'wr', 1, 'incline dumbbell press;wyciskanie hantli skos;db incline'],
   ['chest_mach', 'Wyciskanie na maszynie (klatka)', 'chest', 'Maszyna', 'wr', 1, 'chest press machine;maszyna na klatkę;wyciskanie na suwnicy poziomej;chest press'],
   ['fly_db', 'Rozpiętki z hantlami', 'chest', 'Hantle', 'wr', 0, 'dumbbell fly;rozpiętki;rozpietki;dumbbell flyes'],
-  ['fly_cable', 'Rozpiętki na wyciągach (bramka)', 'chest', 'Wyciąg', 'wr', 0, 'cable crossover;cable fly;bramka;krzyżowanie linek;wyciągi bramka'],
+  ['fly_cable', 'Rozpiętki na wyciągach (bramka)', 'chest', 'Wyciąg', 'wr', 0, 'cable crossover;cable fly;bramka;brama;rozpiętki na bramie;rozpietki na bramie;rozpiętki na wyciągu;bramy;krzyżowanie linek;wyciągi bramka'],
   ['pec_deck', 'Butterfly (maszyna)', 'chest', 'Maszyna', 'wr', 0, 'pec deck;peck deck;rozpiętki na maszynie;butterfly'],
   ['dips', 'Dipy na poręczach', 'triceps', 'Masa ciała', 'bwr', 1, 'dips;pompki na poręczach;dip;poręcze;parallel bar dips'],
   ['pushup', 'Pompki', 'chest', 'Masa ciała', 'br', 1, 'push up;pushups;push-up;pompka'],
@@ -49,7 +49,7 @@ F.SEED = [
   ['ohp', 'Wyciskanie żołnierskie (OHP)', 'shoulders', 'Sztanga', 'wr', 1, 'overhead press;ohp;military press;wyciskanie sztangi nad głowę;żołnierskie;wyciskanie sztangi stojąc;shoulder press;wyciskanie zolnierskie'],
   ['db_ohp', 'Wyciskanie hantli nad głowę', 'shoulders', 'Hantle', 'wr', 1, 'dumbbell shoulder press;wyciskanie hantli siedząc;dumbbell overhead press;wyciskanie hantli na barki'],
   ['arnold', 'Wyciskanie Arnolda', 'shoulders', 'Hantle', 'wr', 1, 'arnold press;arnoldki'],
-  ['lateral', 'Wznosy hantli bokiem', 'shoulders', 'Hantle', 'wr', 0, 'lateral raise;side raise;unoszenie hantli bokiem;wznosy bokiem;lateral raises;odwodzenie ramion w bok'],
+  ['lateral', 'Wznosy hantli bokiem', 'shoulders', 'Hantle', 'wr', 0, 'lateral raise;side raise;unoszenie hantli bokiem;wznosy bokiem;lateral raises;odwodzenie ramion w bok;barki boczne;boczne barki;boczny akton;unoszenie bokiem'],
   ['lateral_c', 'Wznosy bokiem na wyciągu', 'shoulders', 'Wyciąg', 'wr', 0, 'cable lateral raise;wznosy na wyciągu bokiem'],
   ['front_raise', 'Wznosy hantli przodem', 'shoulders', 'Hantle', 'wr', 0, 'front raise;unoszenie hantli przodem;wznosy przodem'],
   ['rear_fly', 'Odwrotne rozpiętki (tylny akton)', 'shoulders', 'Hantle', 'wr', 0, 'reverse fly;rear delt fly;rozpiętki tył;wznosy w opadzie;tylny akton;rear delts;reverse pec deck'],
@@ -67,7 +67,7 @@ F.SEED = [
   ['curl_con', 'Uginanie koncentryczne', 'biceps', 'Hantle', 'wr', 0, 'concentration curl'],
   // TRICEPS
   ['tri_push', 'Prostowanie ramion na wyciągu (drążek)', 'triceps', 'Wyciąg', 'wr', 0, 'triceps pushdown;pushdown;prostowanie na wyciągu;prostowanie ramion na wyciągu górnym;triceps pressdown;pushdown triceps'],
-  ['tri_rope', 'Prostowanie ramion z liną', 'triceps', 'Wyciąg', 'wr', 0, 'rope pushdown;rope triceps extension;prostowanie z liną;prostowanie na linie'],
+  ['tri_rope', 'Prostowanie ramion z liną', 'triceps', 'Wyciąg', 'wr', 0, 'rope pushdown;rope triceps extension;prostowanie z liną;prostowanie na linie;triceps linka;triceps lina;linka triceps;tricepsy na linie;pushdown linka'],
   ['skull', 'Wyciskanie francuskie', 'triceps', 'Sztanga', 'wr', 0, 'skull crusher;french press;francuz;wyciskanie francuskie leżąc;skullcrusher;lying triceps extension'],
   ['tri_over', 'Prostowanie ramienia zza głowy', 'triceps', 'Hantle', 'wr', 0, 'overhead triceps extension;french press hantla;wyciskanie francuskie hantlą;prostowanie ramion nad głową;triceps extension'],
   ['cgbp', 'Wyciskanie wąskim chwytem', 'triceps', 'Sztanga', 'wr', 1, 'close grip bench press;wąski chwyt;cgbp;wyciskanie sztangi wąsko;close-grip bench'],
@@ -80,7 +80,7 @@ F.SEED = [
   ['crunch', 'Spięcia brzucha', 'abs', 'Masa ciała', 'br', 0, 'crunch;crunches;brzuszki;spinanie brzucha;skłony'],
   ['sit_up', 'Brzuszki (sit-up)', 'abs', 'Masa ciała', 'br', 0, 'sit up;situp;sit-ups'],
   ['leg_raise', 'Unoszenie nóg w zwisie', 'abs', 'Drążek', 'br', 0, 'hanging leg raise;unoszenie nóg;leg raise;knee raise;unoszenie kolan w zwisie'],
-  ['cab_crunch', 'Spięcia brzucha na wyciągu', 'abs', 'Wyciąg', 'wr', 0, 'cable crunch;kneeling cable crunch;brzuszki na wyciągu'],
+  ['cab_crunch', 'Spięcia brzucha na wyciągu', 'abs', 'Wyciąg', 'wr', 0, 'cable crunch;kneeling cable crunch;brzuszki na wyciągu;allahy;allah;klęczące spięcia na wyciągu;skłony na wyciągu'],
   ['ab_wheel', 'Kółko do brzucha', 'abs', 'Inne', 'br', 0, 'ab wheel;ab roller;rollout;roller;kółko'],
   ['plank', 'Plank (deska)', 'abs', 'Masa ciała', 'time', 0, 'plank;deska;podpór przodem'],
   ['side_plank', 'Plank boczny', 'abs', 'Masa ciała', 'time', 0, 'side plank;deska boczna'],
