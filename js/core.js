@@ -5,14 +5,14 @@
   F.uid = uid;
 
   /* ---------- BAZA ---------- */
-  const DB_NAME = 'forge-db', STORES = ['exercises', 'plans', 'sessions', 'bodyweight', 'kv'];
+  const DB_NAME = 'forge-db', STORES = ['exercises', 'plans', 'sessions', 'bodyweight', 'kv', 'measures', 'photos'];
   let idb = null, memOnly = false;
   const mem = {}; STORES.forEach(s => mem[s] = new Map());
 
   F.dbOpen = () => new Promise(res => {
     if (!('indexedDB' in window)) { memOnly = true; return res(); }
     let req;
-    try { req = indexedDB.open(DB_NAME, 1); } catch (e) { memOnly = true; return res(); }
+    try { req = indexedDB.open(DB_NAME, 2); } catch (e) { memOnly = true; return res(); }
     req.onupgradeneeded = () => { const d = req.result; STORES.forEach(s => { if (!d.objectStoreNames.contains(s)) d.createObjectStore(s, { keyPath: 'id' }); }); };
     req.onsuccess = () => { idb = req.result; res(); };
     req.onerror = () => { memOnly = true; res(); };
@@ -46,11 +46,11 @@
   /* ---------- STAN ---------- */
   // polska odmiana liczebników: 1 trening, 2–4 treningi, 5+ treningów
   F.plur = (n, one, few, many) => { n = Math.abs(Math.round(n)); const l = n % 10, t = n % 100; return n === 1 ? one : (l >= 2 && l <= 4 && !(t >= 12 && t <= 14)) ? few : many; };
-  F.S = { ex: new Map(), plans: [], sessions: [], bw: [], settings: { ...F.DEFAULT_SETTINGS }, draft: null };
+  F.S = { ex: new Map(), plans: [], sessions: [], bw: [], measures: [], settings: { ...F.DEFAULT_SETTINGS }, draft: null };
 
   F.load = async () => {
     await F.dbOpen();
-    const [ex, plans, sessions, bw, set, draft] = await Promise.all([F.dbAll('exercises'), F.dbAll('plans'), F.dbAll('sessions'), F.dbAll('bodyweight'), F.kvGet('settings'), F.kvGet('draft')]);
+    const [ex, plans, sessions, bw, set, draft, meas] = await Promise.all([F.dbAll('exercises'), F.dbAll('plans'), F.dbAll('sessions'), F.dbAll('bodyweight'), F.kvGet('settings'), F.kvGet('draft'), F.dbAll('measures')]);
     const first = ex.length === 0 && (await F.kvGet('seeded')) !== true;
     if (first) {
       const seeds = F.SEED.map(s => ({ id: s[0], name: s[1], muscle: s[2], equip: s[3], type: s[4], compound: !!s[5], alias: s[6] || '', custom: false }));
@@ -67,6 +67,7 @@
     F.S.plans = plans.sort((a, b) => (a.order || 0) - (b.order || 0) || a.created - b.created);
     F.S.sessions = sessions.sort((a, b) => b.start - a.start);
     F.S.bw = bw.sort((a, b) => a.date - b.date);
+    F.S.measures = (meas || []).sort((a, b) => a.date - b.date);
     F.S.settings = { ...F.DEFAULT_SETTINGS, ...(set || {}) };
     F.S.draft = draft || null;
     F.rebuild();
@@ -248,18 +249,67 @@
   };
 
   /* ---------- PROGRESJA (sugestia następnego celu) ---------- */
-  F.suggest = (exId, targetReps) => {
-    const ex = F.S.ex.get(exId); const last = F.LAST[exId]; if (!ex || !last) return null;
-    if (ex.type === 'time') { const mx = Math.max(...last.sets.map(s => s.r || 0)); return { w: 0, r: mx + 5, note: 'Dołóż 5 s' }; }
-    const sets = last.sets.filter(s => s.t !== 'd'); if (!sets.length) return null;
-    const top = sets.reduce((a, s) => (s.w || 0) >= (a.w || 0) ? s : a, sets[0]);
-    if (ex.type === 'br') return { w: 0, r: (top.r || 0) + 1, note: '+1 powtórzenie' };
+  const roundTo = (v, st) => Math.round(v / st) * st;
+  F.stepFor = ex => (ex && ex.compound && (ex.muscle === 'quads' || ex.muscle === 'hams' || ex.muscle === 'glutes' || ex.id === 'deadlift')) ? Math.max(F.S.settings.step * 2, 5) : F.S.settings.step;
+  F.deloadOn = () => (F.S.settings.deloadUntil || 0) > Date.now();
+  // opts: { mode: 'auto'|'linear'|'off', inc: kg, pct: % 1RM }
+  F.suggest = (exId, targetReps, opts = {}) => {
+    const ex = F.S.ex.get(exId); const last = F.LAST[exId]; if (!ex) return null;
     let hi = 0, lo = 0;
     if (targetReps) { const m = String(targetReps).match(/(\d+)(?:\s*[-–]\s*(\d+))?/); if (m) { lo = +m[1]; hi = +(m[2] || m[1]); } }
-    const incr = (ex.muscle === 'quads' || ex.muscle === 'hams' || ex.muscle === 'glutes' || ex.id === 'deadlift') && ex.compound ? Math.max(F.S.settings.step * 2, 5) : F.S.settings.step;
+    const mode = opts.mode || 'auto';
+    const dl = F.deloadOn();
+    const dlw = w => dl ? Math.max(0, roundTo(w * 0.9, F.S.settings.step)) : w;
+    if (!last) {
+      // brak historii: ewentualnie % 1RM z innych źródeł nie istnieje — zwracamy null
+      return null;
+    }
+    if (ex.type === 'time') { const mx = Math.max(...last.sets.map(s => s.r || 0)); return dl ? { w: 0, r: mx, note: 'Deload: bez progresji' } : { w: 0, r: mx + 5, note: 'Dołóż 5 s' }; }
+    const sets = last.sets.filter(s => s.t !== 'd'); if (!sets.length) return null;
+    const top = sets.reduce((a, s) => (s.w || 0) >= (a.w || 0) ? s : a, sets[0]);
+    if (ex.type === 'br') return dl ? { w: 0, r: top.r || 0, note: 'Deload: utrzymaj' } : { w: 0, r: (top.r || 0) + 1, note: '+1 powtórzenie' };
+    const incr = opts.inc > 0 ? opts.inc : F.stepFor(ex);
+    // % 1RM z planu
+    if (opts.pct > 0) {
+      const p = F.PR[exId]; const base = p && p.e1;
+      if (base) { const w = Math.max(0, roundTo(base * opts.pct / 100, F.S.settings.step)); return { w: dlw(w), r: lo || top.r, note: `${opts.pct}% 1RM (≈ ${F.fw(base)} ${F.unit()})`, pct: true }; }
+    }
+    if (mode === 'off') return { w: dlw(top.w), r: top.r, note: 'Bez automatycznej progresji', off: true };
+    const st = F.stagnation(exId);
+    if (dl) return { w: dlw(top.w), r: lo || top.r, note: 'Tydzień deload: −10% ciężaru' };
+    if (st && st.stuck >= 2) return { w: Math.max(0, roundTo(top.w * 0.9, F.S.settings.step)), r: lo || top.r, note: `Stagnacja (${st.n} tr. bez postępu) — zbij ciężar o 10% i wejdź od nowa`, stag: true };
+    if (mode === 'linear') {
+      // liniowa: cały zestaw na dolnej granicy powtórzeń → dodaj ciężar; przy dwóch porażkach pod rząd −10%
+      const need = lo || hi || top.r; const topSets = sets.filter(s => s.w === top.w); const ok = topSets.length && topSets.every(s => (s.r || 0) >= need);
+      if (ok) return { w: top.w + incr, r: need, note: `Liniowo +${F.fmtNum(F.toDisp(incr), 2)} ${F.unit()}` };
+      return { w: top.w, r: need, note: 'Powtórz ciężar — domknij wszystkie serie' };
+    }
     const allHit = hi && sets.filter(s => s.w === top.w).every(s => (s.r || 0) >= hi);
     if (allHit) return { w: top.w + incr, r: lo || top.r, note: 'Dołóż ciężar' };
     return { w: top.w, r: Math.min((top.r || 0) + 1, hi || 99), note: 'Spróbuj +1 powtórzenie' };
+  };
+  // wykrywanie stagnacji: ile ostatnich treningów bez poprawy względem najlepszego e1RM z wcześniejszych
+  F.stagnation = exId => {
+    const ex = F.S.ex.get(exId); if (!ex || ex.type === 'time' || ex.type === 'br') return null;
+    const h = F.exHistory(exId); if (h.length < 4) return null;
+    const key = h.some(x => x.e1) ? 'e1' : 'reps';
+    let bestBefore = 0, bestIdx = -1; h.forEach((x, i) => { if (x[key] > bestBefore + 0.001) { bestBefore = x[key]; bestIdx = i; } });
+    const stuck = h.length - 1 - bestIdx; // ile treningów od ostatniej poprawy
+    return { n: h.length, stuck, since: h[bestIdx] ? h[bestIdx].ts : 0, best: bestBefore, key };
+  };
+  F.stagnating = () => {
+    const out = []; Object.keys(F.PR).forEach(id => { const ex = F.S.ex.get(id); if (!ex || !ex.compound) return; const st = F.stagnation(id); if (st && st.stuck >= 3) out.push({ exId: id, ...st }); });
+    return out.sort((a, b) => b.stuck - a.stuck);
+  };
+  F.deloadAdvice = () => {
+    const sess = F.S.sessions; if (sess.length < 6) return null;
+    if (F.deloadOn()) return null;
+    const st = F.stagnating(); const lastDl = F.S.settings.lastDeload || 0;
+    const weeksSince = (Date.now() - Math.max(lastDl, sess[sess.length - 1].start)) / (7 * 864e5);
+    const wk = F.weekCounts(8).filter(w => w.count > 0).length;
+    if (st.length >= 2) return { why: `Stagnacja w ${st.length} ćwiczeniach wielostawowych`, st };
+    if (weeksSince >= 8 && wk >= 7) return { why: `Trenujesz regularnie od ${Math.floor(weeksSince)} tygodni bez lżejszego tygodnia`, st };
+    return null;
   };
 
   /* ---------- OSIĄGNIĘCIA ---------- */
@@ -301,8 +351,9 @@
   /* ---------- EKSPORT / IMPORT DANYCH ---------- */
   F.exportAll = () => ({
     app: 'FORGE', version: 1, exported: new Date().toISOString(),
-    settings: F.S.settings, exercises: [...F.S.ex.values()], plans: F.S.plans, sessions: F.S.sessions, bodyweight: F.S.bw
+    settings: F.S.settings, exercises: [...F.S.ex.values()], plans: F.S.plans, sessions: F.S.sessions, bodyweight: F.S.bw, measures: F.S.measures
   });
+  F.exportFull = async (withPhotos = true) => { const o = F.exportAll(); o.version = 2; if (withPhotos) o.photos = await F.dbAll('photos'); return o; };
   F.exportCSV = () => {
     const rows = [['Data', 'Nazwa treningu', 'Czas trwania (min)', 'Ćwiczenie', 'Partia', 'Seria', 'Typ serii', 'Ciężar (kg)', 'Powtórzenia / sekundy', 'RPE', 'Notatka']];
     const esc = v => { v = v == null ? '' : String(v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
@@ -314,14 +365,15 @@
   };
   F.importAll = async (data, mode) => { // mode: 'merge' | 'replace'
     if (!data || data.app !== 'FORGE') throw new Error('To nie jest kopia zapasowa FORGE.');
-    if (mode === 'replace') { for (const s of ['exercises', 'plans', 'sessions', 'bodyweight']) await F.dbClear(s); await F.kvSet('seeded', true); }
+    if (mode === 'replace') { for (const s of ['exercises', 'plans', 'sessions', 'bodyweight', 'measures']) await F.dbClear(s); if (data.photos) await F.dbClear('photos'); await F.kvSet('seeded', true); }
     const put = async (store, arr) => { if (arr && arr.length) await F.dbPutMany(store, arr); };
-    await put('exercises', data.exercises); await put('plans', data.plans); await put('sessions', data.sessions); await put('bodyweight', data.bodyweight);
+    await put('exercises', data.exercises); await put('plans', data.plans); await put('sessions', data.sessions); await put('bodyweight', data.bodyweight); await put('measures', data.measures); await put('photos', data.photos);
     if (data.settings && mode === 'replace') { F.S.settings = { ...F.DEFAULT_SETTINGS, ...data.settings }; await F.saveSettings(); }
-    const [ex, plans, sessions, bw] = await Promise.all([F.dbAll('exercises'), F.dbAll('plans'), F.dbAll('sessions'), F.dbAll('bodyweight')]);
+    const [ex, plans, sessions, bw, meas] = await Promise.all([F.dbAll('exercises'), F.dbAll('plans'), F.dbAll('sessions'), F.dbAll('bodyweight'), F.dbAll('measures')]); F.S.measures = meas.sort((a, b) => a.date - b.date);
     F.S.ex = new Map(ex.map(e => [e.id, e])); F.S.plans = plans.sort((a, b) => (a.order || 0) - (b.order || 0) || a.created - b.created);
     F.S.sessions = sessions.sort((a, b) => b.start - a.start); F.S.bw = bw.sort((a, b) => a.date - b.date); F.rebuild();
-    return { sessions: (data.sessions || []).length, plans: (data.plans || []).length };
+    if (F.ui) F.ui.photos = null;
+    return { sessions: (data.sessions || []).length, plans: (data.plans || []).length, photos: (data.photos || []).length };
   };
-  F.wipe = async () => { for (const s of STORES) await F.dbClear(s); F.S = { ex: new Map(), plans: [], sessions: [], bw: [], settings: { ...F.DEFAULT_SETTINGS }, draft: null }; };
+  F.wipe = async () => { for (const s of STORES) await F.dbClear(s); F.S = { ex: new Map(), plans: [], sessions: [], bw: [], measures: [], settings: { ...F.DEFAULT_SETTINGS }, draft: null }; };
 })();

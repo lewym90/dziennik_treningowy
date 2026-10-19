@@ -42,8 +42,8 @@
   F.act.exportSheet = () => {
     F.sheet(`<div class="menu"><button data-a="expJson">${ic('file-json', 20)}<span>Pełna kopia zapasowa (JSON)<small>Wszystko: historia, plany, ćwiczenia, ustawienia</small></span></button><button data-a="expCsv">${ic('file-spreadsheet', 20)}<span>Historia treningów (CSV)<small>Do Excela, Arkuszy Google lub innych aplikacji</small></span></button><button data-a="expRestore">${ic('upload', 20)}<span>Przywróć z kopii<small>Wczytaj plik JSON wygenerowany przez FORGE</small></span></button></div>`, { title: 'Eksport i kopie' });
   };
-  F.doBackup = async () => {
-    const stamp = F.dateInput(Date.now()); const json = JSON.stringify(F.exportAll());
+  F.doBackup = async withPhotos => {
+    const stamp = F.dateInput(Date.now()); const json = JSON.stringify(await F.exportFull(withPhotos !== false));
     const file = new File([json], `forge-backup-${stamp}.json`, { type: 'application/json' });
     try { if (navigator.canShare && navigator.canShare({ files: [file] }) && F.isStandalone()) { await navigator.share({ files: [file], title: 'Kopia FORGE' }); } else F.download(file.name, file); }
     catch (e) { if (e && e.name === 'AbortError') return; F.download(file.name, file); }
@@ -65,6 +65,7 @@
     const s = F.S.sessions.find(x => x.id === id); if (!s) return { html: F.head('Trening', { back: 1 }) + F.empty('history', 'Nie znaleziono treningu', 'Ten trening został usunięty.') };
     const edit = F.ui.sessEdit === id; const vol = F.sessionVolume(s);
     const prMap = new Set((s.prs || []).map(p => p.exId));
+    const sinf = F.ssInfo(s.exercises);
     const blocks = s.exercises.map((e, ei) => {
       const ex = exOf(e.exId); const isT = ex && ex.type === 'time', isB = ex && ex.type === 'br'; let n = 0;
       const rows = e.sets.map((x, si) => {
@@ -74,7 +75,7 @@
         return `<div class="ser ${x.t === 'w' ? 'warm' : ''}"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><b>${setTxt(ex, x)}</b>${x.t && x.t !== 'n' ? `<em class="tag">${stype[x.t]}</em>` : ''}${x.rpe ? `<em class="tag">RPE ${x.rpe}</em>` : ''}${x.pr && x.pr.length ? `<span class="prb sm">${ic('trophy', 12)} PR</span>` : ''}<span class="e1">${e1 ? '1RM ≈ ' + F.fw(e1) : ''}</span></div>`;
       }).join('');
       if (!rows.trim() && !edit) return '';
-      return `<section class="card cut xblk"><div class="xb-h"><a href="#/ex/${E(e.exId)}">${F.mDot(ex && ex.muscle)}<h3>${E(ex ? ex.name : 'Usunięte ćwiczenie')}</h3></a>${prMap.has(e.exId) ? `<span class="prb">${ic('trophy', 14)}</span>` : ''}</div>${rows}${edit ? `<button class="btn ghost sm" data-a="seAdd" data-ei="${ei}">${ic('plus', 15)} Dodaj serię</button>` : ''}${e.note ? `<p class="note">${ic('notebook-pen', 14)} ${E(e.note)}</p>` : ''}</section>`;
+      return `<section class="card cut xblk"><div class="xb-h"><a href="#/ex/${E(e.exId)}">${sinf[ei] ? `<span class="ss-tag">${sinf[ei].tag}</span>` : F.mDot(ex && ex.muscle)}<h3>${E(ex ? ex.name : 'Usunięte ćwiczenie')}</h3></a>${prMap.has(e.exId) ? `<span class="prb">${ic('trophy', 14)}</span>` : ''}</div>${rows}${edit ? `<button class="btn ghost sm" data-a="seAdd" data-ei="${ei}">${ic('plus', 15)} Dodaj serię</button>` : ''}${e.note ? `<p class="note">${ic('notebook-pen', 14)} ${E(e.note)}</p>` : ''}</section>`;
     }).join('');
     return {
       html: `${F.head(edit ? 'Edycja treningu' : E(s.name || 'Trening'), { back: 1, sub: `${F.fmtDateLong(s.start)} · ${F.fmtTime(s.start)}`, right: edit ? `<button class="btn sm primary" data-a="sessDone">${ic('check', 16)} Gotowe</button>` : `<button class="ibtn" data-a="sessMenu" data-id="${s.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
@@ -107,11 +108,11 @@
   /* ================= POSTĘPY ================= */
   V.stats = () => {
     const tab = F.ui.statTab; const t = F.totals();
-    const tabs = [['over', 'Przegląd'], ['prs', 'Rekordy'], ['body', 'Ciało']];
+    const tabs = [['over', 'Przegląd'], ['mus', 'Mięśnie'], ['str', 'Siła'], ['prs', 'Rekordy'], ['body', 'Ciało']];
     let body = '';
-    if (!t.count && tab !== 'body') body = F.empty('chart-line', 'Brak danych do analizy', 'Zrób pierwszy trening. Wykresy, rekordy i rangi ruszą od razu.');
-    else if (tab === 'over') body = statsOver(t); else if (tab === 'prs') body = statsPR(); else body = statsBody();
-    return { html: `${F.head('Postępy', { sub: 'Liczby nie kłamią' })}<div class="seg big">${tabs.map(x => `<button class="${x[0] === tab ? 'on' : ''}" data-a="statTab" data-t="${x[0]}">${x[1]}</button>`).join('')}</div>${body}`, after: root => F.chart.bindTips(root) };
+    if (!t.count && tab !== 'body' && tab !== 'str') body = F.empty('chart-line', 'Brak danych do analizy', 'Zrób pierwszy trening. Wykresy, rekordy i rangi ruszą od razu.');
+    else if (tab === 'over') body = statsOver(t); else if (tab === 'mus') body = F.statsMuscles(); else if (tab === 'str') body = F.statsStrength(); else if (tab === 'prs') body = statsPR(); else body = F.statsBody();
+    return { html: `${F.head('Postępy', { sub: 'Liczby nie kłamią' })}<div class="seg big five">${tabs.map(x => `<button class="${x[0] === tab ? 'on' : ''}" data-a="statTab" data-t="${x[0]}">${x[1]}</button>`).join('')}</div>${body}`, after: root => F.chart.bindTips(root) };
   };
   F.act.statTab = b => { F.ui.statTab = b.dataset.t; F.render(true); };
   function statsOver(t) {
@@ -123,6 +124,7 @@
     <section class="card cut"><h3>Tonaż tygodniowy</h3>${F.chart.bars(wk.map((w, i) => ({ label: F.fmtDateShort(w.start).split(' ')[0] + '.' + String(new Date(w.start).getMonth() + 1).padStart(2, '0'), value: w.vol, tip: `Tydzień od ${F.fmtDate(w.start)}: ${F.fmtVol(w.vol)}`, hl: i === wk.length - 1 })), { labelEvery: 3 })}</section>
     <section class="card cut"><h3>Treningi w tygodniu <small class="dim">cel ${F.S.settings.weeklyGoal}</small></h3>${F.chart.bars(wk.map((w, i) => ({ label: F.fmtDateShort(w.start).split(' ')[0], value: w.count, tip: `Tydzień od ${F.fmtDate(w.start)}: ${w.count} tr.`, hl: i === wk.length - 1 })), { labelEvery: 3, values: it => it.value })}</section>
     <section class="card cut"><h3>Podział partii <small class="dim">ostatnie 30 dni</small></h3>${mus.length ? F.chart.hbars(mus) : '<p class="dim">Brak treningów w ostatnich 30 dniach.</p>'}</section>
+    ${F.progressHtml()}
     <section class="card cut rank"><div class="rank-top"><div><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Do rangi ${rk.next}: ${F.fmtNum(rk.toNext, 0)} XP` : 'Maksymalna ranga.'} XP zdobywasz za tonaż, serie, treningi i rekordy.</p></section>
     <h3 class="sec">Osiągnięcia <small class="dim">${ach.filter(a => a.done).length}/${ach.length}</small></h3>
     <div class="badges">${ach.map(a => `<div class="badge cut ${a.done ? 'done' : ''}">${ic(a.icon, 26)}<b>${E(a.name)}</b><small>${E(a.desc)}</small>${a.done ? '' : `<div class="bar sm"><i style="width:${(a.cur / a.goal * 100).toFixed(0)}%"></i></div>`}</div>`).join('')}</div>
@@ -148,6 +150,7 @@
     <section class="card cut"><h3>Trend wagi</h3>${F.chart.line(pts, { w: 340, h: 200 })}</section>
     ${bw.length ? `<h3 class="sec">Wpisy</h3><div class="hlist">${[...bw].reverse().slice(0, 30).map(b => `<div class="hrow"><span class="hd">${F.fmtDate(b.date)}</span><span class="hs"><b>${F.fwu(b.kg)}</b></span><button class="ibtn" data-a="bwDel" data-id="${b.id}" aria-label="Usuń">${ic('x', 16)}</button></div>`).join('')}</div>` : ''}`;
   }
+  F.statsWeight = statsBody;
   F.act.bwAdd = async () => { const v = parseFloat(F.$('#bw-v').value.replace(',', '.')); if (!v || v < 20 || v > 400) { F.toast('Podaj poprawną wagę'); return; } const d = F.$('#bw-d').value.split('-').map(Number); await F.addBW(F.fromDisp(v), new Date(d[0], d[1] - 1, d[2], 8).getTime()); F.rebuild(); F.toast('Zapisano wagę', 'hot'); F.render(true); };
   F.act.bwDel = async b => { await F.delBW(b.dataset.id); F.rebuild(); F.render(true); };
 
@@ -160,6 +163,7 @@
       <section class="card cut tool"><h3>${ic('timer', 20)} Stoper przerw</h3><div class="rest-big" id="t-rest">${restBlock()}</div></section>
       <section class="card cut tool"><h3>${ic('weight', 20)} Kalkulator talerzy</h3><div class="two"><label class="fld"><span>Ciężar docelowy (${F.unit()})</span><input data-b="tplate" inputmode="decimal" value="${E(T.plate)}" placeholder="100"></label><label class="fld"><span>Gryf (${F.unit()})</span><input data-b="tbar" inputmode="decimal" value="${F.fw(s.bar).replace(',', '.')}"></label></div><div id="t-plate">${pc}</div></section>
       <section class="card cut tool"><h3>${ic('percent', 20)} Kalkulator 1RM</h3><div class="two"><label class="fld"><span>Ciężar (${F.unit()})</span><input data-b="tone" data-f="w" inputmode="decimal" value="${E(T.oneW)}" placeholder="100"></label><label class="fld"><span>Powtórzenia</span><input data-b="tone" data-f="r" inputmode="numeric" value="${E(T.oneR)}" placeholder="5"></label></div><div id="t-one">${oneRM()}</div></section>
+      <section class="card cut tool"><h3>${ic('trophy', 20)} Planer podejść na zawodach</h3><div id="t-comp">${F.compHtml()}</div></section>
       <section class="card cut tool"><h3>${ic('flame', 20)} Rozgrzewka</h3><label class="fld"><span>Ciężar roboczy (${F.unit()})</span><input data-b="twarm" inputmode="decimal" value="${E(T.warm)}" placeholder="120"></label><div id="t-warm">${warmup()}</div></section>`
     };
   };
@@ -207,23 +211,26 @@
       <section class="card cut"><label class="fld"><span>Twoje imię (na ekranie startowym)</span><input data-b="set" data-k="name" value="${E(s.name)}" maxlength="24" placeholder="np. Kasia"></label><div class="rank-mini">${ic('crown', 18)} Ranga <b>${rk.name}</b> · ${F.fmtNum(rk.xp, 0)} XP</div></section>
       <h3 class="sec">Trening</h3><section class="card cut list">
         <div class="stp"><span><b>Jednostki</b></span><div class="seg tiny"><button class="${s.unit === 'kg' ? 'on' : ''}" data-a="setUnit" data-u="kg">kg</button><button class="${s.unit === 'lb' ? 'on' : ''}" data-a="setUnit" data-u="lb">lb</button></div></div>
+        <div class="stp"><span><b>Płeć</b><small>Do norm siły, DOTS i Wilks</small></span><div class="seg tiny"><button class="${s.sex === 'm' ? 'on' : ''}" data-a="setSex" data-v="m">M</button><button class="${s.sex === 'f' ? 'on' : ''}" data-a="setSex" data-v="f">K</button></div></div>
         ${step('weeklyGoal', 'Cel tygodniowy', s.weeklyGoal, 'tr.', 1, 7, 1)}${step('defaultRest', 'Domyślna przerwa', F.fmtDur(s.defaultRest), '', 30, 600, 15)}
         <div class="stp"><span><b>Krok ciężaru</b></span><div class="seg tiny">${[1, 1.25, 2.5, 5].map(v => `<button class="${s.step === v ? 'on' : ''}" data-a="setStepW" data-v="${v}">${String(v).replace('.', ',')}</button>`).join('')}</div></div>
-        ${sw('autoRest', 'Automatyczna przerwa', 'Stoper rusza po zaliczeniu serii')}${sw('sound', 'Dźwięk stopera')}${sw('vibrate', 'Wibracje')}${sw('wake', 'Nie wygaszaj ekranu w treningu')}</section>
+        ${sw('autoRest', 'Automatyczna przerwa', 'Stoper rusza po zaliczeniu serii')}${sw('autoProg', 'Automatyczna progresja', 'Ciężar i powtórzenia z planu uzupełniane na podstawie ostatniego treningu')}${sw('sound', 'Dźwięk stopera')}${sw('vibrate', 'Wibracje')}${sw('wake', 'Nie wygaszaj ekranu w treningu')}</section>
       <h3 class="sec">Sprzęt</h3><section class="card cut"><p class="dim small">Talerze dostępne na Twojej siłowni (kalkulator talerzy):</p><div class="chips">${[25, 20, 15, 10, 5, 2.5, 1.25, .5].map(p => `<button class="chip ${s.plates.includes(p) ? 'on' : ''}" data-a="setPlate" data-p="${p}">${String(p).replace('.', ',')}</button>`).join('')}</div></section>
       <h3 class="sec">Wygląd</h3><section class="card cut"><div class="accents">${accents.map(a => `<button class="acc ${s.accent === a[0] ? 'on' : ''}" data-a="setAccent" data-v="${a[0]}" style="--x1:${a[2]};--x2:${a[3]}"><i></i><span>${a[1]}</span></button>`).join('')}</div></section>
       <h3 class="sec">Dane</h3><section class="card cut list">
-        <button class="lrow" data-a="doBackupBtn">${ic('download', 20)}<span><b>Kopia zapasowa (JSON)</b><small>${s.lastBackup ? 'Ostatnia: ' + F.fmtDate(s.lastBackup) : 'Jeszcze nie robiona'}</small></span></button>
+        <button class="lrow" data-a="doBackupBtn">${ic('download', 20)}<span><b>Kopia zapasowa (JSON, ze zdjęciami)</b><small>${s.lastBackup ? 'Ostatnia: ' + F.fmtDate(s.lastBackup) : 'Jeszcze nie robiona'}</small></span></button>
+        <button class="lrow" data-a="doBackupLite">${ic('file-json', 20)}<span><b>Kopia bez zdjęć (lżejsza)</b><small>Historia, plany, pomiary — bez zdjęć sylwetki</small></span></button>
         <button class="lrow" data-a="expCsv">${ic('file-spreadsheet', 20)}<span><b>Eksport historii (CSV)</b><small>${t.count} treningów, ${t.sets} serii</small></span></button>
         <button class="lrow" data-a="expRestore">${ic('upload', 20)}<span><b>Przywróć z kopii</b><small>Plik JSON z FORGE</small></span></button>
         <a class="lrow" href="#/import">${ic('scan-text', 20)}<span><b>Import planów i historii</b><small>PDF, zdjęcia, CSV (Strong, Hevy, FitNotes)</small></span></a>
         <button class="lrow" data-a="persist">${ic('lock', 20)}<span><b>Chroń dane przed czyszczeniem</b><small id="stor">Prośba o trwałe przechowywanie w przeglądarce</small></span></button>
         <button class="lrow danger" data-a="wipe">${ic('trash-2', 20)}<span><b>Usuń wszystkie dane</b><small>Nieodwracalne. Najpierw zrób kopię.</small></span></button></section>
-      <p class="about">FORGE 1.0 · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
+      <p class="about">FORGE 1.1 · Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
       after: () => { if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(e => { const el = F.$('#stor'); if (el) el.textContent = `Zajęte: ${(e.usage / 1048576).toFixed(1)} MB · dotknij, aby zabezpieczyć dane`; }); }
     };
   };
   F.act.doBackupBtn = () => F.doBackup().then(() => F.render(true));
+  F.act.doBackupLite = () => F.doBackup(false).then(() => F.render(true));
   F.bind.set = (el, type) => { const k = el.dataset.k; const s = F.S.settings; s[k] = el.type === 'checkbox' ? el.checked : el.value; F.saveSettings(); };
   F.act.setStep = b => { const k = b.dataset.k; const v = Math.max(+b.dataset.min, Math.min(+b.dataset.max, F.S.settings[k] + +b.dataset.d)); F.S.settings[k] = v; F.saveSettings(); F.render(true); };
   F.act.setStepW = b => { F.S.settings.step = +b.dataset.v; F.saveSettings(); F.render(true); };

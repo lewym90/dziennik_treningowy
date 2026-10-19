@@ -178,5 +178,5 @@ F.RANKS = [
 
 F.DEFAULT_SETTINGS = {
   name: '', unit: 'kg', weeklyGoal: 4, defaultRest: 120, sound: true, vibrate: true, wake: true,
-  accent: 'ember', bar: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], step: 2.5, lastBackup: 0, installDismissed: 0, autoRest: true
+  accent: 'ember', bar: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], step: 2.5, lastBackup: 0, installDismissed: 0, autoRest: true, autoProg: true, sex: '', deloadUntil: 0, lastDeload: 0
 };

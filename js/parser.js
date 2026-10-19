@@ -128,13 +128,22 @@
     });
     return out.filter(x => x !== '');
   };
+  const REST_RULE = /^[^A-Za-ząćęłńóśźż]*(?:odpoczynek|przerw[aey]?|rest)\b[^0-9]{0,30}?(\d+(?:[.,]\d+)?)\s*(?:-\s*(\d+(?:[.,]\d+)?))?\s*(min\w*|m\b|sek\w*|s\b|')(.*)$/i;
   const RULES_HEAD = /^[^A-Za-ząćęłńóśźż]*(?:zasady|uwagi|wskaz[oó]wki|notatki|informacje|rules|notes|tips|porady|jak trenowa[cć])\b/i;
   const ACRO = /^(?:ppl|fbw|ppluL|ul|ab|abc)$/i;
   const prettyTitle = t => { const w = t.replace(/\s+/g, ' ').trim(); if (w !== w.toUpperCase()) return w; return w.toLowerCase().split(' ').map((x, i) => ACRO.test(x) ? x.toUpperCase() : i === 0 ? x.charAt(0).toUpperCase() + x.slice(1) : x).join(' '); };
 
   /* ---------- główny parser ---------- */
   F.parsePlanText = (raw, opts = {}) => {
-    const lines = joinWrapped(cleanText(raw).split('\n').map(l => l.replace(/\s+$/g, '')).filter(l => l.trim()));
+    let lines = joinWrapped(cleanText(raw).split('\n').map(l => l.replace(/\s+$/g, '')).filter(l => l.trim()));
+    // ogólne zasady przerw z opisu planu („Odpoczynek: 3-4 min na duże ćwiczenia”) — nie są ćwiczeniami
+    const restRules = {}; const ruleNotes = [];
+    lines = lines.filter(l => {
+      const m = l.match(REST_RULE); if (!m || /\d\s*x\s*\d/i.test(l)) return true;
+      const a = num(m[1]), b = m[2] ? num(m[2]) : a, u = m[3].toLowerCase(); const secs = Math.round((a + b) / 2 * (/^m(in|\b)/.test(u) || u === "'" ? 60 : 1) / 15) * 15; if (secs < 15 || secs > 900) return true;
+      const sc = F.norm(m[4] || ''); const kind = /duz|ciezk|glown|wielostaw|podstaw|bojow|compound|main|heavy|big/.test(sc) ? 'big' : /mal|izolow|akcesor|pomocnic|isolation|light/.test(sc) ? 'small' : 'all';
+      restRules[kind] = secs; ruleNotes.push(l.trim()); return false;
+    });
     let skipRules = false;
     const plan = { name: opts.name || '', days: [] }; let day = null, pending = null, prev = null, headerMap = null, headerOrder = null, firstSeen = false;
     const newDay = name => { day = { id: F.uid(), name: name || 'Trening ' + (plan.days.length + 1), items: [] }; plan.days.push(day); pending = null; prev = null; };
@@ -159,6 +168,7 @@
       const it = { id: F.uid(), raw: name, src: src || name, exId: top && top.score >= 0.6 ? top.ex.id : null, conf: top ? top.score : 0, alts: cands.map(c => c.ex.id), newName: name.replace(/\s+/g, ' ').trim(), sets: sc.sets || 0, reps: sc.reps || '', rest: sc.rest || 0, w: sc.w ? (sc.unit === 'lb' ? sc.w / 2.2046 : sc.w) : 0, note: [...(sc.note && sc.note.length ? sc.note : []), ...(alt ? ['lub ' + alt] : [])].join(', '), defaulted: !sc.has, time: !!sc.time };
       if (!it.sets) it.sets = 3; const noReps = !it.reps; if (!it.reps) it.reps = '8-12';
       const ex = it.exId && F.S.ex.get(it.exId); if (ex && ex.type === 'time' && (noReps || !/\d/.test(it.reps))) it.reps = '45';
+      const pm = String(src || '').match(/(\d{2,3})\s*%(?!\s*(?:rpe))/i); if (pm && +pm[1] >= 30 && +pm[1] <= 100 && /%\s*(?:1\s*rm|rm|max|ciężaru|ciezaru|1pm|\b)/i.test(src)) it.pct = +pm[1];
       day.items.push(it); prev = it; pending = null; return it;
     };
     for (let idx = 0; idx < lines.length; idx++) {
@@ -178,7 +188,7 @@
         const names = sc.clean.split(/\s*\+\s*|\s+oraz\s+|\s+i\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ])/).map(x => x.replace(/\b(?:ka[żz]d\w*|na\s+stron\w+)\b/gi, '').replace(/^[\s,.:;\-/]+|[\s,.:;\-/]+$/g, '').trim()).filter(x => LETTERS(x) >= 3);
         if (names.length >= 2) {
           const sc2 = { ...sc, note: [...(sc.note || []), 'Superset'], has: !!(sc.sets || sc.reps) };
-          if (!day) newDay(null); names.forEach(n => addItem(n, sc2, line)); continue;
+          if (!day) newDay(null); const gid = F.uid(); names.forEach(n => { addItem(n, sc2, line).ss = gid; }); continue;
         }
       }
       // ---- tabela ze spacjami zamiast kresek (typowe dla OCR): nagłówek „Ćwiczenie  Serie Powt. Przerwa” ----
@@ -262,6 +272,16 @@
     if (pending) addItem(pending.name, { has: false, note: [] }, pending.src);
     plan.days = plan.days.filter(d => d.items.length);
     plan.days = plan.days.filter(d => d.items.some(it => it.exId || it.conf >= 0.35));
+    // przerwy z zasad planu dla ćwiczeń, które nie mają własnej przerwy
+    if (Object.keys(restRules).length) {
+      let applied = 0;
+      plan.days.forEach(d => d.items.forEach(it => {
+        if (it.rest) return; const ex = it.exId && F.S.ex.get(it.exId); const big = ex ? !!ex.compound : false;
+        const v = big ? (restRules.big || restRules.all) : (restRules.small || restRules.all || (restRules.big && ex && !ex.compound ? 0 : 0));
+        if (v) { it.rest = v; it.restRule = true; applied++; }
+      }));
+      plan.restInfo = { rules: restRules, applied, lines: ruleNotes };
+    }
     const dn = plan.days.map(d => { const m = d.name.match(/(?:dzie[nń]|day|trening|workout|sesja)\s*#?(\d{1,2})\b/i); return m ? +m[1] : null; });
     if (dn.length > 1 && dn.every(x => x != null) && new Set(dn).size === dn.length) plan.days = plan.days.map((d, i) => [dn[i], d]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
     // scal oczekujące elementy (nazwa bez schematu na końcu dnia już dodane przez addItem)

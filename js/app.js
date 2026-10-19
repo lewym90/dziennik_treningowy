@@ -26,7 +26,7 @@
     let di = 0; if (last && last.planId === plan.id) { const i = plan.days.findIndex(d => d.id === last.dayId); di = i >= 0 ? (i + 1) % plan.days.length : 0; }
     return { plan, day: plan.days[di], di };
   };
-  const estMin = day => Math.round(day.items.reduce((a, it) => a + (it.sets || 3) * (45 + (it.rest || 90)), 0) / 60);
+  const estMin = day => { const inf = F.ssInfo(day.items); let t = 0; day.items.forEach((it, k) => { const g = inf[k]; if (g && g.pos > 0) { t += (it.sets || 3) * 45; return; } t += (it.sets || 3) * (45 + (it.rest || 90)); }); return Math.round(t / 60); };
 
   /* ---------- ROUTER ---------- */
   const routes = [
@@ -85,7 +85,7 @@
     // rekordy
     const prs = []; F.S.sessions.slice(0, 8).forEach(se => (se.prs || []).forEach(p => prs.push({ ...p, ts: se.start }))); const prShow = prs.slice(0, 6);
     // banery
-    let banners = '';
+    let banners = F.deloadBanner();
     if (t.count > 0 && Date.now() - (s.lastBackup || 0) > 14 * 864e5) banners += `<div class="banner"><div>${ic('download', 20)}</div><p><b>Zrób kopię zapasową</b><br><small>${t.count} ${F.plur(t.count, 'trening', 'treningi', 'treningów')} w pamięci urządzenia. Zapisz je w pliku.</small></p><button class="btn sm primary" data-a="backupNow">Zapisz</button></div>`;
     if (F.installEvt && !F.isStandalone()) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Zainstaluj FORGE</b><br><small>Pełny ekran i działanie bez internetu.</small></p><button class="btn sm primary" data-a="installApp">Instaluj</button></div>`;
     else if (F.isIOS() && !F.isStandalone() && !s.installDismissed) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Dodaj do ekranu początkowego</b><br><small>Safari → Udostępnij → „Do ekranu początkowego”.</small></p><button class="ibtn" data-a="dismissInstall" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
@@ -151,7 +151,7 @@
     return {
       html: `${head(E(p.name), { back: 1, sub: `${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')}`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
       ${p.days.map((d, di) => `<section class="card cut day"><div class="day-h"><div><span class="dim">Dzień ${di + 1}</span><h3>${E(d.name)}</h3></div><button class="btn sm primary" data-a="startDay" data-p="${p.id}" data-d="${d.id}">${ic('play', 16)} Start</button></div>
-        ${d.items.length ? `<ul class="items">${d.items.map(it => `<li><a href="#/ex/${E(it.exId)}">${mDot((exOf(it.exId) || {}).muscle)}<span>${E(exName(it.exId))}</span></a><b>${it.sets}×${E(it.reps || '')}</b></li>`).join('')}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
+        ${d.items.length ? `<ul class="items">${(() => { const inf = F.ssInfo(d.items); return d.items.map((it, k) => `<li class="${inf[k] ? 'in-ss p' + (inf[k].pos === 0 ? 's' : inf[k].pos === inf[k].size - 1 ? 'e' : 'm') : ''}"><a href="#/ex/${E(it.exId)}">${inf[k] ? `<span class="ss-tag">${inf[k].tag}</span>` : mDot((exOf(it.exId) || {}).muscle)}<span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}</span></a><b>${it.sets}×${E(it.reps || '')}${it.rest ? `<small> · ${F.fmtDur(it.rest)}</small>` : ''}</b></li>`).join(''); })()}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
         <p class="dim foot">${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · ok. ${estMin(d)} min</p></section>`).join('')}
       <a class="btn ghost wide" href="#/plan/${p.id}/edit">${ic('pencil', 18)} Edytuj plan</a>`
     };
@@ -163,7 +163,7 @@
   };
   F.act.planEditGo = b => { F.closeSheet(true); F.go('#/plan/' + b.dataset.id + '/edit'); };
   F.act.planDup = async b => { const p = F.planOf(b.dataset.id); const c = JSON.parse(JSON.stringify(p)); c.id = F.uid(); c.name = p.name + ' (kopia)'; c.created = Date.now(); c.days.forEach(d => { d.id = F.uid(); d.items.forEach(i => i.id = F.uid()); }); await F.savePlan(c); F.closeSheet(true); F.toast('Zduplikowano plan'); F.go('#/plan/' + c.id); };
-  F.planToText = p => p.days.map(d => d.name + '\n' + d.items.map(i => `- ${exName(i.exId)} ${i.sets}x${i.reps}${i.rest ? ' (przerwa ' + i.rest + 's)' : ''}`).join('\n')).join('\n\n');
+  F.planToText = p => p.days.map(d => { const inf = F.ssInfo(d.items); return d.name + '\n' + d.items.map((i, k) => `- ${inf[k] ? inf[k].tag + '. ' : ''}${exName(i.exId)} ${i.sets}x${i.reps}${i.pct ? ' @' + i.pct + '%' : ''}${i.rest ? ' (przerwa ' + i.rest + 's)' : ''}`).join('\n'); }).join('\n\n');
   F.act.planText = async b => { const p = F.planOf(b.dataset.id); const txt = p.name + '\n\n' + F.planToText(p); try { await navigator.clipboard.writeText(txt); F.toast('Skopiowano plan do schowka'); } catch (e) { F.toast('Nie udało się skopiować'); } F.closeSheet(true); };
   F.download = (name, data, type) => { const blob = data instanceof Blob ? data : new Blob([data], { type: type || 'application/octet-stream' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800); };
   F.act.planJson = b => { const p = F.planOf(b.dataset.id); F.download('forge-plan-' + F.norm(p.name).replace(/ /g, '-') + '.json', JSON.stringify({ app: 'FORGE', kind: 'plan', plan: p, exercises: p.days.flatMap(d => d.items.map(i => exOf(i.exId))).filter(Boolean) }, null, 1), 'application/json'); F.closeSheet(true); };
@@ -180,8 +180,9 @@
       ${p.days.map((d, di) => `<section class="card cut day edit" data-di="${di}">
         <div class="day-h"><label class="fld grow"><span>Dzień ${di + 1}</span><input data-b="dname" data-di="${di}" value="${E(d.name)}" maxlength="50"></label>
         <div class="mini-btns"><button class="ibtn" data-a="dayUp" data-di="${di}" ${di === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 18)}</button><button class="ibtn" data-a="dayDel" data-di="${di}" aria-label="Usuń dzień">${ic('trash-2', 18)}</button></div></div>
-        ${d.items.map((it, ii) => `<div class="pi"><div class="pi-top">${mDot((exOf(it.exId) || {}).muscle)}<b>${E(exName(it.exId))}</b><div class="mini-btns"><button class="ibtn" data-a="itUp" data-di="${di}" data-ii="${ii}" ${ii === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="itDown" data-di="${di}" data-ii="${ii}" ${ii === d.items.length - 1 ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${ii}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
-          <div class="pi-f four"><label><span>Serie</span><input inputmode="numeric" data-b="it" data-f="sets" data-di="${di}" data-ii="${ii}" value="${it.sets}"></label><label><span>Powtórzenia</span><input data-b="it" data-f="reps" data-di="${di}" data-ii="${ii}" value="${E(it.reps || '')}" placeholder="8-10"></label><label><span>Przerwa s</span><input inputmode="numeric" data-b="it" data-f="rest" data-di="${di}" data-ii="${ii}" value="${it.rest || ''}" placeholder="90"></label><label><span>Ciężar ${F.unit()}</span><input inputmode="decimal" data-b="it" data-f="w" data-di="${di}" data-ii="${ii}" value="${it.w ? F.fw(it.w).replace(',', '.') : ''}" placeholder="–"></label></div></div>`).join('')}
+        ${(() => { const inf = F.ssInfo(d.items); return d.items.map((it, ii) => `<div class="pi ${inf[ii] ? 'in-ss p' + (inf[ii].pos === 0 ? 's' : inf[ii].pos === inf[ii].size - 1 ? 'e' : 'm') : ''}"><div class="pi-top">${inf[ii] ? `<span class="ss-tag">${inf[ii].tag}</span>` : mDot((exOf(it.exId) || {}).muscle)}<b>${E(exName(it.exId))}</b><div class="mini-btns"><button class="ibtn ${inf[ii] && inf[ii].end > ii ? 'on' : ''}" data-a="itLink" data-di="${di}" data-ii="${ii}" ${ii === d.items.length - 1 ? 'disabled' : ''} aria-label="Połącz z następnym w superserię">${ic('link-2', 16)}</button><button class="ibtn" data-a="itUp" data-di="${di}" data-ii="${ii}" ${ii === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="itDown" data-di="${di}" data-ii="${ii}" ${ii === d.items.length - 1 ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${ii}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
+          <div class="pi-f four"><label><span>Serie</span><input inputmode="numeric" data-b="it" data-f="sets" data-di="${di}" data-ii="${ii}" value="${it.sets}"></label><label><span>Powtórzenia</span><input data-b="it" data-f="reps" data-di="${di}" data-ii="${ii}" value="${E(it.reps || '')}" placeholder="8-10"></label><label><span>Przerwa s</span><input inputmode="numeric" data-b="it" data-f="rest" data-di="${di}" data-ii="${ii}" value="${it.rest || ''}" placeholder="90"></label><label><span>Ciężar ${F.unit()}</span><input inputmode="decimal" data-b="it" data-f="w" data-di="${di}" data-ii="${ii}" value="${it.w ? F.fw(it.w).replace(',', '.') : ''}" placeholder="–"></label></div>
+          <details class="pi-adv" ${it.prog && it.prog !== 'auto' || it.inc || it.pct ? 'open' : ''}><summary>Progresja i % 1RM</summary><div class="pi-f three"><label><span>Progresja</span><select data-b="it" data-f="prog">${[['auto', 'Podwójna (auto)'], ['linear', 'Liniowa'], ['off', 'Wyłączona']].map(o => `<option value="${o[0]}" ${(it.prog || 'auto') === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></label><label><span>Skok ${F.unit()}</span><input inputmode="decimal" data-b="it" data-f="inc" value="${it.inc ? F.fw(it.inc).replace(',', '.') : ''}" placeholder="auto"></label><label><span>% 1RM</span><input inputmode="numeric" data-b="it" data-f="pct" value="${it.pct || ''}" placeholder="–"></label></div><p class="dim small">Podwójna: najpierw powtórzenia do góry zakresu, potem więcej kilogramów. Liniowa: stały schemat, ciężar rośnie co trening. % 1RM liczy ciężar z Twojego najlepszego szacowanego 1RM.</p></details></div>`).join(''); })()}
         <button class="btn ghost wide" data-a="itAdd" data-di="${di}">${ic('plus', 18)} Dodaj ćwiczenia</button></section>`).join('')}
       <button class="btn ghost wide" data-a="dayAdd">${ic('plus', 18)} Dodaj dzień treningowy</button>`
     };
@@ -189,19 +190,20 @@
   const E_ = () => F.ui.edit.plan;
   F.bind.pname = el => { E_().name = el.value; };
   F.bind.dname = el => { E_().days[+el.dataset.di].name = el.value; };
-  F.bind.it = el => { const it = E_().days[+el.dataset.di].items[+el.dataset.ii]; const f = el.dataset.f; it[f] = f === 'reps' ? el.value : f === 'w' ? F.fromDisp(parseFloat(String(el.value).replace(',', '.')) || 0) : (parseInt(el.value) || 0); };
+  F.bind.it = el => { const it = E_().days[+el.dataset.di].items[+el.dataset.ii]; const f = el.dataset.f; const pf = () => parseFloat(String(el.value).replace(',', '.')) || 0; if (f === 'reps' || f === 'prog') it[f] = el.value; else if (f === 'w' || f === 'inc') it[f] = F.fromDisp(pf()); else if (f === 'pct') it.pct = Math.max(0, Math.min(100, parseInt(el.value) || 0)); else it[f] = parseInt(el.value) || 0; };
   F.act.dayAdd = () => { E_().days.push({ id: F.uid(), name: 'Dzień ' + (E_().days.length + 1), items: [] }); F.render(true); };
   F.act.dayDel = async b => { const i = +b.dataset.di; if (E_().days[i].items.length && !(await F.confirm({ title: 'Usunąć dzień?', text: 'Dzień wraz z ćwiczeniami zniknie z planu.', ok: 'Usuń', danger: true }))) return; E_().days.splice(i, 1); F.render(true); };
   F.act.dayUp = b => { const i = +b.dataset.di, d = E_().days; [d[i - 1], d[i]] = [d[i], d[i - 1]]; F.render(true); };
-  F.act.itUp = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i - 1], it[i]] = [it[i], it[i - 1]]; F.render(true); };
-  F.act.itDown = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i + 1], it[i]] = [it[i], it[i + 1]]; F.render(true); };
-  F.act.itDel = b => { E_().days[+b.dataset.di].items.splice(+b.dataset.ii, 1); F.render(true); };
+  F.act.itUp = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i - 1], it[i]] = [it[i], it[i - 1]]; F.cleanSS(it); F.render(true); };
+  F.act.itDown = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i + 1], it[i]] = [it[i], it[i + 1]]; F.cleanSS(it); F.render(true); };
+  F.act.itDel = b => { const it = E_().days[+b.dataset.di].items; it.splice(+b.dataset.ii, 1); F.cleanSS(it); F.render(true); };
+  F.act.itLink = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; const linked = it[i].ss && it[i + 1] && it[i + 1].ss === it[i].ss; if (linked) { const nid = F.uid(); for (let k = i + 1; k < it.length && it[k].ss === it[i].ss; k++) it[k].ss = nid; } else { const id = it[i].ss || it[i + 1].ss || F.uid(); it[i].ss = id; it[i + 1].ss = id; } F.cleanSS(it); F.render(true); };
   F.act.itAdd = async b => {
     const ids = await F.pickExercises(); if (!ids || !ids.length) return; const day = E_().days[+b.dataset.di];
     ids.forEach(id => { const ex = exOf(id); const rest = ex && ex.compound ? 120 : 75; day.items.push({ id: F.uid(), exId: id, sets: 3, reps: ex && ex.type === 'time' ? '45' : '8-12', rest }); }); F.render(true);
   };
   F.act.planSave = async () => {
-    const p = E_(); if (!p.name.trim()) p.name = 'Plan bez nazwy'; p.days.forEach(d => { d.items.forEach(i => { if (!i.sets || i.sets < 1) i.sets = 1; }); });
+    const p = E_(); p.days.forEach(d => F.cleanSS(d.items)); if (!p.name.trim()) p.name = 'Plan bez nazwy'; p.days.forEach(d => { d.items.forEach(i => { if (!i.sets || i.sets < 1) i.sets = 1; }); });
     await F.savePlan(p); F.ui.edit = null; F.toast('Plan zapisany', 'hot'); F.go('#/plan/' + p.id);
   };
 
@@ -237,12 +239,19 @@
       <label class="fld"><span>Sprzęt</span><select id="xf-e">${F.EQUIP.map(m => `<option ${ex.equip === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div>
       <label class="fld"><span>Rodzaj zapisu</span><select id="xf-t">${Object.keys(F.TYPES).map(t => `<option value="${t}" ${ex.type === t ? 'selected' : ''}>${F.TYPES[t]}</option>`).join('')}</select></label>
       <label class="chk"><input type="checkbox" id="xf-c" ${ex.compound ? 'checked' : ''}><i></i><span>Ćwiczenie wielostawowe (dłuższa przerwa)</span></label>
+      <div class="fld"><span>Mięśnie pomocnicze</span><div class="chips tiny" id="xf-sec">${Object.keys(F.MUSCLES).filter(m => m !== 'full' && m !== 'cardio').map(m => `<button type="button" class="chip ${(F.secondaryOf(ex.id).includes(m)) ? 'on' : ''}" data-a="xfSec" data-m="${m}">${F.MUSCLES[m]}</button>`).join('')}</div></div>
+      <label class="fld"><span>Opis / wskazówki techniczne</span><textarea id="xf-tip" rows="3" placeholder="Ustawienie, tor ruchu, na co uważać…">${E(ex.tip || '')}</textarea></label>
+      <div class="fld"><span>Własne zdjęcie</span><div class="xf-img" id="xf-img"></div></div>
       <div class="btn-row">${id ? `<button class="btn danger" data-a="xfDel">${ic('trash-2', 18)}</button>` : ''}<button class="btn primary grow" data-a="xfSave">Zapisz ćwiczenie</button></div>`, { title: id ? 'Edytuj ćwiczenie' : 'Nowe ćwiczenie', onclose: () => fin(null) });
     const g = s => el.querySelector(s);
+    let img = ex.img || ''; const drawImg = () => { g('#xf-img').innerHTML = img ? `<img src="${img}" alt=""><button type="button" class="btn ghost sm" data-a="xfImgDel">Usuń zdjęcie</button>` : `<button type="button" class="btn ghost sm" data-a="xfImg">${ic('camera', 16)} Dodaj zdjęcie</button>`; }; drawImg();
+    F.act.xfSec = b => b.classList.toggle('on');
+    F.act.xfImg = async () => { const f = await F.pickFile('image/*'); if (!f) return; try { img = (await F.fileToImages(f, 640, 120)).data; drawImg(); } catch (e) { F.toast('Nie udało się wczytać zdjęcia', 'err'); } };
+    F.act.xfImgDel = () => { img = ''; drawImg(); };
     if (!id) setTimeout(() => g('#xf-n').focus(), 300);
     F.act.xfSave = async () => {
       const n = g('#xf-n').value.trim(); if (!n) { F.toast('Podaj nazwę ćwiczenia'); return; }
-      const o = { ...ex, id: id || 'c_' + F.uid(), name: n, muscle: g('#xf-m').value, equip: g('#xf-e').value, type: g('#xf-t').value, compound: g('#xf-c').checked, custom: id ? ex.custom : true };
+      const o = { ...ex, id: id || 'c_' + F.uid(), name: n, muscle: g('#xf-m').value, equip: g('#xf-e').value, type: g('#xf-t').value, compound: g('#xf-c').checked, custom: id ? ex.custom : true, sec: [...el.querySelectorAll('#xf-sec .chip.on')].map(c => c.dataset.m).filter(m => m !== g('#xf-m').value), tip: g('#xf-tip').value.trim(), img };
       await F.saveEx(o); F.rebuild(); fin(o); F.closeSheet(true); F.toast('Zapisano: ' + E(n), 'hot');
     };
     F.act.xfDel = async () => { if (await F.confirm({ title: 'Usunąć ćwiczenie?', text: 'Zapisane treningi zachowają dane, ale ćwiczenie zniknie z biblioteki.', ok: 'Usuń', danger: true })) { await F.delEx(id); fin(null); F.closeSheet(true); F.go('#/exercises'); } };
@@ -287,6 +296,7 @@
       html: `${head(E(ex.name), { back: 1, sub: `${F.MUSCLES[ex.muscle]} · ${E(ex.equip)}`, right: `<button class="ibtn" data-a="exEdit" data-id="${id}" aria-label="Edytuj">${ic('pencil', 20)}</button>` })}
       <div class="tiles two">${cards.map(c => `<div class="tile cut"><span class="tl">${ic('trophy', 15)} ${c[0]}</span><b class="tv sm">${c[1]}</b></div>`).join('')}</div>
       ${sug ? `<div class="banner hot"><div>${ic('target', 20)}</div><p><b>Cel na następny trening</b><br><small>${ex.type === 'time' ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fwu(sug.w) + ' × ' + sug.r} — ${sug.note}</small></p></div>` : ''}
+      <section class="card cut tech"><h3>${ic('info', 18)} Technika i mięśnie</h3>${F.techHtml(id)}</section>
       <section class="card cut"><div class="seg">${metrics.map(x => `<button class="${x[0] === mk ? 'on' : ''}" data-a="exMetric" data-m="${x[0]}">${x[1]}</button>`).join('')}</div>${F.chart.line(pts, { w: 340, h: 200 })}<p class="dim small">Złote punkty oznaczają pobite rekordy.</p></section>
       ${rmTable}
       <h3 class="sec">Historia (${hist.length})</h3>${histRows ? `<div class="hlist">${histRows}</div>` : empty('history', 'Jeszcze nie trenowałeś tego ćwiczenia', 'Dodaj je do treningu, a tu pojawi się cała historia.')}`

@@ -1,7 +1,7 @@
 /* FORGE — service worker: działanie offline, odświeżanie w tle, odbiór plików z menu „Udostępnij” */
-const VERSION = 'forge-v1.0.3';
+const VERSION = 'forge-v1.1.0';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'css/styles.css',
-  'js/icons.js', 'js/data.js', 'js/core.js', 'js/charts.js', 'js/ui.js', 'js/parser.js', 'js/app.js', 'js/views2.js', 'js/workout.js', 'js/importer.js', 'js/main.js',
+  'js/icons.js', 'js/data.js', 'js/exinfo.js', 'js/features.js', 'js/core.js', 'js/charts.js', 'js/ui.js', 'js/parser.js', 'js/app.js', 'js/views2.js', 'js/workout.js', 'js/importer.js', 'js/main.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
   'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2', 'fonts/barlow-condensed-latin-800-normal.woff2',
   'fonts/barlow-condensed-latin-600-italic.woff2', 'fonts/barlow-condensed-latin-700-italic.woff2', 'fonts/barlow-condensed-latin-800-italic.woff2',
@@ -26,6 +26,14 @@ self.addEventListener('fetch', e => {
         for (const f of files) await c.put(new Request(new URL('shared/' + encodeURIComponent(f.name || 'plik'), self.registration.scope).href), new Response(f, { headers: { 'Content-Type': f.type || 'application/octet-stream' } }));
       } catch (err) { }
       return Response.redirect(new URL('./#/import?shared=1', self.registration.scope).href, 303);
+    })());
+    return;
+  }
+  // zdjęcia ćwiczeń (Free Exercise DB): pobierane raz, potem działają offline
+  if (req.method === 'GET' && /^(cdn\.jsdelivr\.net|raw\.githubusercontent\.com)$/.test(url.hostname) && /free-exercise-db/.test(url.pathname)) {
+    e.respondWith((async () => {
+      const cache = await caches.open('forge-media'); const hit = await cache.match(req); if (hit) return hit;
+      try { const res = await fetch(req); if (res && res.ok) cache.put(req, res.clone()); return res; } catch (err) { return new Response('', { status: 504 }); }
     })());
     return;
   }
