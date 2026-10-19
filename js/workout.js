@@ -32,7 +32,7 @@
   };
   F.startFlow = () => {
     const nx = F.nextWorkout();
-    const next = nx ? `<button class="tpl cut hot" data-a="flowNext"><small>Następny w kolejce</small><b>${E(nx.day.name)}</b><em>${E(nx.plan.name)} · ${nx.day.items.length} ćwiczeń</em></button>` : '';
+    const next = nx ? `<button class="tpl cut hot" data-a="flowNext"><small>Następny w kolejce</small><b>${E(nx.day.name)}</b><em>${E(nx.plan.name)} · ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</em></button>` : '';
     const rest = F.S.plans.map(p => `<div class="flow-plan"><h4>${E(p.name)}</h4><div class="chips">${p.days.map(d => `<button class="chip" data-a="startDay" data-p="${p.id}" data-d="${d.id}">${E(d.name)}</button>`).join('')}</div></div>`).join('');
     F.sheet(`${next}<button class="tpl cut" data-a="flowEmpty"><b>Pusty trening</b><em>Dodawaj ćwiczenia na bieżąco</em></button>${rest ? `<h3 class="sec">Z planu</h3>${rest}` : `<p class="dim center pad">Nie masz jeszcze planów. <a href="#/plans">Stwórz pierwszy</a> albo trenuj bez planu.</p>`}`, { title: 'Co dziś ciśniemy?' });
     F.act.startDay = b => { const p = F.planOf(b.dataset.p); const d = p && p.days.find(x => x.id === b.dataset.d); F.closeSheet(true); if (d) F.startWorkout({ plan: p, day: d }); };
@@ -133,7 +133,7 @@
     const i = +b.dataset.i, j = +b.dataset.j, d = D(), e = d.exercises[i], s = e.sets[j], ex = exOf(e.exId);
     s.done = !s.done; F.saveDraft();
     if (s.done) {
-      if (!s.r && ex && ex.type !== 'time') { const last = F.LAST[e.exId]; const p = last && last.sets[j]; if (p) { s.r = p.r; if (!s.w) s.w = p.w; } }
+      if (ex && ex.type !== 'time') { const last = F.LAST[e.exId]; const p = last && last.sets[j]; if (p) { if (!s.r) s.r = p.r; if (!s.w && ex.type !== 'br') s.w = p.w; } }
       const prs = F.checkPR(wkIdx, ex, s, d.start); s.pr = prs.map(p => p.k); if (ex && F.isWork(s)) F.addToIdx(wkIdx, ex, s, d.start);
       F.haptic(25); redraw(i);
       const nb = F.$(`#sr-${i}-${j} .ck`); if (nb) { nb.classList.add('pop'); if (!prs.length) F.burstAt(nb, 10, .5); }

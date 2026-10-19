@@ -44,6 +44,8 @@
   F.kvDel = id => F.dbDel('kv', id);
 
   /* ---------- STAN ---------- */
+  // polska odmiana liczebników: 1 trening, 2–4 treningi, 5+ treningów
+  F.plur = (n, one, few, many) => { n = Math.abs(Math.round(n)); const l = n % 10, t = n % 100; return n === 1 ? one : (l >= 2 && l <= 4 && !(t >= 12 && t <= 14)) ? few : many; };
   F.S = { ex: new Map(), plans: [], sessions: [], bw: [], settings: { ...F.DEFAULT_SETTINGS }, draft: null };
 
   F.load = async () => {

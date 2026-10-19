@@ -76,7 +76,7 @@
       const names = nx.day.items.slice(0, 4).map(it => exName(it.exId));
       hero = `<section class="hero cut"><div class="hero-k">${E(nx.plan.name)} · dzień ${nx.di + 1} z ${nx.plan.days.length}</div><h2>${E(nx.day.name)}</h2>
         <ul class="hero-l">${names.map(n => `<li>${E(n)}</li>`).join('')}${nx.day.items.length > 4 ? `<li class="more">+ ${nx.day.items.length - 4} więcej</li>` : ''}</ul>
-        <p class="hero-m">${nx.day.items.length} ćwiczeń · ok. ${estMin(nx.day)} min</p>
+        <p class="hero-m">${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · ok. ${estMin(nx.day)} min</p>
         <button class="forge-btn" data-a="startNext"><span>${ic('flame', 22)} Zaczynamy</span></button></section>`;
     } else {
       hero = `<section class="hero cut"><div class="hero-k">Zacznij od zera</div><h2>Pora wykuć plan</h2><p class="hero-m">Zbuduj własny plan, wgraj ten, którego używasz dotąd (PDF lub zrzut ekranu) albo wystartuj z gotowego szablonu.</p>
@@ -86,7 +86,7 @@
     const prs = []; F.S.sessions.slice(0, 8).forEach(se => (se.prs || []).forEach(p => prs.push({ ...p, ts: se.start }))); const prShow = prs.slice(0, 6);
     // banery
     let banners = '';
-    if (t.count > 0 && Date.now() - (s.lastBackup || 0) > 14 * 864e5) banners += `<div class="banner"><div>${ic('download', 20)}</div><p><b>Zrób kopię zapasową</b><br><small>${t.count} treningów w pamięci urządzenia. Zapisz je w pliku.</small></p><button class="btn sm primary" data-a="backupNow">Zapisz</button></div>`;
+    if (t.count > 0 && Date.now() - (s.lastBackup || 0) > 14 * 864e5) banners += `<div class="banner"><div>${ic('download', 20)}</div><p><b>Zrób kopię zapasową</b><br><small>${t.count} ${F.plur(t.count, 'trening', 'treningi', 'treningów')} w pamięci urządzenia. Zapisz je w pliku.</small></p><button class="btn sm primary" data-a="backupNow">Zapisz</button></div>`;
     if (F.installEvt && !F.isStandalone()) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Zainstaluj FORGE</b><br><small>Pełny ekran i działanie bez internetu.</small></p><button class="btn sm primary" data-a="installApp">Instaluj</button></div>`;
     else if (F.isIOS() && !F.isStandalone() && !s.installDismissed) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Dodaj do ekranu początkowego</b><br><small>Safari → Udostępnij → „Do ekranu początkowego”.</small></p><button class="ibtn" data-a="dismissInstall" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
     return {
@@ -127,7 +127,7 @@
   function plans() {
     const list = F.S.plans.map(p => {
       const n = p.days.reduce((a, d) => a + d.items.length, 0); const last = F.S.sessions.find(s => s.planId === p.id);
-      return `<a class="plan cut" href="#/plan/${p.id}"><div class="plan-i">${ic('clipboard-list', 22)}</div><div class="plan-b"><h3>${E(p.name)}</h3><p>${p.days.length} ${p.days.length === 1 ? 'dzień' : 'dni'} · ${n} ćwiczeń${last ? ` · ostatnio ${F.relDay(last.start).toLowerCase()}` : ''}</p></div>${ic('chevron-right', 20)}</a>`;
+      return `<a class="plan cut" href="#/plan/${p.id}"><div class="plan-i">${ic('clipboard-list', 22)}</div><div class="plan-b"><h3>${E(p.name)}</h3><p>${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${last ? ` · ostatnio ${F.relDay(last.start).toLowerCase()}` : ''}</p></div>${ic('chevron-right', 20)}</a>`;
     }).join('');
     return {
       html: `${head('Plany', { sub: 'Twoje programy treningowe', right: `<button class="btn sm primary" data-a="newPlan">${ic('plus', 16)} Nowy</button>` })}
@@ -149,10 +149,10 @@
   function planDetail(id) {
     const p = F.planOf(id); if (!p) return { html: head('Plan', { back: 1 }) + empty('clipboard-list', 'Nie znaleziono planu', 'Ten plan został usunięty.') };
     return {
-      html: `${head(E(p.name), { back: 1, sub: `${p.days.length} dni`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
+      html: `${head(E(p.name), { back: 1, sub: `${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')}`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
       ${p.days.map((d, di) => `<section class="card cut day"><div class="day-h"><div><span class="dim">Dzień ${di + 1}</span><h3>${E(d.name)}</h3></div><button class="btn sm primary" data-a="startDay" data-p="${p.id}" data-d="${d.id}">${ic('play', 16)} Start</button></div>
         ${d.items.length ? `<ul class="items">${d.items.map(it => `<li><a href="#/ex/${E(it.exId)}">${mDot((exOf(it.exId) || {}).muscle)}<span>${E(exName(it.exId))}</span></a><b>${it.sets}×${E(it.reps || '')}</b></li>`).join('')}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
-        <p class="dim foot">${d.items.length} ćwiczeń · ok. ${estMin(d)} min</p></section>`).join('')}
+        <p class="dim foot">${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · ok. ${estMin(d)} min</p></section>`).join('')}
       <a class="btn ghost wide" href="#/plan/${p.id}/edit">${ic('pencil', 18)} Edytuj plan</a>`
     };
   }
@@ -210,7 +210,8 @@
     const sel = new Set(); let q = '', mus = '';
     const list = () => {
       const nq = F.norm(q); let arr = [...F.S.ex.values()].filter(e => (!mus || e.muscle === mus) && (!nq || F.norm(e.name + ' ' + (e.alias || '')).includes(nq)));
-      arr.sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+      const use = {}; F.S.sessions.forEach(x => x.exercises.forEach(e => { use[e.exId] = (use[e.exId] || 0) + 1; }));
+      arr.sort((a, b) => (nq ? (F.norm(b.name).startsWith(nq) - F.norm(a.name).startsWith(nq)) : 0) || (use[b.id] || 0) - (use[a.id] || 0) || (b.compound ? 1 : 0) - (a.compound ? 1 : 0) || (a.muscle === 'cardio') - (b.muscle === 'cardio') || a.name.localeCompare(b.name, 'pl'));
       return arr.length ? arr.map(e => `<button class="exrow ${sel.has(e.id) ? 'sel' : ''}" data-a="pickToggle" data-id="${e.id}">${mDot(e.muscle)}<span><b>${E(e.name)}</b><small>${F.MUSCLES[e.muscle]} · ${E(e.equip)}</small></span><i>${ic('check', 16)}</i></button>`).join('') : `<p class="dim pad center">Brak wyników. Dodaj nowe ćwiczenie poniżej.</p>`;
     };
     const chips = () => `<div class="chips"><button class="chip ${!mus ? 'on' : ''}" data-a="pickMus" data-m="">Wszystkie</button>${Object.keys(F.MUSCLES).map(m => `<button class="chip ${mus === m ? 'on' : ''}" data-a="pickMus" data-m="${m}">${F.MUSCLES[m]}</button>`).join('')}</div>`;
