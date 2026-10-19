@@ -56,7 +56,8 @@
   /* ---------- normalizacja tekstu ---------- */
   const cleanText = t => String(t || '').replace(/\r/g, '\n').replace(/[   ]/g, ' ').replace(/[×✕✖✗хХ]/g, 'x').replace(/[–—−‒]/g, '-').replace(/[“”„]/g, '"').replace(/[’‘`´]/g, "'").replace(/…/g, '...')
     .replace(/(\d)\s*[Oo](?=\s|$|[^a-zA-Z])/g, '$10').replace(/\b[lI](?=\d{1,2}\s*(?:x|powt|kg))/g, '1')
-    .replace(/(\d)\s*,\s*(\d)/g, '$1,$2');
+    .replace(/(\d)\s*,\s*(\d)/g, '$1,$2')
+    .replace(/[→➔➜⇒➡⟶»]/g, ' ').replace(/(^|\s)(?:-{1,2}>|={1,2}>|>{1,2})(?=\s|$)/g, ' ');
   const MARK = /^\s*(?:[-*•●▪◦►▶→■□☐✓✔]|\d{1,2}\s*[.)]|[a-dA-D]\d?\s*[.)])\s+/;
   const LETTERS = s => (s.match(/[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]/g) || []).length;
 
@@ -94,6 +95,7 @@
     // przerwa zapisana samym czasem na końcu linii („4x8 90s”, „3x10 2 min”)
     if ((r.sets || r.reps) && !r.time && !r.rest) cut(/(?:^|\s)(\d{2,3})\s*(?:s|sek[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*)(?=\s*$)/i, m => { if (+m[1] >= 20 && +m[1] <= 600) r.rest = +m[1]; else t += ' ' + m[0]; })
       || cut(/(?:^|\s)(\d(?:[.,]\d)?)\s*(?:min[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*|')(?=\s*$)/i, m => { if (num(m[1]) <= 10) r.rest = Math.round(num(m[1]) * 60); else t += ' ' + m[0]; });
+    cut(/\/\s*(?:noga|nog[ęe]|stron\w*|r[ęe]k\w+)\b|\bka[żz]d\w*\b|\bna\s+(?:nog[ęe]|stron[ęe]|r[ęe]k[ęe])\b/i, () => { });
     r.clean = t.replace(/\s+/g, ' ').replace(/^[\s\-:;,.|/()x*@]+|[\s\-:;,.|/()x*@]+$/g, '').trim();
     r.has = !!(r.sets || r.reps);
     return r;
@@ -109,17 +111,54 @@
   const SPLIT = /^(?:push|pull|legs?|upper|lower|full\s*body|fbw|ppl|nogi|plecy|klatka|barki|ramiona|brzuch|g[oó]ra|d[oó][lł]|cardio|rest day|dzie[nń] wolny)\b/i;
   const TABLE_HEAD = { name: /cwicz|exerc|nazwa|name/, sets: /^serie$|^serii$|^sets?$|^seria$|^s$/, reps: /powt|^reps?$|^rep$/, w: /ciez|obciaz|^kg$|weight|^w$/, rest: /przerw|^rest$|odpocz/ };
 
+  /* ---------- zawinięte linie (zrzuty ekranu łamią długie wiersze) ---------- */
+  const OPEN_END = /(?:[x\/,+(]|\bserii?|\bseria|\bpo)\s*$/i;
+  const START_REM = /^(?:serie|serii|seria|x\s*\d|ka[żz]d\w*|\/|noga\b|nog[ęe]\b|stron\w*|powt\w*|razy|po\s+\d)/i;
+  const NUM_ONLY = /^\d{1,3}(?:\s*-\s*\d{1,3})?(?:\s*\/\s*[a-ząćęłńóśźż]+)?(?:\s+ka[żz]d\w*)?$/i;
+  const SS_HEAD = /^(?:\d{1,2}\s*[.)]\s*)?(?:super\s*-?\s*set|superseria|biseria|triseria|giant\s*set)\b/i;
+  const joinWrapped = lines => {
+    const out = [];
+    lines.forEach(raw => {
+      const l = raw.trim(); if (!l) { out.push(''); return; }
+      const prev = out.length ? out[out.length - 1] : '';
+      const join = prev && ((OPEN_END.test(prev) && (NUM_ONLY.test(l) || START_REM.test(l) || /^\d/.test(l)))
+        || (START_REM.test(l) && /\d/.test(prev) && LETTERS(prev) >= 3)
+        || (SS_HEAD.test(prev) && !/\d\s*(?:serie|serii|series|sets?|x)\b/i.test(prev) && /^\d/.test(l)));
+      if (join) out[out.length - 1] = prev + ' ' + l; else out.push(l);
+    });
+    return out.filter(x => x !== '');
+  };
+  const RULES_HEAD = /^[^A-Za-ząćęłńóśźż]*(?:zasady|uwagi|wskaz[oó]wki|notatki|informacje|rules|notes|tips|porady|jak trenowa[cć])\b/i;
+  const ACRO = /^(?:ppl|fbw|ppluL|ul|ab|abc)$/i;
+  const prettyTitle = t => { const w = t.replace(/\s+/g, ' ').trim(); if (w !== w.toUpperCase()) return w; return w.toLowerCase().split(' ').map((x, i) => ACRO.test(x) ? x.toUpperCase() : i === 0 ? x.charAt(0).toUpperCase() + x.slice(1) : x).join(' '); };
+
   /* ---------- główny parser ---------- */
   F.parsePlanText = (raw, opts = {}) => {
-    const lines = cleanText(raw).split('\n').map(l => l.replace(/\s+$/g, '')).filter(l => l.trim());
+    const lines = joinWrapped(cleanText(raw).split('\n').map(l => l.replace(/\s+$/g, '')).filter(l => l.trim()));
+    let skipRules = false;
     const plan = { name: opts.name || '', days: [] }; let day = null, pending = null, prev = null, headerMap = null, headerOrder = null, firstSeen = false;
     const newDay = name => { day = { id: F.uid(), name: name || 'Trening ' + (plan.days.length + 1), items: [] }; plan.days.push(day); pending = null; prev = null; };
     const addItem = (name, sc, src) => {
       if (!day) newDay(plan.days.length ? null : null);
-      const cands = F.matchExercise(name); const top = cands[0];
-      const it = { id: F.uid(), raw: name, src: src || name, exId: top && top.score >= 0.6 ? top.ex.id : null, conf: top ? top.score : 0, alts: cands.map(c => c.ex.id), newName: name.replace(/\s+/g, ' ').trim(), sets: sc.sets || 0, reps: sc.reps || '', rest: sc.rest || 0, w: sc.w ? (sc.unit === 'lb' ? sc.w / 2.2046 : sc.w) : 0, note: sc.note && sc.note.length ? sc.note.join(', ') : '', defaulted: !sc.has, time: !!sc.time };
-      if (!it.sets) it.sets = 3; if (!it.reps) it.reps = '8-12';
-      const ex = it.exId && F.S.ex.get(it.exId); if (ex && ex.type === 'time' && !/\d/.test(it.reps)) it.reps = '45';
+      let alt = ''; let cands = F.matchExercise(name);
+      if (!(cands[0] && cands[0].score >= 0.95)) {
+        let nm = name, rest = '';
+        const par = name.match(/^(.*?)\s*\(([^)]*\blub\b[^)]*)\)?\s*$/i);
+        if (par) { nm = par[1]; rest = par[2]; }
+        else { const parts = name.split(/\s+\/\s+|\s+(?:lub|albo|or)\s+|(?<=[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż])\/(?=[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż])/i).map(x => x.trim()).filter(Boolean); if (parts.length > 1) { nm = parts[0]; rest = parts.slice(1).join(' / '); } }
+        if (rest && LETTERS(nm) >= 3) {
+          const c1 = F.matchExercise(nm);
+          if (c1[0] && (!cands[0] || c1[0].score >= cands[0].score - 0.05)) {
+            const extra = rest.split(/\s*\/\s*|\s+lub\s+/i).map(x => F.matchExercise(x)[0]).filter(Boolean);
+            cands = [...c1]; extra.forEach(e => { if (!cands.some(c => c.ex.id === e.ex.id)) cands.push(e); });
+            name = nm.trim(); alt = rest.trim();
+          }
+        }
+      }
+      const top = cands[0];
+      const it = { id: F.uid(), raw: name, src: src || name, exId: top && top.score >= 0.6 ? top.ex.id : null, conf: top ? top.score : 0, alts: cands.map(c => c.ex.id), newName: name.replace(/\s+/g, ' ').trim(), sets: sc.sets || 0, reps: sc.reps || '', rest: sc.rest || 0, w: sc.w ? (sc.unit === 'lb' ? sc.w / 2.2046 : sc.w) : 0, note: [...(sc.note && sc.note.length ? sc.note : []), ...(alt ? ['lub ' + alt] : [])].join(', '), defaulted: !sc.has, time: !!sc.time };
+      if (!it.sets) it.sets = 3; const noReps = !it.reps; if (!it.reps) it.reps = '8-12';
+      const ex = it.exId && F.S.ex.get(it.exId); if (ex && ex.type === 'time' && (noReps || !/\d/.test(it.reps))) it.reps = '45';
       day.items.push(it); prev = it; pending = null; return it;
     };
     for (let idx = 0; idx < lines.length; idx++) {
@@ -127,6 +166,21 @@
       // numer strony / stopki
       if (/^(?:strona|page|str\.?)\s*\d+(?:\s*\/\s*\d+)?$/i.test(line) || /^\d+\s*\/\s*\d+$/.test(line)) continue;
       const hadMark = MARK.test(line); line = line.replace(MARK, '');
+      // sekcje „ZASADY / UWAGI” nie są ćwiczeniami — pomijamy do następnego dnia
+      if (RULES_HEAD.test(line) && LETTERS(line) < 40) { skipRules = true; continue; }
+      if (skipRules) { if ((DAYRE.test(line) || WEEKDAY.test(line)) && !/[:]\s*\S/.test(line)) skipRules = false; else continue; }
+      if (/gotowy na screen|^\W*plan treningowy\W*$/i.test(line)) continue;
+      // nazwa planu z linii typu „PPL 3 DNI / TYDZIEŃ”
+      if (!plan.name && !opts.name && !scheme(line).has && /\b(?:ppl|fbw|upper\s*\/?\s*lower|push\s*pull\s*legs|split)\b/i.test(line) && line.length < 60 && !SS_HEAD.test(line)) { plan.name = prettyTitle(line); continue; }
+      // superseria: „Superset: A + B   3 serie x 8-10 każde” → dwa ćwiczenia z tym samym schematem
+      if (SS_HEAD.test(line)) {
+        const body = line.replace(SS_HEAD, '').replace(/^\s*[:\-.]\s*/, ''); const sc = scheme(body);
+        const names = sc.clean.split(/\s*\+\s*|\s+oraz\s+|\s+i\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ])/).map(x => x.replace(/\b(?:ka[żz]d\w*|na\s+stron\w+)\b/gi, '').replace(/^[\s,.:;\-/]+|[\s,.:;\-/]+$/g, '').trim()).filter(x => LETTERS(x) >= 3);
+        if (names.length >= 2) {
+          const sc2 = { ...sc, note: [...(sc.note || []), 'Superset'], has: !!(sc.sets || sc.reps) };
+          if (!day) newDay(null); names.forEach(n => addItem(n, sc2, line)); continue;
+        }
+      }
       // ---- tabela ze spacjami zamiast kresek (typowe dla OCR): nagłówek „Ćwiczenie  Serie Powt. Przerwa” ----
       if (/[|\t;]/.test(line)) { /* tabela z kreskami — obsługuje ją kod poniżej */ }
       else if (!/\d/.test(line)) {
@@ -207,6 +261,9 @@
     // oczekująca nazwa bez schematu → dodaj z domyślnymi seriami
     if (pending) addItem(pending.name, { has: false, note: [] }, pending.src);
     plan.days = plan.days.filter(d => d.items.length);
+    plan.days = plan.days.filter(d => d.items.some(it => it.exId || it.conf >= 0.35));
+    const dn = plan.days.map(d => { const m = d.name.match(/(?:dzie[nń]|day|trening|workout|sesja)\s*#?(\d{1,2})\b/i); return m ? +m[1] : null; });
+    if (dn.length > 1 && dn.every(x => x != null) && new Set(dn).size === dn.length) plan.days = plan.days.map((d, i) => [dn[i], d]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
     // scal oczekujące elementy (nazwa bez schematu na końcu dnia już dodane przez addItem)
     plan.days.forEach(d => { const seen = new Set(); d.items = d.items.filter(it => { const key = (it.exId || it.newName) + '|' + it.sets + '|' + it.reps; if (seen.has(key) && it.defaulted) return false; seen.add(key); return true; }); });
     return plan;

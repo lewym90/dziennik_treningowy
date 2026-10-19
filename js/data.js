@@ -47,9 +47,9 @@ F.SEED = [
   ['facepull', 'Face pull', 'shoulders', 'Wyciąg', 'wr', 0, 'face pulls;przyciąganie linki do twarzy;facepull;facepulls'],
   // BARKI
   ['ohp', 'Wyciskanie żołnierskie (OHP)', 'shoulders', 'Sztanga', 'wr', 1, 'overhead press;ohp;military press;wyciskanie sztangi nad głowę;żołnierskie;wyciskanie sztangi stojąc;shoulder press;wyciskanie zolnierskie'],
-  ['db_ohp', 'Wyciskanie hantli nad głowę', 'shoulders', 'Hantle', 'wr', 1, 'dumbbell shoulder press;wyciskanie hantli siedząc;dumbbell overhead press;wyciskanie hantli na barki'],
+  ['db_ohp', 'Wyciskanie hantli nad głowę', 'shoulders', 'Hantle', 'wr', 1, 'dumbbell shoulder press;wyciskanie hantli siedząc;dumbbell overhead press;wyciskanie hantli na barki;wyciskanie hantli nad głową siedząc;wyciskanie hantli siedząc;wyciskanie hantli nad głową'],
   ['arnold', 'Wyciskanie Arnolda', 'shoulders', 'Hantle', 'wr', 1, 'arnold press;arnoldki'],
-  ['lateral', 'Wznosy hantli bokiem', 'shoulders', 'Hantle', 'wr', 0, 'lateral raise;side raise;unoszenie hantli bokiem;wznosy bokiem;lateral raises;odwodzenie ramion w bok;barki boczne;boczne barki;boczny akton;unoszenie bokiem'],
+  ['lateral', 'Wznosy hantli bokiem', 'shoulders', 'Hantle', 'wr', 0, 'lateral raise;side raise;unoszenie hantli bokiem;wznosy bokiem;lateral raises;odwodzenie ramion w bok;barki boczne;boczne barki;boczny akton;unoszenie bokiem;wznosy boczne hantlami;wznosy boczne;wznosy hantli w bok'],
   ['lateral_c', 'Wznosy bokiem na wyciągu', 'shoulders', 'Wyciąg', 'wr', 0, 'cable lateral raise;wznosy na wyciągu bokiem'],
   ['front_raise', 'Wznosy hantli przodem', 'shoulders', 'Hantle', 'wr', 0, 'front raise;unoszenie hantli przodem;wznosy przodem'],
   ['rear_fly', 'Odwrotne rozpiętki (tylny akton)', 'shoulders', 'Hantle', 'wr', 0, 'reverse fly;rear delt fly;rozpiętki tył;wznosy w opadzie;tylny akton;rear delts;reverse pec deck'],
@@ -67,7 +67,7 @@ F.SEED = [
   ['curl_con', 'Uginanie koncentryczne', 'biceps', 'Hantle', 'wr', 0, 'concentration curl'],
   // TRICEPS
   ['tri_push', 'Prostowanie ramion na wyciągu (drążek)', 'triceps', 'Wyciąg', 'wr', 0, 'triceps pushdown;pushdown;prostowanie na wyciągu;prostowanie ramion na wyciągu górnym;triceps pressdown;pushdown triceps'],
-  ['tri_rope', 'Prostowanie ramion z liną', 'triceps', 'Wyciąg', 'wr', 0, 'rope pushdown;rope triceps extension;prostowanie z liną;prostowanie na linie;triceps linka;triceps lina;linka triceps;tricepsy na linie;pushdown linka'],
+  ['tri_rope', 'Prostowanie ramion z liną', 'triceps', 'Wyciąg', 'wr', 0, 'rope pushdown;rope triceps extension;prostowanie z liną;prostowanie na linie;triceps linka;triceps lina;linka triceps;tricepsy na linie;pushdown linka;prostowanie linki;prostowanie ramion linki;prostowanie ramion na linie'],
   ['skull', 'Wyciskanie francuskie', 'triceps', 'Sztanga', 'wr', 0, 'skull crusher;french press;francuz;wyciskanie francuskie leżąc;skullcrusher;lying triceps extension'],
   ['tri_over', 'Prostowanie ramienia zza głowy', 'triceps', 'Hantle', 'wr', 0, 'overhead triceps extension;french press hantla;wyciskanie francuskie hantlą;prostowanie ramion nad głową;triceps extension'],
   ['cgbp', 'Wyciskanie wąskim chwytem', 'triceps', 'Sztanga', 'wr', 1, 'close grip bench press;wąski chwyt;cgbp;wyciskanie sztangi wąsko;close-grip bench'],
