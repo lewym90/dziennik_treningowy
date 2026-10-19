@@ -142,7 +142,7 @@
       const m = l.match(REST_RULE); if (!m || /\d\s*x\s*\d/i.test(l)) return true;
       const a = num(m[1]), b = m[2] ? num(m[2]) : a, u = m[3].toLowerCase(); const secs = Math.round((a + b) / 2 * (/^m(in|\b)/.test(u) || u === "'" ? 60 : 1) / 15) * 15; if (secs < 15 || secs > 900) return true;
       const sc = F.norm(m[4] || ''); const kind = /duz|ciezk|glown|wielostaw|podstaw|bojow|compound|main|heavy|big/.test(sc) ? 'big' : /mal|izolow|akcesor|pomocnic|isolation|light/.test(sc) ? 'small' : 'all';
-      restRules[kind] = secs; ruleNotes.push(l.trim()); return false;
+      restRules[kind] = secs; ruleNotes.push(l.trim().replace(/^[^\p{L}\d]+/u, '')); return false;
     });
     let skipRules = false;
     const plan = { name: opts.name || '', days: [] }; let day = null, pending = null, prev = null, headerMap = null, headerOrder = null, firstSeen = false;

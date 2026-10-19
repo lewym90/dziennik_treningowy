@@ -296,9 +296,9 @@
       html: `${head(E(ex.name), { back: 1, sub: `${F.MUSCLES[ex.muscle]} · ${E(ex.equip)}`, right: `<button class="ibtn" data-a="exEdit" data-id="${id}" aria-label="Edytuj">${ic('pencil', 20)}</button>` })}
       <div class="tiles two">${cards.map(c => `<div class="tile cut"><span class="tl">${ic('trophy', 15)} ${c[0]}</span><b class="tv sm">${c[1]}</b></div>`).join('')}</div>
       ${sug ? `<div class="banner hot"><div>${ic('target', 20)}</div><p><b>Cel na następny trening</b><br><small>${ex.type === 'time' ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fwu(sug.w) + ' × ' + sug.r} — ${sug.note}</small></p></div>` : ''}
-      <section class="card cut tech"><h3>${ic('info', 18)} Technika i mięśnie</h3>${F.techHtml(id)}</section>
-      <section class="card cut"><div class="seg">${metrics.map(x => `<button class="${x[0] === mk ? 'on' : ''}" data-a="exMetric" data-m="${x[0]}">${x[1]}</button>`).join('')}</div>${F.chart.line(pts, { w: 340, h: 200 })}<p class="dim small">Złote punkty oznaczają pobite rekordy.</p></section>
+      <section class="card cut"><div class="seg m${metrics.length}">${metrics.map(x => `<button class="${x[0] === mk ? 'on' : ''}" data-a="exMetric" data-m="${x[0]}">${x[1]}</button>`).join('')}</div>${F.chart.line(pts, { w: 340, h: 200 })}<p class="dim small">Złote punkty oznaczają pobite rekordy.</p></section>
       ${rmTable}
+      <section class="card cut tech"><h3>${ic('info', 18)} Technika i mięśnie</h3>${F.techHtml(id)}</section>
       <h3 class="sec">Historia (${hist.length})</h3>${histRows ? `<div class="hlist">${histRows}</div>` : empty('history', 'Jeszcze nie trenowałeś tego ćwiczenia', 'Dodaj je do treningu, a tu pojawi się cała historia.')}`
     };
   }

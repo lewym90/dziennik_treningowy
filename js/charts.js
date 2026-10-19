@@ -34,7 +34,7 @@
       let grid = ''; t.forEach(v => { const y = Y(v); grid += `<line x1="${pl}" x2="${W - pr}" y1="${y}" y2="${y}" class="gl"/><text x="${pl - 6}" y="${y + 3.5}" class="ax" text-anchor="end">${F.fmtNum(v, v % 1 ? 1 : 0)}</text>`; });
       // etykiety osi X (do 5)
       let xl = ''; const n = Math.min(5, pts.length);
-      for (let i = 0; i < n; i++) { const p = pts[n === 1 ? 0 : Math.round(i * (pts.length - 1) / (n - 1))]; xl += `<text x="${X(p.x)}" y="${H - 7}" class="ax" text-anchor="${i === 0 && n > 1 ? 'start' : i === n - 1 && n > 1 ? 'end' : 'middle'}">${F.fmtDateShort(p.x)}</text>`; }
+      for (let i = 0; i < n; i++) { const p = { x: n === 1 || x1 === x0 ? x0 : x0 + (x1 - x0) * i / (n - 1) }; if (x1 === x0 && i > 0) break; xl += `<text x="${X(p.x)}" y="${H - 7}" class="ax" text-anchor="${i === 0 && n > 1 ? 'start' : i === n - 1 && n > 1 ? 'end' : 'middle'}">${F.fmtDateShort(p.x)}</text>`; }
       let dots = ''; pts.forEach((p, i) => {
         const [cx, cy] = P[i]; const pr_ = p.pr ? 'pr' : '';
         dots += `<g class="pt ${pr_}" data-tip="${esc(p.tip || F.fmtNum(p.y))}" data-x="${cx.toFixed(1)}" data-y="${cy.toFixed(1)}"><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="14" fill="transparent"/><circle class="dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${pts.length > 40 ? 2 : 3.6}"/></g>`;
