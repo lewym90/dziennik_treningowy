@@ -188,7 +188,7 @@
     }
     F.invalidateIdx();
     const plan = { id: F.uid(), name: (p.name || '').trim() || 'Zaimportowany plan', created: Date.now(), days: p.days.filter(d => d.items.some(i => i.exId)).map(d => ({ id: F.uid(), name: d.name || 'Trening', items: d.items.filter(i => i.exId).map(i => { const ex = F.S.ex.get(i.exId); const o = { id: F.uid(), exId: i.exId, sets: Math.max(1, i.sets || 3), reps: i.reps || '8-12', rest: i.rest || (ex && ex.compound ? 120 : 75), w: i.w || 0, note: (i.note || '').replace(/(?:^|,\s*)Superset(?=,|$)/i, '').replace(/^,\s*/, '') }; if (i.ss) o.ss = i.ss; if (i.pct) o.pct = i.pct; return o; }) })) };
-    plan.days.forEach(d => F.cleanSS(d.items)); await F.savePlan(plan); im.stage = 'idle'; im.plan = null; F.toast(`Zapisano plan „${E(plan.name)}”${created ? ` i ${created} now${created === 1 ? 'e ćwiczenie' : 'ych ćwiczeń'}` : ''}`, 'hot', 3500); F.go('#/plan/' + plan.id);
+    plan.days.forEach(d => { F.cleanSS(d.items); const inf = F.ssInfo(d.items); d.items.forEach((it, k) => { const g = inf[k]; if (g && g.pos > 0) { const f = d.items[g.start]; it.sets = f.sets; it.rest = Math.max(f.rest || 0, it.rest || 0); f.rest = it.rest; } }); d.items.forEach((it, k) => { const g = inf[k]; if (g && g.pos === 0) { for (let q = g.start; q <= g.end; q++) d.items[q].rest = Math.max(...d.items.slice(g.start, g.end + 1).map(x => x.rest || 0)); } }); }); await F.savePlan(plan); im.stage = 'idle'; im.plan = null; F.toast(`Zapisano plan „${E(plan.name)}”${created ? ` i ${created} now${created === 1 ? 'e ćwiczenie' : 'ych ćwiczeń'}` : ''}`, 'hot', 3500); F.go('#/plan/' + plan.id);
   };
 
   /* ---------- plik planu FORGE (JSON) ---------- */

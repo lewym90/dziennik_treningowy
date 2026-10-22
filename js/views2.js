@@ -28,7 +28,7 @@
       const d = new Date(s.start), key = d.getFullYear() + '-' + d.getMonth();
       if (key !== cur) { cur = key; out += `<h3 class="sec month">${MONTHS[d.getMonth()]} ${d.getFullYear()}</h3>`; }
       const names = s.exercises.map(e => (exOf(e.exId) || { name: '?' }).name);
-      out += `<a class="sess cut" href="#/session/${s.id}"><div class="sd"><b>${d.getDate()}</b><small>${F.MON[d.getMonth()]}</small></div><div class="sb"><h3>${E(s.name || 'Trening')}</h3><p class="meta"><span>${ic('timer', 13)} ${F.fmtMin(s.dur)}</span><span>${ic('weight', 13)} ${F.fmtVol(F.sessionVolume(s))}</span><span>${ic('layers', 13)} ${F.sessionSets(s)} serii</span></p><p class="sx">${E(names.slice(0, 3).join(', '))}${names.length > 3 ? ` +${names.length - 3}` : ''}</p></div>${s.prs && s.prs.length ? `<span class="prb">${ic('trophy', 14)}${s.prs.length}</span>` : ''}</a>`;
+      out += `<a class="sess cut" href="#/session/${s.id}"><div class="sd"><b>${d.getDate()}</b><small>${F.MON[d.getMonth()]}</small></div><div class="sb"><h3>${E(s.name || 'Trening')}</h3><p class="meta"><span>${ic('timer', 13)} ${F.fmtMin(s.dur)}</span><span>${ic('weight', 13)} ${F.fmtVol(F.sessionVolume(s))}</span><span>${ic('layers', 13)} ${F.sessionSets(s)} serii</span><span>${ic('flame', 13)} ${F.fmtNum(Math.round(F.sessKcal(s).net / 5) * 5, 0)} kcal</span></p><p class="sx">${E(names.slice(0, 3).join(', '))}${names.length > 3 ? ` +${names.length - 3}` : ''}</p></div>${s.prs && s.prs.length ? `<span class="prb">${ic('trophy', 14)}${s.prs.length}</span>` : ''}</a>`;
     });
     return out;
   }
@@ -65,8 +65,14 @@
     const s = F.S.sessions.find(x => x.id === id); if (!s) return { html: F.head('Trening', { back: 1 }) + F.empty('history', 'Nie znaleziono treningu', 'Ten trening został usunięty.') };
     const edit = F.ui.sessEdit === id; const vol = F.sessionVolume(s);
     const prMap = new Set((s.prs || []).map(p => p.exId));
-    const sinf = F.ssInfo(s.exercises);
+    const sinf = F.ssInfo(s.exercises); const kc = F.sessKcal(s); const kcOf = id => { const x = kc.perEx.find(p => p.exId === id); return x ? `<span class="xk">${F.icon ? '' : ''}${F.fmtNum(Math.round(x.kcal), 0)} kcal</span>` : ''; };
+    const ssBlock = g => {
+      const mem = s.exercises.slice(g.start, g.end + 1); const R = Math.max(...mem.map(e => e.sets.filter(x => x.done).length)); let rows = '';
+      for (let j = 0; j < R; j++) rows += `<div class="ser ssrow"><span class="sn">${j + 1}</span><div class="ssr-l">${mem.map((e, n) => { const ex = exOf(e.exId); const x = e.sets.filter(q => q.done)[j]; return `<div><span class="ss-tag">${g.L}${n + 1}</span>${x ? `<b>${setTxt(ex, x)}</b>${x.rpe ? `<em class="tag">RPE ${x.rpe}</em>` : ''}${x.pr && x.pr.length ? `<span class="prb sm">${ic('trophy', 12)} PR</span>` : ''}` : '<span class="dim">–</span>'}</div>`; }).join('')}</div></div>`;
+      return `<section class="card cut xblk ssblk"><div class="xb-h"><span class="ssc-t">${ic('link-2', 15)} ${F.ssName(g.size)} ${g.L}</span><span class="xk">${F.fmtNum(Math.round(mem.reduce((a, e) => a + ((kc.perEx.find(p => p.exId === e.exId) || {}).kcal || 0), 0)), 0)} kcal</span></div>${mem.map((e, n) => `<a class="ssn" href="#/ex/${E(e.exId)}"><span class="ss-tag">${g.L}${n + 1}</span>${E(F.exName(e.exId))}</a>`).join('')}${rows}</section>`;
+    };
     const blocks = s.exercises.map((e, ei) => {
+      if (!edit && sinf[ei]) { if (sinf[ei].pos > 0) return ''; if (s.exercises.slice(sinf[ei].start, sinf[ei].end + 1).some(m => m.sets.some(x => x.done))) return ssBlock(sinf[ei]); }
       const ex = exOf(e.exId); const isT = ex && ex.type === 'time', isB = ex && ex.type === 'br'; let n = 0;
       const rows = e.sets.map((x, si) => {
         if (!edit && !x.done) return ''; if (x.t !== 'w') n++;
@@ -75,11 +81,12 @@
         return `<div class="ser ${x.t === 'w' ? 'warm' : ''}"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><b>${setTxt(ex, x)}</b>${x.t && x.t !== 'n' ? `<em class="tag">${stype[x.t]}</em>` : ''}${x.rpe ? `<em class="tag">RPE ${x.rpe}</em>` : ''}${x.pr && x.pr.length ? `<span class="prb sm">${ic('trophy', 12)} PR</span>` : ''}<span class="e1">${e1 ? '1RM ≈ ' + F.fw(e1) : ''}</span></div>`;
       }).join('');
       if (!rows.trim() && !edit) return '';
-      return `<section class="card cut xblk"><div class="xb-h"><a href="#/ex/${E(e.exId)}">${sinf[ei] ? `<span class="ss-tag">${sinf[ei].tag}</span>` : F.mDot(ex && ex.muscle)}<h3>${E(ex ? ex.name : 'Usunięte ćwiczenie')}</h3></a>${prMap.has(e.exId) ? `<span class="prb">${ic('trophy', 14)}</span>` : ''}</div>${rows}${edit ? `<button class="btn ghost sm" data-a="seAdd" data-ei="${ei}">${ic('plus', 15)} Dodaj serię</button>` : ''}${e.note ? `<p class="note">${ic('notebook-pen', 14)} ${E(e.note)}</p>` : ''}</section>`;
+      return `<section class="card cut xblk"><div class="xb-h"><a href="#/ex/${E(e.exId)}">${sinf[ei] ? `<span class="ss-tag">${sinf[ei].tag}</span>` : F.mDot(ex && ex.muscle)}<h3>${E(ex ? ex.name : 'Usunięte ćwiczenie')}</h3></a>${edit ? '' : kcOf(e.exId)}${prMap.has(e.exId) ? `<span class="prb">${ic('trophy', 14)}</span>` : ''}</div>${rows}${edit ? `<button class="btn ghost sm" data-a="seAdd" data-ei="${ei}">${ic('plus', 15)} Dodaj serię</button>` : ''}${e.note ? `<p class="note">${ic('notebook-pen', 14)} ${E(e.note)}</p>` : ''}</section>`;
     }).join('');
     return {
       html: `${F.head(edit ? 'Edycja treningu' : E(s.name || 'Trening'), { back: 1, sub: `${F.fmtDateLong(s.start)} · ${F.fmtTime(s.start)}`, right: edit ? `<button class="btn sm primary" data-a="sessDone">${ic('check', 16)} Gotowe</button>` : `<button class="ibtn" data-a="sessMenu" data-id="${s.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
       ${edit ? `<div class="card cut"><label class="fld"><span>Nazwa</span><input data-b="sname" value="${E(s.name || '')}"></label><label class="fld"><span>Data</span><input type="date" data-b="sdate" value="${F.dateInput(s.start)}"></label><label class="fld"><span>Czas trwania (min)</span><input inputmode="numeric" data-b="sdur" value="${Math.round((s.dur || 0) / 60)}"></label></div>` : `<div class="tiles"><div class="tile cut"><span class="tl">Czas</span><b class="tv sm">${F.fmtMin(s.dur)}</b></div><div class="tile cut"><span class="tl">Tonaż</span><b class="tv sm">${F.fmtVol(vol)}</b></div><div class="tile cut"><span class="tl">Serie</span><b class="tv sm">${F.sessionSets(s)}</b></div><div class="tile cut"><span class="tl">Powt.</span><b class="tv sm">${F.sessionReps(s)}</b></div></div>`}
+      ${edit ? '' : F.kcalCard(F.sessKcal(s), s.id)}
       ${!edit && s.prs && s.prs.length ? `<section class="card cut prs"><h3>${ic('trophy', 18)} Rekordy z tego treningu</h3>${s.prs.map(p => `<a href="#/ex/${E(p.exId)}"><b>${E(F.exName(p.exId))}</b><span>${E(p.label)} · ${E(p.text)}</span></a>`).join('')}</section>` : ''}
       ${blocks}
       ${s.note && !edit ? `<p class="note big">${ic('notebook-pen', 16)} ${E(s.note)}</p>` : ''}
@@ -121,6 +128,8 @@
     const cnt = {}; F.S.sessions.forEach(s => s.exercises.forEach(e => { if (e.sets.some(x => x.done)) cnt[e.exId] = (cnt[e.exId] || 0) + 1; }));
     const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 6);
     return `<div class="tiles"><div class="tile cut"><span class="tl">Tonaż łącznie</span><b class="tv sm">${F.fmtVol(t.vol)}</b></div><div class="tile cut"><span class="tl">Serie</span><b class="tv" data-count="${t.sets}">0</b></div><div class="tile cut"><span class="tl">Powtórzenia</span><b class="tv" data-count="${t.reps}">0</b></div><div class="tile cut"><span class="tl">Czas pod sztangą</span><b class="tv sm">${F.fmtDurHuman(t.dur)}</b></div></div>
+    <div class="tiles two"><div class="tile cut"><span class="tl">${ic('flame', 15)} Kalorie — 7 dni</span><b class="tv sm">${F.fmtNum(Math.round(F.kcalTotals(7) / 5) * 5, 0)} kcal</b></div><div class="tile cut"><span class="tl">${ic('flame', 15)} Kalorie — razem</span><b class="tv sm">${F.fmtNum(Math.round(F.kcalTotals(0)), 0)} kcal</b></div></div>
+    <section class="card cut"><h3>Spalone kalorie tygodniowo <small class="dim">netto, szacunek</small></h3>${F.chart.bars(F.kcalWeeks(12).map((w, i, a) => ({ label: F.fmtDateShort(w.start).split(' ')[0] + '.' + String(new Date(w.start).getMonth() + 1).padStart(2, '0'), value: w.kcal, tip: `Tydzień od ${F.fmtDate(w.start)}: ${F.fmtNum(Math.round(w.kcal), 0)} kcal`, hl: i === a.length - 1 })), { labelEvery: 3 })}</section>
     <section class="card cut"><h3>Tonaż tygodniowy</h3>${F.chart.bars(wk.map((w, i) => ({ label: F.fmtDateShort(w.start).split(' ')[0] + '.' + String(new Date(w.start).getMonth() + 1).padStart(2, '0'), value: w.vol, tip: `Tydzień od ${F.fmtDate(w.start)}: ${F.fmtVol(w.vol)}`, hl: i === wk.length - 1 })), { labelEvery: 3 })}</section>
     <section class="card cut"><h3>Treningi w tygodniu <small class="dim">cel ${F.S.settings.weeklyGoal}</small></h3>${F.chart.bars(wk.map((w, i) => ({ label: F.fmtDateShort(w.start).split(' ')[0], value: w.count, tip: `Tydzień od ${F.fmtDate(w.start)}: ${w.count} tr.`, hl: i === wk.length - 1 })), { labelEvery: 3, values: it => it.value })}</section>
     <section class="card cut"><h3>Podział partii <small class="dim">ostatnie 30 dni</small></h3>${mus.length ? F.chart.hbars(mus) : '<p class="dim">Brak treningów w ostatnich 30 dniach.</p>'}</section>
@@ -147,6 +156,7 @@
     const delta = last && first && bw.length > 1 ? last.kg - first.kg : 0;
     return `<div class="tiles two"><div class="tile cut"><span class="tl">${ic('scale', 15)} Aktualna waga</span><b class="tv sm">${last ? F.fwu(last.kg) : '–'}</b></div><div class="tile cut"><span class="tl">Zmiana od początku</span><b class="tv sm ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${bw.length > 1 ? (delta > 0 ? '+' : '') + F.fw(delta) + ' ' + F.unit() : '–'}</b></div></div>
     <section class="card cut"><h3>Wpis wagi</h3><div class="bw-form"><label class="fld"><span>Waga (${F.unit()})</span><input id="bw-v" inputmode="decimal" placeholder="${last ? F.fw(last.kg) : '80,0'}"></label><label class="fld"><span>Data</span><input id="bw-d" type="date" value="${F.dateInput(Date.now())}"></label><button class="btn primary" data-a="bwAdd">${ic('plus', 18)} Dodaj</button></div><p class="dim small">Waga ciała przelicza obciążenie w podciąganiu, dipach i pompkach.</p></section>
+    <section class="card cut"><h3>${ic('user', 18)} Twoje dane</h3>${F.profileHtml()}</section>
     <section class="card cut"><h3>Trend wagi</h3>${F.chart.line(pts, { w: 340, h: 200 })}</section>
     ${bw.length ? `<h3 class="sec">Wpisy</h3><div class="hlist">${[...bw].reverse().slice(0, 30).map(b => `<div class="hrow"><span class="hd">${F.fmtDate(b.date)}</span><span class="hs"><b>${F.fwu(b.kg)}</b></span><button class="ibtn" data-a="bwDel" data-id="${b.id}" aria-label="Usuń">${ic('x', 16)}</button></div>`).join('')}</div>` : ''}`;
   }
@@ -209,9 +219,9 @@
     return {
       html: `${F.head('Ustawienia', { back: 1 })}
       <section class="card cut"><label class="fld"><span>Twoje imię (na ekranie startowym)</span><input data-b="set" data-k="name" value="${E(s.name)}" maxlength="24" placeholder="np. Kasia"></label><div class="rank-mini">${ic('crown', 18)} Ranga <b>${rk.name}</b> · ${F.fmtNum(rk.xp, 0)} XP</div></section>
+      <h3 class="sec">Profil</h3><section class="card cut">${F.profileHtml()}<p class="dim small">Wagę wpiszesz w Postępy → Ciało.</p></section>
       <h3 class="sec">Trening</h3><section class="card cut list">
         <div class="stp"><span><b>Jednostki</b></span><div class="seg tiny"><button class="${s.unit === 'kg' ? 'on' : ''}" data-a="setUnit" data-u="kg">kg</button><button class="${s.unit === 'lb' ? 'on' : ''}" data-a="setUnit" data-u="lb">lb</button></div></div>
-        <div class="stp"><span><b>Płeć</b><small>Do norm siły, DOTS i Wilks</small></span><div class="seg tiny"><button class="${s.sex === 'm' ? 'on' : ''}" data-a="setSex" data-v="m">M</button><button class="${s.sex === 'f' ? 'on' : ''}" data-a="setSex" data-v="f">K</button></div></div>
         ${step('weeklyGoal', 'Cel tygodniowy', s.weeklyGoal, 'tr.', 1, 7, 1)}${step('defaultRest', 'Domyślna przerwa', F.fmtDur(s.defaultRest), '', 30, 600, 15)}
         <div class="stp"><span><b>Krok ciężaru</b></span><div class="seg tiny">${[1, 1.25, 2.5, 5].map(v => `<button class="${s.step === v ? 'on' : ''}" data-a="setStepW" data-v="${v}">${String(v).replace('.', ',')}</button>`).join('')}</div></div>
         ${sw('autoRest', 'Automatyczna przerwa', 'Stoper rusza po zaliczeniu serii')}${sw('autoProg', 'Automatyczna progresja', 'Ciężar i powtórzenia z planu uzupełniane na podstawie ostatniego treningu')}${sw('sound', 'Dźwięk stopera')}${sw('vibrate', 'Wibracje')}${sw('wake', 'Nie wygaszaj ekranu w treningu')}</section>
@@ -225,7 +235,7 @@
         <a class="lrow" href="#/import">${ic('scan-text', 20)}<span><b>Import planów i historii</b><small>PDF, zdjęcia, CSV (Strong, Hevy, FitNotes)</small></span></a>
         <button class="lrow" data-a="persist">${ic('lock', 20)}<span><b>Chroń dane przed czyszczeniem</b><small id="stor">Prośba o trwałe przechowywanie w przeglądarce</small></span></button>
         <button class="lrow danger" data-a="wipe">${ic('trash-2', 20)}<span><b>Usuń wszystkie dane</b><small>Nieodwracalne. Najpierw zrób kopię.</small></span></button></section>
-      <p class="about">FORGE 1.1 · Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
+      <p class="about">FORGE 1.2 · Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
       after: () => { if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(e => { const el = F.$('#stor'); if (el) el.textContent = `Zajęte: ${(e.usage / 1048576).toFixed(1)} MB · dotknij, aby zabezpieczyć dane`; }); }
     };
   };

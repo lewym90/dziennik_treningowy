@@ -104,7 +104,7 @@
   const sexKey = () => F.S.settings.sex === 'f' ? 'f' : F.S.settings.sex === 'm' ? 'm' : '';
   F.statsStrength = () => {
     const sex = sexKey(), bw = F.latestBW();
-    const setup = `<section class="card cut"><h3>${ic('user', 18)} Twoje dane</h3><p class="dim small">Normy siły zależą od płci i masy ciała.</p><div class="seg tiny sx"><button class="${sex === 'm' ? 'on' : ''}" data-a="setSex" data-v="m">Mężczyzna</button><button class="${sex === 'f' ? 'on' : ''}" data-a="setSex" data-v="f">Kobieta</button></div>
+    const setup = `<section class="card cut"><h3>${ic('user', 18)} Twoje dane</h3>${F.profileHtml()}
       <div class="bw-form"><label class="fld"><span>Masa ciała (${F.unit()})</span><input id="st-bw" inputmode="decimal" placeholder="${bw ? F.fw(bw) : '80'}"></label><button class="btn primary" data-a="stBw">${ic('plus', 18)} Zapisz</button></div>${bw ? `<p class="dim small">Aktualnie: <b>${F.fwu(bw)}</b></p>` : ''}</section>`;
     if (!sex || !bw) return setup + `<p class="dim center pad">Wybierz płeć i wpisz masę ciała, a pokażę poziom siły w głównych bojach oraz DOTS i Wilks.</p>`;
     const rows = Object.keys(STD).map(id => {
