@@ -20,8 +20,8 @@
   function closeNotif() { try { navigator.serviceWorker.getRegistration().then(r => r && r.getNotifications({ tag: 'forge-rest' }).then(l => l.forEach(n => n.close()))); } catch (e) { } }
 
   // ---- własny serwer Web Push (VPS): zaplanowane powiadomienie przez Apple/Google, bez grania w tle ----
-  const PKEY = 'forge.push', DEF_URL = 'https://188-68-247-55.sslip.io/forge-push';
-  const pcfg = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || null; } catch (e) { return null; } };
+  const PKEY = 'forge.push', DEF_URL = 'https://188-68-247-201.sslip.io/forge-push', OLD_URL = 'https://188-68-247-55.sslip.io/forge-push';
+  const pcfg = () => { try { const c = JSON.parse(localStorage.getItem(PKEY)) || null; if (c && c.url === OLD_URL) { c.url = DEF_URL; localStorage.setItem(PKEY, JSON.stringify(c)); } return c; } catch (e) { return null; } };
   const pset = v => { try { v ? localStorage.setItem(PKEY, JSON.stringify(v)) : localStorage.removeItem(PKEY); } catch (e) { } };
   const pSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
