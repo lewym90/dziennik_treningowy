@@ -81,18 +81,25 @@
   F.act.ntfyToggle = () => { const st = S(); st.ntfyOn = !st.ntfyOn; if (st.ntfyOn && !st.ntfyTopic) st.ntfyTopic = F.ntfyNewTopic(); F.saveSettings(); F.render(true); };
   F.act.ntfyNew = () => { S().ntfyTopic = F.ntfyNewTopic(); F.saveSettings(); F.render(true); };
   F.act.ntfyCopy = () => { try { navigator.clipboard.writeText(S().ntfyTopic); F.toast('Skopiowano nazwę tematu'); } catch (e) { F.toast(S().ntfyTopic); } };
+  // ---- iOS: systemowy minutnik przez Skróty (odliczanie na ekranie blokady i w Dynamic Island) ----
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  F.act.iosTimerToggle = () => { S().iosTimer = !S().iosTimer; F.saveSettings(); F.render(true); };
+  F.act.iosTimerTest = () => { runShortcut(30); };
+  function runShortcut(sec) { try { location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent('FORGE Przerwa') + '&input=text&text=' + Math.round(sec); } catch (e) { } }
   F.ntfyHtml = () => {
-    const s = S(), on = !!s.ntfyOn;
+    const s = S(), on = !!s.ntfyOn, ios = isIOS;
     return `<section class="card cut"><label class="sw"><span><b>Powiadomienia przez ntfy</b><small>Najpewniejsze przy zablokowanym telefonie. Nie przerywa muzyki.</small></span><button class="${on ? 'chip on' : 'chip'}" data-a="ntfyToggle" style="min-width:64px">${on ? 'Włączone' : 'Włącz'}</button></label>
-      ${on ? `<ol class="dim small" style="padding-left:18px;margin:10px 0;line-height:1.5"><li>Zainstaluj bezpłatną aplikację <b>ntfy</b> (Google Play lub App Store).</li><li>W ntfy dotknij „+” i wpisz temat: <b style="user-select:all;word-break:break-all">${F.esc(s.ntfyTopic)}</b></li><li>Dotknij „Wyślij test” — powinno przyjść powiadomienie.</li></ol>
+      ${on ? `<ol class="dim small" style="padding-left:18px;margin:10px 0;line-height:1.5"><li>Zainstaluj bezpłatną aplikację <b>ntfy</b> z ${ios ? 'App Store' : 'App Store lub Google Play'} i zezwól jej na powiadomienia.</li><li>W ntfy dotknij „+” i wpisz temat: <b style="user-select:all;word-break:break-all">${F.esc(s.ntfyTopic)}</b></li><li>Dotknij „Wyślij test” — powinno przyjść powiadomienie.</li></ol>
       <div class="btn-row"><button class="btn ghost" data-a="ntfyCopy">Kopiuj temat</button><button class="btn ghost" data-a="ntfyTest">Wyślij test</button></div>
       <div class="btn-row"><a class="btn ghost" href="ntfy://ntfy.sh/${F.esc(s.ntfyTopic)}">Otwórz w ntfy</a><button class="btn ghost" data-a="ntfyNew">Nowy temat</button></div>
-      <p class="dim small">Usługa ntfy.sh dostaje tylko losową nazwę tematu i tekst „Przerwa skończona” — nic o Twoich treningach. Temat jest jak hasło, więc nikomu go nie podawaj.</p>` : ''}</section>`;
+      <p class="dim small">Na iPhonie przychodzi przez systemowe powiadomienia Apple, więc działa przy zablokowanym ekranie i nie rusza muzyki.</p><p class="dim small">Usługa ntfy.sh dostaje tylko losową nazwę tematu i tekst „Przerwa skończona” — nic o Twoich treningach. Temat jest jak hasło, więc nikomu go nie podawaj.</p>` : ''}</section>
+      ${ios ? `<section class="card cut"><label class="sw"><span><b>Minutnik na ekranie blokady (Skróty)</b><small>Eksperymentalne. Systemowy minutnik z odliczaniem na ekranie blokady. Przy każdej przerwie na chwilę otworzy się aplikacja Skróty.</small></span><button class="${s.iosTimer ? 'chip on' : 'chip'}" data-a="iosTimerToggle" style="min-width:64px">${s.iosTimer ? 'Włączone' : 'Włącz'}</button></label>
+      ${s.iosTimer ? `<ol class="dim small" style="padding-left:18px;margin:10px 0;line-height:1.5"><li>Otwórz aplikację <b>Skróty</b>, dotknij „+” i nazwij skrót dokładnie: <b>FORGE Przerwa</b></li><li>Dodaj akcję <b>Rozpocznij minutnik</b>, ustaw jednostkę na <b>sekundy</b>, a jako wartość wybierz <b>Dane wejściowe skrótu</b>.</li><li>Wróć tu i dotknij „Test (30 s)”.</li></ol><div class="btn-row"><button class="btn ghost" data-a="iosTimerTest">Test (30 s)</button></div>` : ''}</section>` : ''}`;
   };
 
   // ---- podpięcie pod stoper ----
   const _start = F.restStart, _stop = F.restStop, _add = F.restAdd;
-  F.restStart = (sec, label) => { _start(sec, label); if (F.rest) { closeNotif(); startKeepAlive(); if (wantNotif()) ensurePermission(); armEnd(); ntfySchedule(); } };
+  F.restStart = (sec, label) => { _start(sec, label); if (F.rest) { closeNotif(); startKeepAlive(); if (wantNotif()) ensurePermission(); armEnd(); ntfySchedule(); if (S().iosTimer && isIOS && F.rest.total >= 10) runShortcut(F.rest.total); } };
   F.restAdd = s => { _add(s); if (F.rest) { setSession(); armEnd(); ntfySchedule(); } };
   F.restSkipNow = () => { if (F.rest) F.restStop(false); };
   F.restStop = finished => {
