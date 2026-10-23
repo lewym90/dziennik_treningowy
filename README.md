@@ -25,3 +25,12 @@ Instalowalna aplikacja (PWA) dla ludzi, którzy podnoszą ciężko. Działa offl
 - Po zmianie plików zwiększ `VERSION` w `sw.js`, aby użytkownicy dostali aktualizację.
 - Dane są w pamięci przeglądarki. Rób kopie zapasowe (Ustawienia → Dane).
 - Ikony: Lucide (ISC). Fonty: Barlow (SIL OFL). OCR: Tesseract.js (Apache-2.0). PDF: PDF.js (Apache-2.0).
+
+## Powiadomienia o końcu przerwy (serwer Web Push)
+
+Przy zablokowanym telefonie system usypia aplikację, więc koniec przerwy musi przyjść z serwera. Folder `server/` zawiera małą usługę Web Push (Node, `web-push`) dla własnego VPS-a, w tym samym stylu co Kalendarz i Poczta:
+
+1. Jako root na serwerze: `bash <(curl -fsSL https://raw.githubusercontent.com/lewym90/dziennik_treningowy/main/server/install.sh)`. Instalator tworzy osobnego użytkownika, usługę `forge-push` na `127.0.0.1:8793` i trasę `/forge-push/` w Caddy (z walidacją i wycofaniem). Wypisuje adres i kod połączenia.
+2. W FORGE (z ekranu początkowego): Ustawienia → Powiadomienia z serwera → wpisz kod → „Połącz”.
+
+Każdy telefon ma własny identyfikator i token, a serwer trzyma osobny timer dla każdego urządzenia, więc każdy dostaje wyłącznie swoje powiadomienia. Kod połączenia służy tylko do pierwszej rejestracji. Nic nie gra w tle, więc muzyka nie jest przerywana. Testy: `cd server && npm install && npm test`.

@@ -1,5 +1,5 @@
 /* FORGE — service worker: działanie offline, odświeżanie w tle, odbiór plików z menu „Udostępnij” */
-const VERSION = 'forge-v1.3.1';
+const VERSION = 'forge-v1.4.0';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'css/styles.css',
   'js/icons.js', 'js/data.js', 'js/exinfo.js', 'js/features.js', 'js/kcal.js', 'js/alert.js', 'js/core.js', 'js/charts.js', 'js/ui.js', 'js/parser.js', 'js/app.js', 'js/views2.js', 'js/workout.js', 'js/importer.js', 'js/main.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
@@ -58,4 +58,11 @@ self.addEventListener('notificationclick', e => {
     for (const c of list) { if ('focus' in c) return c.focus(); }
     return self.clients.openWindow((e.notification.data && e.notification.data.url) || './');
   }));
+});
+
+// Push z serwera FORGE: { title, body, tag, url }. iOS wymaga pokazania powiadomienia przy każdym pushu.
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { try { d = { body: e.data.text() }; } catch (__) { d = {}; } }
+  e.waitUntil(self.registration.showNotification(d.title || 'FORGE', { body: d.body || '', icon: 'icons/icon-192.png', badge: 'icons/favicon-32.png', tag: d.tag || 'forge-rest', renotify: true, vibrate: [300, 120, 300, 120, 500], data: { url: d.url || './#/workout' } }));
 });
