@@ -62,15 +62,43 @@
   }
   function closeNotif() { try { navigator.serviceWorker.getRegistration().then(r => r && r.getNotifications({ tag: 'forge-rest' }).then(l => l.forEach(n => n.close()))); } catch (e) { } }
 
+  // ---- ntfy: zdalne, zaplanowane powiadomienie (działa przy zablokowanym telefonie, nie rusza muzyki) ----
+  const NTFY = 'https://ntfy.sh';
+  const ntfyOn = () => !!(S().ntfyOn && S().ntfyTopic);
+  F.ntfyNewTopic = () => { const a = new Uint8Array(12); crypto.getRandomValues(a); return 'forge-' + [...a].map(x => (x % 36).toString(36)).join(''); };
+  async function ntfySchedule() {
+    if (!ntfyOn() || !F.rest) return; const sec = Math.round((F.rest.end - Date.now()) / 1000);
+    try {
+      if (sec < 10) { await ntfyCancel(); return; } // minimum serwera to 10 s
+      await fetch(NTFY + '/', { method: 'POST', body: JSON.stringify({ topic: S().ntfyTopic, sequence_id: 'rest', title: 'Przerwa skończona', message: 'Do roboty — czas na kolejną serię.', priority: 4, tags: ['stopwatch'], delay: sec + 's' }) });
+    } catch (e) { }
+  }
+  async function ntfyCancel() { if (!ntfyOn()) return; try { await fetch(NTFY + '/' + S().ntfyTopic + '/rest', { method: 'DELETE' }); } catch (e) { } }
+  F.act.ntfyTest = async () => {
+    if (!S().ntfyTopic) return F.toast('Najpierw włącz powiadomienia ntfy');
+    try { const r = await fetch(NTFY + '/', { method: 'POST', body: JSON.stringify({ topic: S().ntfyTopic, title: 'FORGE', message: 'Działa. Tak będzie wyglądać koniec przerwy.', priority: 4, tags: ['white_check_mark'] }) }); F.toast(r.ok ? 'Wysłano. Sprawdź telefon.' : 'Nie udało się wysłać (' + r.status + ')'); } catch (e) { F.toast('Brak internetu — nie udało się wysłać'); }
+  };
+  F.act.ntfyToggle = () => { const st = S(); st.ntfyOn = !st.ntfyOn; if (st.ntfyOn && !st.ntfyTopic) st.ntfyTopic = F.ntfyNewTopic(); F.saveSettings(); F.render(true); };
+  F.act.ntfyNew = () => { S().ntfyTopic = F.ntfyNewTopic(); F.saveSettings(); F.render(true); };
+  F.act.ntfyCopy = () => { try { navigator.clipboard.writeText(S().ntfyTopic); F.toast('Skopiowano nazwę tematu'); } catch (e) { F.toast(S().ntfyTopic); } };
+  F.ntfyHtml = () => {
+    const s = S(), on = !!s.ntfyOn;
+    return `<section class="card cut"><label class="sw"><span><b>Powiadomienia przez ntfy</b><small>Najpewniejsze przy zablokowanym telefonie. Nie przerywa muzyki.</small></span><button class="${on ? 'chip on' : 'chip'}" data-a="ntfyToggle" style="min-width:64px">${on ? 'Włączone' : 'Włącz'}</button></label>
+      ${on ? `<ol class="dim small" style="padding-left:18px;margin:10px 0;line-height:1.5"><li>Zainstaluj bezpłatną aplikację <b>ntfy</b> (Google Play lub App Store).</li><li>W ntfy dotknij „+” i wpisz temat: <b style="user-select:all;word-break:break-all">${F.esc(s.ntfyTopic)}</b></li><li>Dotknij „Wyślij test” — powinno przyjść powiadomienie.</li></ol>
+      <div class="btn-row"><button class="btn ghost" data-a="ntfyCopy">Kopiuj temat</button><button class="btn ghost" data-a="ntfyTest">Wyślij test</button></div>
+      <div class="btn-row"><a class="btn ghost" href="ntfy://ntfy.sh/${F.esc(s.ntfyTopic)}">Otwórz w ntfy</a><button class="btn ghost" data-a="ntfyNew">Nowy temat</button></div>
+      <p class="dim small">Usługa ntfy.sh dostaje tylko losową nazwę tematu i tekst „Przerwa skończona” — nic o Twoich treningach. Temat jest jak hasło, więc nikomu go nie podawaj.</p>` : ''}</section>`;
+  };
+
   // ---- podpięcie pod stoper ----
   const _start = F.restStart, _stop = F.restStop, _add = F.restAdd;
-  F.restStart = (sec, label) => { _start(sec, label); if (F.rest) { closeNotif(); startKeepAlive(); if (wantNotif()) ensurePermission(); armEnd(); } };
-  F.restAdd = s => { _add(s); if (F.rest) { setSession(); armEnd(); } };
+  F.restStart = (sec, label) => { _start(sec, label); if (F.rest) { closeNotif(); startKeepAlive(); if (wantNotif()) ensurePermission(); armEnd(); ntfySchedule(); } };
+  F.restAdd = s => { _add(s); if (F.rest) { setSession(); armEnd(); ntfySchedule(); } };
   F.restSkipNow = () => { if (F.rest) F.restStop(false); };
   F.restStop = finished => {
-    const was = !!F.rest; clearTimeout(endTimer); _stop(finished);
+    const was = !!F.rest; clearTimeout(endTimer); _stop(finished); if (was && !finished) ntfyCancel();
     if (!was) return;
-    if (finished && wantNotif() && (document.hidden || !document.hasFocus())) notify();
+    if (finished && wantNotif() && !ntfyOn() && (document.hidden || !document.hasFocus())) notify();
     if (finished && on() && active) { // głośny sygnał w tle (tylko w trybie z odliczaniem na ekranie blokady)
       try { const a = ensureAudio(); a.loop = false; a.src = urls.alarm; a.play().catch(() => { }); } catch (e) { }
       stopKeepAlive(2200);
