@@ -17,7 +17,8 @@
     const rate = 22050, out = []; const tone = (f, d) => { const n = Math.floor(rate * d); for (let i = 0; i < n; i++) { const env = Math.min(1, i / 200, (n - i) / 400); out.push(Math.sign(Math.sin(2 * Math.PI * f * i / rate)) * 14000 * env); } for (let i = 0; i < rate * .08; i++) out.push(0); };
     tone(880, .22); tone(880, .22); tone(1320, .5); return wav(Int16Array.from(out));
   }
-  const on = () => S().bgRest !== false;
+  const on = () => S().lockRest === true; // odliczanie na ekranie blokady (cichy dźwięk — wstrzymuje muzykę z innych aplikacji)
+  const wantNotif = () => S().notifRest !== false;
   const ms = () => ('mediaSession' in navigator) ? navigator.mediaSession : null;
 
   function ensureAudio() {
@@ -43,7 +44,6 @@
   function startKeepAlive() {
     if (!on()) return; const a = ensureAudio();
     try { if (a.src !== urls.sil) { a.src = urls.sil; } a.loop = true; a.volume = 1; const p = a.play(); if (p && p.catch) p.catch(() => { }); active = true; handlers(); setSession(); } catch (e) { }
-    ensurePermission();
   }
   function stopKeepAlive(delay = 0) {
     active = false; const m = ms();
@@ -64,15 +64,15 @@
 
   // ---- podpięcie pod stoper ----
   const _start = F.restStart, _stop = F.restStop, _add = F.restAdd;
-  F.restStart = (sec, label) => { _start(sec, label); if (F.rest) { closeNotif(); startKeepAlive(); armEnd(); } };
+  F.restStart = (sec, label) => { _start(sec, label); if (F.rest) { closeNotif(); startKeepAlive(); if (wantNotif()) ensurePermission(); armEnd(); } };
   F.restAdd = s => { _add(s); if (F.rest) { setSession(); armEnd(); } };
   F.restSkipNow = () => { if (F.rest) F.restStop(false); };
   F.restStop = finished => {
     const was = !!F.rest; clearTimeout(endTimer); _stop(finished);
     if (!was) return;
-    if (finished && on() && active) { // sygnał końcowy: głośny dźwięk w tle + powiadomienie, gdy ekran nieaktywny
+    if (finished && wantNotif() && (document.hidden || !document.hasFocus())) notify();
+    if (finished && on() && active) { // głośny sygnał w tle (tylko w trybie z odliczaniem na ekranie blokady)
       try { const a = ensureAudio(); a.loop = false; a.src = urls.alarm; a.play().catch(() => { }); } catch (e) { }
-      if (document.hidden || !document.hasFocus()) notify();
       stopKeepAlive(2200);
     } else stopKeepAlive(0);
   };
@@ -80,5 +80,5 @@
   function armEnd() { clearTimeout(endTimer); if (!F.rest) return; endTimer = setTimeout(() => { if (F.rest) F.tickRest(); }, Math.max(0, F.rest.end - Date.now()) + 30); }
   document.addEventListener('visibilitychange', () => { if (F.rest && !document.hidden) setSession(); });
   // zgoda na powiadomienia przy włączeniu opcji w ustawieniach
-  document.addEventListener('change', e => { const t = e.target; if (t && t.dataset && t.dataset.k === 'bgRest' && t.checked) { F._askedNotif = false; ensurePermission(); } });
+  document.addEventListener('change', e => { const t = e.target; if (t && t.dataset && t.dataset.k === 'notifRest' && t.checked) { F._askedNotif = false; ensurePermission(); } });
 })();
