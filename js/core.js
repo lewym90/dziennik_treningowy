@@ -64,6 +64,8 @@
       if (add2.length) { await F.dbPutMany('exercises', add2); ex.push(...add2); }
     }
     ex.forEach(e => F.S.ex.set(e.id, e));
+    // zabezpieczenie danych: gdy są dane, a ostatnia migawka ma >12 h (lub zmieniła się wersja aplikacji), zapisz kopię w tej samej bazie
+    try { await F.autoSnap(ex, plans, sessions, bw, meas, set); } catch (e) { console.warn('snap', e); }
     F.S.plans = plans.sort((a, b) => (a.order || 0) - (b.order || 0) || a.created - b.created);
     F.S.sessions = sessions.sort((a, b) => b.start - a.start);
     F.S.bw = bw.sort((a, b) => a.date - b.date);
@@ -71,6 +73,22 @@
     F.S.settings = { ...F.DEFAULT_SETTINGS, ...(set || {}) };
     F.S.draft = draft || null;
     F.rebuild();
+  };
+  F.APPVER = '1.8.0';
+  F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
+    if (!sessions.length && !plans.length) return;
+    const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
+    const stale = !cur || Date.now() - cur.at > 12 * 36e5 || ver !== F.APPVER;
+    if (!stale) return;
+    // przy zmianie wersji zachowaj poprzednią migawkę jako „przed aktualizacją” (najstarsza dobra kopia nie jest nadpisywana)
+    if (cur && ver !== F.APPVER && cur.sessions && cur.sessions.length) await F.kvSet('snapPrev', cur);
+    const data = { at: Date.now(), ver: F.APPVER, from: ver || '', settings: set || {}, exercises: ex.filter(e => e.custom), plans, sessions, bodyweight: bw, measures: meas || [] };
+    await F.kvSet('snap', data); await F.kvSet('appVer', F.APPVER);
+  };
+  F.snapInfo = async () => { const a = await F.kvGet('snap'), b = await F.kvGet('snapPrev'); return { a, b }; };
+  F.restoreSnap = async which => {
+    const d = await F.kvGet(which); if (!d) return false;
+    return F.importAll({ app: 'FORGE', version: 2, settings: d.settings, exercises: d.exercises, plans: d.plans, sessions: d.sessions, bodyweight: d.bodyweight, measures: d.measures }, 'merge');
   };
   F.saveSettings = () => F.kvSet('settings', F.S.settings);
   F.saveDraft = () => F.S.draft ? F.kvSet('draft', F.S.draft) : F.kvDel('draft');

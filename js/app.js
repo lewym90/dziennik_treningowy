@@ -34,7 +34,7 @@
     [/^#\/plan\/([^/]+)\/edit$/, m => planEdit(m[1]), 'plans'], [/^#\/exercises$/, () => exercises(), 'plans'], [/^#\/ex\/([^/]+)$/, m => exDetail(m[1]), 'stats'],
     [/^#\/history$/, () => F.views.history(), 'history'], [/^#\/session\/([^/]+)$/, m => F.views.session(m[1]), 'history'],
     [/^#\/stats$/, () => F.views.stats(), 'stats'], [/^#\/tools$/, () => F.views.tools(), 'home'], [/^#\/settings$/, () => F.views.settings(), 'home'],
-    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans']
+    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
   ];
   let curTab = 'home';
   F.render = (keepScroll) => {
@@ -105,6 +105,8 @@
       ${prShow.length ? `<h3 class="sec">Świeże rekordy</h3><div class="prow">${prShow.map(p => `<a class="prchip cut" href="#/ex/${E(p.exId)}">${ic('trophy', 16)}<span><b>${E(exName(p.exId))}</b><small>${E(p.text)} · ${F.relDay(p.ts)}</small></span></a>`).join('')}</div>` : ''}
       <h3 class="sec">Narzędzia</h3>
       <div class="qa">
+        <a class="qa-i cut" href="#/wizard" data-a="newWizard">${ic('sparkles', 24)}<span>Kreator planu</span></a>
+        <a class="qa-i cut" href="#/guide">${ic('info', 24)}<span>Porady i nauka</span></a>
         <a class="qa-i cut" href="#/import">${ic('scan-text', 24)}<span>Import planu</span></a>
         <a class="qa-i cut" href="#/tools">${ic('calculator', 24)}<span>Kalkulatory</span></a>
         <a class="qa-i cut" href="#/exercises">${ic('dumbbell', 24)}<span>Ćwiczenia</span></a>
@@ -132,6 +134,7 @@
     return {
       html: `${head('Plany', { sub: 'Twoje programy treningowe', right: `<button class="btn sm primary" data-a="newPlan">${ic('plus', 16)} Nowy</button>` })}
       ${F.S.plans.length ? `<div class="stack">${list}</div>` : empty('clipboard-list', 'Brak planów', 'Stwórz własny plan, zaimportuj go z PDF-a lub zrzutu ekranu albo weź gotowy szablon.')}
+      <a class="importcard cut" href="#/wizard" data-a="newWizard"><div>${ic('sparkles', 30)}</div><p><b>Kreator planu</b><small>Odpowiesz na kilka pytań — ułożę plan dla Ciebie</small></p>${ic('chevron-right', 20)}</a>
       <a class="importcard cut" href="#/import"><div>${ic('scan-text', 30)}</div><p><b>Importuj plan z pliku</b><small>PDF, zrzut ekranu, zdjęcie, tekst, CSV z innej aplikacji</small></p>${ic('chevron-right', 20)}</a>
       <div class="btn-row split"><button class="btn ghost" data-a="templates">${ic('sparkles', 18)} Plany startowe</button><a class="btn ghost" href="#/exercises">${ic('dumbbell', 18)} Ćwiczenia</a></div>`
     };

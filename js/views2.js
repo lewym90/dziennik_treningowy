@@ -102,6 +102,11 @@
   F.bind.sdate = el => { const s = SS(); const [y, m, d] = el.value.split('-').map(Number); if (!y) return; const t = new Date(s.start); s.start = new Date(y, m - 1, d, t.getHours(), t.getMinutes()).getTime(); saveSess(s); };
   F.act.seDel = b => { const s = SS(); s.exercises[+b.dataset.ei].sets.splice(+b.dataset.si, 1); saveSess(s); F.render(true); };
   F.act.seAdd = b => { const s = SS(); const e = s.exercises[+b.dataset.ei]; const l = e.sets[e.sets.length - 1] || { w: 0, r: 0 }; e.sets.push({ w: l.w, r: l.r, t: 'n', done: true }); saveSess(s); F.render(true); };
+  F.act.snapOpen = async () => {
+    const { a, b } = await F.snapInfo(); const row = (d, k, t) => d ? `<button class="lrow" data-a="snapRestore" data-k="${k}"><span><b>${t}</b><small>${F.fmtDate(d.at)} · ${d.sessions.length} ${F.plur(d.sessions.length, 'trening', 'treningi', 'treningów')}, ${d.plans.length} ${F.plur(d.plans.length, 'plan', 'plany', 'planów')} · wersja ${E(d.ver || '?')}</small></span>${ic('rotate-ccw', 18)}</button>` : '';
+    F.sheet(`<p class="sheet-p dim">Aplikacja zapisuje migawkę Twoich danych w pamięci telefonu co kilkanaście godzin i przed każdą aktualizacją. Przywrócenie dołącza brakujące treningi i plany, niczego nie kasuje. To dodatek — prawdziwą kopią jest plik z „Kopia zapasowa”.</p><div class="stack">${row(a, 'snap', 'Najnowsza migawka') + row(b, 'snapPrev', 'Sprzed ostatniej aktualizacji') || '<p class="dim pad center">Brak migawki (pojawi się po pierwszym zapisanym treningu).</p>'}</div>`, { title: 'Zabezpieczenie danych' });
+  };
+  F.act.snapRestore = async b => { const ok = await F.confirm({ title: 'Przywrócić migawkę?', text: 'Brakujące treningi i plany zostaną dołączone. Nic nie zostanie usunięte.', ok: 'Przywróć' }); if (!ok) return; try { await F.restoreSnap(b.dataset.k); F.closeSheet(true); F.toast('Przywrócono dane', 'hot'); location.reload(); } catch (e) { F.toast('Nie udało się przywrócić', 'err'); } };
   F.act.sessDone = async () => { const s = SS(); F.ui.sessEdit = null; s.start = s.start; F.S.sessions.sort((a, b) => b.start - a.start); await F.dbPut('sessions', s); F.rebuild(); F.toast('Zapisano zmiany', 'hot'); F.render(true); };
   F.act.sessMenu = b => {
     const id = b.dataset.id;
@@ -231,6 +236,7 @@
         <button class="lrow" data-a="doBackupBtn">${ic('download', 20)}<span><b>Kopia zapasowa (JSON, ze zdjęciami)</b><small>${s.lastBackup ? 'Ostatnia: ' + F.fmtDate(s.lastBackup) : 'Jeszcze nie robiona'}</small></span></button>
         <button class="lrow" data-a="doBackupLite">${ic('file-json', 20)}<span><b>Kopia bez zdjęć (lżejsza)</b><small>Historia, plany, pomiary — bez zdjęć sylwetki</small></span></button>
         <button class="lrow" data-a="expCsv">${ic('file-spreadsheet', 20)}<span><b>Eksport historii (CSV)</b><small>${t.count} treningów, ${t.sets} serii</small></span></button>
+        <button class="lrow" data-a="snapOpen">${ic('rotate-ccw', 20)}<span><b>Automatyczne zabezpieczenie</b><small>Aplikacja sama zapisuje kopię treningów w telefonie — dotknij, aby zobaczyć lub przywrócić</small></span></button>
         <button class="lrow" data-a="expRestore">${ic('upload', 20)}<span><b>Przywróć z kopii</b><small>Plik JSON z FORGE</small></span></button>
         <a class="lrow" href="#/import">${ic('scan-text', 20)}<span><b>Import planów i historii</b><small>PDF, zdjęcia, CSV (Strong, Hevy, FitNotes)</small></span></a>
         <button class="lrow" data-a="persist">${ic('lock', 20)}<span><b>Chroń dane przed czyszczeniem</b><small id="stor">Prośba o trwałe przechowywanie w przeglądarce</small></span></button>
