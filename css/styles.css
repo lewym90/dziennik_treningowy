@@ -623,3 +623,6 @@ details.en{margin:6px 0 12px}details.en summary{cursor:pointer;color:var(--tx2);
 .wz-meso{width:100%;border-collapse:collapse;font-size:14px}.wz-meso th{text-align:left;padding:6px 10px 6px 0;white-space:nowrap;color:var(--tx2);font-weight:600;vertical-align:top}.wz-meso td{padding:6px 0}.wz-meso tr+tr{border-top:1px solid var(--line)}.wz-meso tr.dl td,.wz-meso tr.dl th{color:#7fd6ff}
 .tag.hot{background:rgba(var(--a1-rgb),.2);color:var(--a1)}
 .pad{padding:8px 4px}
+.coach-i{padding:12px 0;border-top:1px solid var(--line)}.coach-i:first-of-type{border-top:0}.coach-i b{font-size:15px}.coach-i p{margin:4px 0 8px}.coach-i.sev2 b{color:#ffb454}
+.meal{padding:10px 0;border-top:1px solid var(--line)}.meal h4{font:700 15px var(--fb)}.meal-r{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:2px 0;color:var(--tx2)}.meal-r b{color:var(--tx);white-space:nowrap}
+small.up{color:#7bd88f}small.dn{color:#ff8d98}

@@ -34,7 +34,7 @@
     [/^#\/plan\/([^/]+)\/edit$/, m => planEdit(m[1]), 'plans'], [/^#\/exercises$/, () => exercises(), 'plans'], [/^#\/ex\/([^/]+)$/, m => exDetail(m[1]), 'stats'],
     [/^#\/history$/, () => F.views.history(), 'history'], [/^#\/session\/([^/]+)$/, m => F.views.session(m[1]), 'history'],
     [/^#\/stats$/, () => F.views.stats(), 'stats'], [/^#\/tools$/, () => F.views.tools(), 'home'], [/^#\/settings$/, () => F.views.settings(), 'home'],
-    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
+    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
   ];
   let curTab = 'home';
   F.render = (keepScroll) => {
@@ -106,6 +106,7 @@
       <h3 class="sec">Narzędzia</h3>
       <div class="qa">
         <a class="qa-i cut" href="#/wizard" data-a="newWizard">${ic('sparkles', 24)}<span>Kreator planu</span></a>
+        <a class="qa-i cut" href="#/report">${ic('chart-column', 24)}<span>Raport tygodnia</span></a><a class="qa-i cut" href="#/nutrition">${ic('flame', 24)}<span>Żywienie</span></a>
         <a class="qa-i cut" href="#/guide">${ic('info', 24)}<span>Porady i nauka</span></a>
         <a class="qa-i cut" href="#/import">${ic('scan-text', 24)}<span>Import planu</span></a>
         <a class="qa-i cut" href="#/tools">${ic('calculator', 24)}<span>Kalkulatory</span></a>

@@ -102,15 +102,20 @@
   };
 
   const healthVerdict = () => { const w = Z().w; const yes = w.scr.some(x => x === true); const pr = w.preg;
-    if (pr === 'preg') return `<div class="wz-warn"><b>Ciąża.</b> Aktywność fizyczna w ciąży jest zalecana (WHO), ale plan musi być dopasowany przez lekarza prowadzącego, położną lub specjalistę od treningu w ciąży. Nie ułożę tu planu ogólnego — skonsultuj się z lekarzem.</div>`;
+    if (pr === 'preg' || pr === 'post') return `<div class="wz-warn"><b>${pr === 'preg' ? 'Ciąża' : 'Po porodzie'}.</b> WHO zaleca aktywność fizyczną kobietom w ciąży i po porodzie, jeśli nie ma przeciwwskazań. Ułożę łagodniejszy plan (umiarkowany wysiłek, duży zapas powtórzeń, bez ćwiczeń na brzuch, w leżeniu na plecach i ciężkich ćwiczeń ze sztangą). Wymaga to zgody lekarza prowadzącego${pr === 'post' ? ' lub położnej' : ' lub położnej'}.<label class="sw"><span><b>Mam zgodę lekarza lub położnej na ćwiczenia</b></span><input type="checkbox" data-b="wzFlag" data-k="doc" ${w.doc ? 'checked' : ''}><i></i></label></div>`;
     if (yes || pr === 'post') return `<div class="wz-warn"><b>Zalecamy konsultację z lekarzem</b> przed rozpoczęciem treningu${pr === 'post' ? ' (po porodzie zwykle potrzebna jest zgoda lekarza)' : ''}. Mogę ułożyć ostrożniejszy plan (większy zapas powtórzeń, mniej serii), ale nie zastąpi on opinii lekarza. Zatrzymaj ćwiczenie przy bólu w klatce piersiowej, zawrotach głowy lub duszności.</div>`;
     if (w.scr.every(x => x === false)) return `<div class="wz-ok">Brak zastrzeżeń w ankiecie. Pamiętaj, żeby przerwać ćwiczenie przy bólu w klatce piersiowej, zawrotach głowy lub nietypowej duszności.</div>`;
     return ''; };
 
   // pełny zestaw danych dla silnika
   const wFull = () => { const z = Z(), w = z.w, p = F.profile(); const bw = w.bw || p.bw; const h = p.height; const bmi = bw && h ? bw / Math.pow(h / 100, 2) : 0;
-    const scrYes = w.scr.some(x => x === true) || w.preg === 'post';
-    return { ...w, days: [...w.days].sort((a, b) => a - b), age: p.ageKnown ? p.age : 0, sex: p.sex, bw, bmi, cautious: scrYes, exp: w.exp || 'beg', active: w.active !== false, cardioAdd: !!w.cardioAdd, equip: w.preset === 'gym' && w.equip.length >= EQ_ALL.length ? null : [...w.equip, 'Masa ciała'], bench: w.bench, rack: w.rack, sleep: w.sleep || 3 }; };
+    const scrYes = w.scr.some(x => x === true) || w.preg === 'post' || w.preg === 'preg';
+    const special = w.preg === 'preg' ? 'preg' : w.preg === 'post' ? 'post' : (p.ageKnown && p.age >= 65 ? 'senior' : '');
+    const SP_AVOID = { preg: ['crunch', 'sit_up', 'leg_raise', 'cab_crunch', 'ab_wheel', 'russian', 'woodchop', 'bench', 'bench_inc', 'bench_dec', 'db_bench', 'db_inc', 'chest_mach_', 'skull', 'pullover', 'hip_thrust', 'nordic', 'good_m', 'push_press', 'deadlift', 'sumo', 'jump_rope', 'run', 'pushup'], post: ['crunch', 'sit_up', 'leg_raise', 'cab_crunch', 'ab_wheel', 'russian', 'woodchop', 'jump_rope', 'run', 'good_m', 'push_press'], senior: ['good_m', 'push_press', 'jump_rope', 'nordic', 'upright', 'sit_up'] }[special] || [];
+    return { ...w, special, avoid: [...new Set([...w.avoid, ...SP_AVOID])], cardioPref: special === 'preg' || special === 'post' || special === 'senior' ? 'walk' : w.cardioPref, time: special && w.time === 0 ? 60 : w.time, days: [...w.days].sort((a, b) => a - b), age: p.ageKnown ? p.age : 0, sex: p.sex, bw, bmi, cautious: scrYes, exp: w.exp || 'beg', active: w.active !== false, cardioAdd: !!w.cardioAdd, equip: w.preset === 'gym' && w.equip.length >= EQ_ALL.length ? null : [...w.equip, 'Masa ciała'], bench: special === 'preg' ? false : w.bench, rack: special ? false : w.rack, sleep: w.sleep || 3 }; };
+
+  const SPN = { preg: ['Plan w ciąży: umiarkowany wysiłek (powinieneś(aś) móc swobodnie rozmawiać), zapas powtórzeń co najmniej 3, bez ćwiczeń leżąc na plecach i bez wstrzymywania oddechu.', 'Przerwij ćwiczenie i skontaktuj się z lekarzem przy krwawieniu, bólu brzucha lub klatki piersiowej, zawrotach głowy, duszności, wyciekaniu płynu lub osłabieniu mięśni. Plan zawsze uzgodnij z lekarzem prowadzącym.', 'WHO zaleca kobietom w ciąży co najmniej 150 minut aktywności tlenowej o umiarkowanej intensywności tygodniowo oraz ćwiczenia siłowe, jeśli nie ma przeciwwskazań. Marsz jest bezpieczną formą cardio.'], post: ['Po porodzie: wracaj stopniowo; pominąłem ćwiczenia brzucha i skoki do czasu zgody lekarza lub fizjoterapeuty uroginekologicznego. Zwracaj uwagę na dno miednicy i objawy (parcie, popuszczanie moczu) — to powód, by zgłosić się do fizjoterapeuty uroginekologicznego.', 'WHO zaleca kobietom po porodzie aktywność fizyczną, jeśli nie ma przeciwwskazań.'], senior: ['Po 65. roku życia WHO zaleca wieloskładnikową aktywność z naciskiem na równowagę i funkcjonalną siłę co najmniej 3 dni w tygodniu: dodaj do treningu stanie na jednej nodze, chodzenie po linii i wstawanie z krzesła bez pomocy rąk.', 'Zostawiaj duży zapas powtórzeń i nie dochodź do upadku mięśniowego.'] };
+  const gen = v => { const w = wFull(); const r = F.planGen(w, v); if (w.special) { r.plan.meta = { ...(r.plan.meta || {}), special: w.special }; r.notes = [...(SPN[w.special] || []), ...r.notes]; } return r; };
 
   /* ---------- widok ---------- */
   V.wizard = () => {
@@ -145,7 +150,7 @@
   F.act.wzPrev = () => { const z = Z(); z.step = STEPS[Math.max(0, cur() - 1)]; window.scrollTo(0, 0); rerender(); };
   const validate = () => { const z = Z(), w = z.w, s = F.S.settings, p = F.profile();
     switch (z.step) {
-      case 'health': if (w.scr.some(x => x === null)) return 'Odpowiedz na wszystkie pytania'; if (w.preg === null) return 'Odpowiedz na pytanie o ciążę'; if (w.preg === 'preg') return 'Plan w ciąży powinien ułożyć specjalista'; return '';
+      case 'health': if (w.scr.some(x => x === null)) return 'Odpowiedz na wszystkie pytania'; if (w.preg === null) return 'Odpowiedz na pytanie o ciążę'; if ((w.preg === 'preg' || w.preg === 'post') && !w.doc) return 'Potrzebna zgoda lekarza lub położnej'; if (false) return 'Plan w ciąży powinien ułożyć specjalista'; return '';
       case 'about': if (!s.sex) return 'Wybierz płeć'; if (!F.ageNow()) return 'Podaj datę urodzenia'; if (!s.height) return 'Podaj wzrost'; if (!(w.bw > 20)) return 'Podaj masę ciała'; if (F.ageNow() < 14) return 'Aplikacja jest przeznaczona dla osób od 14 lat; młodsze osoby powinny trenować pod opieką trenera'; if (!w.sleep) return 'Wybierz, ile średnio śpisz'; return '';
       case 'exp': if (!w.exp) return 'Wybierz poziom doświadczenia'; if (w.active === null) return 'Odpowiedz, czy trenujesz regularnie'; return '';
       case 'goal': if (w.cardioAdd === null) w.cardioAdd = goalDefaultsCardio(w.goal); if (w.cardioMin === null) return 'Wybierz, ile ćwiczysz teraz tlenowo'; return '';
@@ -155,12 +160,12 @@
   F.act.wzNext = async () => {
     const z = Z(); const err = validate(); if (err) { F.toast(err, 'err'); return; }
     if (z.step === 'about') { const w = z.w; const last = F.latestBW(); if (w.bw > 20 && (!last || Math.abs(last - w.bw) > 0.05)) { await F.addBW(w.bw); } }
-    if (z.step === 'split') { storeAnswers(); z.variant = 0; z.res = F.planGen(wFull(), 0); window.scrollTo(0, 0); rerender(); return; }
+    if (z.step === 'split') { storeAnswers(); z.variant = 0; z.res = gen(0); window.scrollTo(0, 0); rerender(); return; }
     z.step = STEPS[cur() + 1]; window.scrollTo(0, 0); rerender();
   };
-  const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav }; F.saveSettings(); };
+  const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav, special: wFull().special }; F.saveSettings(); };
   F.act.wzBack = () => { Z().res = null; rerender(); };
-  F.act.wzAgain = () => { const z = Z(); z.variant++; z.res = F.planGen(wFull(), z.variant); window.scrollTo(0, 0); rerender(); };
+  F.act.wzAgain = () => { const z = Z(); z.variant++; z.res = gen(z.variant); window.scrollTo(0, 0); rerender(); };
   F.act.wzSave = async () => { const z = Z(); if (!z.res) return; const plan = z.res.plan; await F.savePlan(plan); F.wz = null; F.toast('Zapisano plan: ' + E(plan.name), 'hot'); F.go('#/plan/' + plan.id); };
   F.act.wzSwap = b => {
     const z = Z(); const di = +b.dataset.di, ii = +b.dataset.ii; const d = z.res.days[di], i = d.items[ii]; const used = new Set(d.items.map(x => x.exId));
