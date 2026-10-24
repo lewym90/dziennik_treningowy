@@ -43,6 +43,7 @@
         }
         if (!c.primary) score *= 0.99;
       }
+      if (c.ex.id.startsWith('fe_')) score *= 0.97; // przy remisie wygrywają ćwiczenia ręcznie dobrane
       const cur = best.get(c.ex.id); if (!cur || score > cur.score) best.set(c.ex.id, { ex: c.ex, score });
     }
     return [...best.values()].sort((x, y) => y.score - x.score).slice(0, 4);

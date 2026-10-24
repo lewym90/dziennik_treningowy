@@ -1,0 +1,321 @@
+{
+"Barbell_Curls_Lying_Against_An_Incline": {
+"n": "Uginanie sztangi leżąc na ławce skośnej (przodem)",
+"t": [
+"Połóż się na ławce skośnej, ramiona ze sztangą zwisają prostopadle w dół.",
+"Nie ruszając ramion, uginaj przedramiona, unosząc sztangę jak najwyżej i mocno ściskając biceps. Wydech.",
+"Po sekundzie napięcia wolno wróć w dół do pełnego wyprostu. Bez bujania."
+]
+},
+"Barbell_Guillotine_Bench_Press": {
+"n": "Wyciskanie gilotynowe sztangi leżąc",
+"t": [
+"Chwyt średni. Zdejmij sztangę ze stojaka i trzymaj ją na wyprostowanych ramionach nad szyją.",
+"Wdech, opuszczaj sztangę wolno do ok. 2,5 cm od szyi. Po sekundzie pauzy wyciśnij ją z wydechem siłą klatki.",
+"Wyprostuj ramiona, napnij klatkę na sekundę i zaczynaj od nowa. Ćwiczenie ryzykowne, używaj małego ciężaru i asekuracji."
+]
+},
+"Barbell_Hack_Squat": {
+"n": "Przysiad hakenschmidt ze sztangą za plecami",
+"t": [
+"Stań prosto, sztanga trzymana za plecami na wyprostowanych rękach, stopy na szerokość barków. Chwyt na szerokość barków, dłonie do tyłu (można użyć pasków).",
+"Z głową w górze i prostymi plecami przysiądź do ud równoległych do podłogi. Wdech przy schodzeniu.",
+"Wstań, odpychając się głównie piętami i napinając czworogłowe. Wydech."
+]
+},
+"Barbell_Incline_Shoulder_Raise": {
+"n": "Unoszenie barków ze sztangą na ławce skośnej",
+"t": [
+"Połóż się na ławce skośnej, sztanga na wyprostowanych rękach nad sobą, chwyt nieco szerszy niż barki.",
+"Nie zginając łokci, wypchnij sztangę w górę, wysuwając łopatki do przodu i unosząc barki od ławki. Wydech.",
+"Wróć do pozycji wyjściowej z wdechem."
+]
+},
+"Barbell_Lunge": {
+"n": "Wykroki ze sztangą",
+"t": [
+"Najbezpieczniej w stojaku. Połóż sztangę na plecach (poniżej karku), zdejmij ze stojaka i odejdź.",
+"Zrób krok do przodu i opuść biodra, tylne kolano prawie dotyka podłogi. Tułów pionowo, przednie kolano nad stopą.",
+"Odepchnij się piętą przedniej nogi i wróć do pozycji stojącej. Powtórz drugą nogą."
+]
+},
+"Barbell_Rear_Delt_Row": {
+"n": "Wiosłowanie sztangą na tylny akton",
+"t": [
+"Stań ze sztangą w nachwycie, chwyt szeroki (szerzej niż barki). Lekko ugnij kolana, pochyl się, zachowując naturalną krzywiznę pleców, tułów równolegle do podłogi.",
+"Odwiedź łokcie na boki, tak by tułów i ramiona tworzyły literę T.",
+"Nie ruszając ramion w stawie barkowym, przyciągaj sztangę do górnej części klatki. Wolno wróć."
+]
+},
+"Barbell_Rollout_from_Bench": {
+"n": "Rolowanie sztangi z ławki",
+"t": [
+"Połóż obciążoną sztangę na podłodze przy końcu ławki. Uklęknij obiema nogami na ławce, chwyt średni lub wąski.",
+"Prostując biodra, wolno przetaczaj sztangę do przodu. Uginając barki, przesuń ją nad głowę. Ramiona cały czas wyprostowane.",
+"Gdy sztanga jest najdalej, wróć do pozycji wyjściowej."
+]
+},
+"Barbell_Seated_Calf_Raise": {
+"n": "Wspięcia na palce siedząc ze sztangą",
+"t": [
+"Połóż podwyższenie ok. 30 cm przed ławką. Usiądź na ławce, przednie części stóp na podwyższeniu. Partner kładzie sztangę na udach ok. 7 cm nad kolanami i ją przytrzymuje.",
+"Wspinaj się na palce jak najwyżej, ściskając łydki. Wydech.",
+"Po sekundzie napięcia wolno wróć w dół, maksymalnie rozciągając łydki."
+]
+},
+"Barbell_Shoulder_Press": {
+"n": "Wyciskanie sztangi nad głowę siedząc",
+"t": [
+"Usiądź na ławce z oparciem w stojaku, sztanga tuż nad głową. Chwyt nachwytem, dłonie do przodu.",
+"Podnieś sztangę nad głowę, prostując ramiona. Opuść ją do wysokości barków, nieco przed głową. To pozycja wyjściowa.",
+"Wolno opuszczaj na wdechu, wyciskaj z powrotem na wydechu."
+]
+},
+"Barbell_Shrug_Behind_The_Back": {
+"n": "Szrugsy ze sztangą za plecami",
+"t": [
+"Stań prosto, stopy na szerokość barków, sztanga za plecami w chwycie nachwytem, ręce nieco szerzej niż barki. Można użyć pasków.",
+"Unoś barki jak najwyżej, wydychając powietrze, i napnij je na sekundę.",
+"Nie pomagaj sobie bicepsami. Wolno opuść barki."
+]
+},
+"Barbell_Side_Bend": {
+"n": "Skłony boczne ze sztangą",
+"t": [
+"Stań prosto, sztanga na plecach poniżej karku, stopy na szerokość barków.",
+"Z prostymi plecami i uniesioną głową pochyl się tylko w talii w prawo jak najdalej. Wdech.",
+"Po sekundzie wróć z wydechem i powtórz w lewą stronę. Reszta ciała nieruchoma."
+]
+},
+"Barbell_Side_Split_Squat": {
+"n": "Przysiad boczny ze sztangą",
+"t": [
+"Sztanga na plecach poniżej karku, stopy szeroko, stopa nogi prowadzącej skierowana na zewnątrz.",
+"Opuść ciało w stronę nogi prowadzącej, zginając jej kolano i biodro. Druga noga tylko lekko ugięta. Wdech.",
+"Wróć, prostując biodro i kolano nogi prowadzącej. Powtórz na drugą stronę."
+]
+},
+"Barbell_Squat": {
+"n": "Przysiad ze sztangą",
+"t": [
+"Najbezpieczniej w stojaku. Ustaw sztangę tuż poniżej wysokości barków, wejdź pod nią i oprzyj ją na tylnej części barków. Zdejmij ją, prostując nogi i tułów, i cofnij się.",
+"Stopy na szerokość barków lub nieco szerzej, palce lekko na zewnątrz. Wdech, zejdź, zginając biodra i kolana, plecy proste.",
+"Zejdź do ud równoległych do podłogi lub niżej i wstań, odpychając się piętami. Wydech."
+]
+},
+"Barbell_Squat_To_A_Bench": {
+"n": "Przysiad ze sztangą na ławkę",
+"t": [
+"Ławka lub skrzynia za plecami uczy cofania bioder i głębokości. Ustaw sztangę w stojaku, oprzyj ją na plecach i odejdź.",
+"Zejdź, wypychając biodra do tyłu, aż usiądziesz kontrolowanie na ławce, plecy proste.",
+"Z ławki wstań, odpychając się piętami i napinając pośladki. Nie opieraj całego ciężaru na ławce."
+]
+},
+"Barbell_Step_Ups": {
+"n": "Wejścia na podwyższenie ze sztangą",
+"t": [
+"Sztanga na plecach poniżej karku, stań przed podwyższeniem (np. skrzynią).",
+"Postaw prawą stopę na podwyższeniu i wejdź, prostując biodro i kolano, odpychając się głównie piętą. Dostaw lewą stopę.",
+"Zejdź i powtórz. Oddychaj równo."
+]
+},
+"Barbell_Walking_Lunge": {
+"n": "Wykroki chodzone ze sztangą",
+"t": [
+"Stań, stopy na szerokość barków, sztanga na górnej części pleców.",
+"Zrób krok do przodu i opuść biodra, tylne kolano prawie dotyka podłogi. Tułów pionowo, przednie kolano nad stopą.",
+"Odepchnij się piętą przedniej nogi i wyprostuj obie nogi. Wystąp tylną nogą do przodu i powtórz drugą stroną."
+]
+},
+"Bear_Crawl_Sled_Drags": {
+"n": "Ciągnięcie sanek w pełzaniu niedźwiedzia",
+"t": [
+"W uprzęży lub luźnym pasie przymocuj łańcuch z tyłu, tyłem do sanek. Pochyl się, ręce na podłodze, plecy płasko, kolana ugięte.",
+"Odpychaj się nogami naprzemiennie. Ręce pomagają w równowadze i ciągnięciu.",
+"Trzymaj plecy płasko na całym dystansie."
+]
+},
+"Behind_Head_Chest_Stretch": {
+"n": "Rozciąganie klatki z rękami za głową (z partnerem)",
+"t": [
+"Usiądź prosto na podłodze, partner stoi za Tobą. Dłonie za głową, łokcie odciągnij jak najdalej do tyłu. Partner przytrzymuje łokcie.",
+"Delikatnie próbuj ciągnąć łokcie do przodu przez 10 s lub dłużej, a partner nie pozwala im się ruszyć.",
+"Rozluźnij mięśnie, a partner delikatnie odciąga łokcie do tyłu, ile jest komfortowo."
+]
+},
+"Bench_Jump": {
+"n": "Skok przez ławkę",
+"t": [
+"Stań 30–60 cm przed skrzynią lub ławką, stopy na szerokość barków.",
+"Zrób krótki przysiad z zamachem rąk w tył. Wybij się, prostując biodra, kolana i kostki, zamachem rąk w przód i w górę.",
+"Przeskocz przez ławkę i lądując, ugnij kolana, amortyzując uderzenie. Odwróć się i skocz z powrotem."
+]
+},
+"Bench_Press_-_Powerlifting": {
+"n": "Wyciskanie leżąc (styl trójbojowy)",
+"t": [
+"Połóż się, głowa nieco poza sztangą. Stopy podciągnięte pod siebie, wyprężony łuk pleców, łopatki ściągnięte i dociśnięte do ławki. Napiętą pozycję utrzymuj w całym ruchu.",
+"Chwyt tak szeroki, by dłonie obejmowały oznaczenie na gryfie. Zdejmij sztangę bez wysuwania łopatek do przodu.",
+"Opuszczaj sztangę kontrolowanie do klatki i wyciskaj, odpychając się stopami."
+]
+},
+"Bench_Press_-_With_Bands": {
+"n": "Wyciskanie leżąc z gumami",
+"t": [
+"Zaczep gumę pod nogą ławki od strony głowy. Chwyć uchwyty i połóż się na ławce, ramiona wyprostowane przed sobą na szerokość barków, dłonie do przodu.",
+"Opuszczaj uchwyty wolno, aż łokcie osiągną 90°.",
+"Wyciskaj w górę, utrzymując napięcie gumy."
+]
+},
+"Bench_Press_with_Chains": {
+"n": "Wyciskanie leżąc z łańcuchami",
+"t": [
+"Ustaw łańcuchy na tulejach sztangi i skróć łańcuch do żądanej długości. Połóż się na ławce, głowa nieco poza sztangą, stopy pod siebie, łuk pleców, łopatki ściągnięte i dociśnięte.",
+"Chwyt, który obejmuje oznaczenia na gryfie. Zdejmij sztangę bez wysuwania łopatek.",
+"Opuść do klatki i wyciśnij. Łańcuchy zwiększają opór w górnej części ruchu."
+]
+},
+"Bench_Sprint": {
+"n": "Sprint na ławce",
+"t": [
+"Stań na podłodze, jedna stopa na ławce lub skrzyni, pięta blisko krawędzi.",
+"Odbij się stopą z ławki, prostując biodro i kolano. Ląduj przeciwną stopą na ławce, a drugą cofnij.",
+"Zmieniaj nogi w tempie do końca serii."
+]
+},
+"Bent-Arm_Barbell_Pullover": {
+"n": "Pullover ze sztangą na ugiętych ramionach",
+"t": [
+"Połóż się na ławce, sztanga w chwycie na szerokość barków nad klatką, ramiona lekko ugięte.",
+"Nie zmieniając zgięcia łokci, opuszczaj sztangę łukiem za głowę na wdechu, aż poczujesz rozciągnięcie klatki.",
+"Wróć tą samą drogą z wydechem."
+]
+},
+"Bent-Knee_Hip_Raise": {
+"n": "Unoszenie bioder ze zgiętymi kolanami",
+"t": [
+"Połóż się na plecach, ręce wzdłuż ciała. Zegnij kolana ok. 75° i unieś stopy ok. 5 cm nad podłogę.",
+"Dolnym brzuchem przyciągaj kolana do siebie, utrzymując kąt zgięcia, aż biodra oderwą się od podłogi przez podwinięcie miednicy. Wydech.",
+"Na końcu kolana są nad biodrami. Wróć wolno."
+]
+},
+"Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench": {
+"n": "Odwodzenie hantli w opadzie z głową na ławce",
+"t": [
+"Stań z hantlami przed ławką skośną, z prostymi plecami pochyl się tak, aby czoło dotknęło ławki. Ramiona zwisają prostopadle, dłonie zwrócone do siebie, tułów równolegle do podłogi.",
+"Nie ruszając tułowia, unoś ramiona na boki, napinając tylne aktony barków.",
+"Wolno opuść."
+]
+},
+"Bent_Over_Low-Pulley_Side_Lateral": {
+"n": "Odwodzenie ramienia w opadzie na dolnym wyciągu",
+"t": [
+"Chwyć uchwyt dolnego wyciągu prawą ręką. Pochyl się w talii prawie równolegle do podłogi, nogi lekko ugięte, lewa dłoń na lewym udzie. Prawe ramię zwisa przed barkiem, łokieć lekko ugięty.",
+"Unieś prawe ramię w bok do poziomu, w linii z barkiem.",
+"Wolno opuść i powtórz. Zmień stronę."
+]
+},
+"Bent_Over_One-Arm_Long_Bar_Row": {
+"n": "Wiosłowanie długą sztangą jednorącz",
+"t": [
+"Załaduj jeden koniec sztangi olimpijskiej, a drugi oprzyj w narożniku lub zablokuj ciężkim przedmiotem, aby się nie przesuwał. Pochyl się tak, aby tułów był prawie równolegle do podłogi, kolana lekko ugięte.",
+"Chwyć sztangę jedną ręką tuż za talerzami, drugą oprzyj na kolanie.",
+"Przyciągaj sztangę do klatki, ściągając łopatkę, i wolno opuść."
+]
+},
+"Bent_Over_Two-Arm_Long_Bar_Row": {
+"n": "Wiosłowanie długą sztangą oburącz",
+"t": [
+"Załaduj jeden koniec sztangi olimpijskiej, a drugi oprzyj w narożniku lub zablokuj ciężkim przedmiotem. Pochyl się, tułów prawie równolegle do podłogi, kolana lekko ugięte.",
+"Chwyć sztangę obiema rękami tuż za talerzami.",
+"Przyciągaj sztangę do klatki, ściągając łopatki, i wolno opuść."
+]
+},
+"Bent_Over_Two-Dumbbell_Row": {
+"n": "Wiosłowanie dwoma hantlami w opadzie",
+"t": [
+"Hantle w dłoniach (dłonie do tułowia). Lekko ugnij kolana i pochyl się w talii z prostymi plecami prawie do poziomu. Głowa w górze, ramiona zwisają prostopadle.",
+"Nie ruszając tułowia, unoś hantle do boków (łokcie blisko ciała), wydychając powietrze.",
+"Po krótkim napięciu wolno opuść."
+]
+},
+"Bent_Over_Two-Dumbbell_Row_With_Palms_In": {
+"n": "Wiosłowanie dwoma hantlami w opadzie (chwyt neutralny)",
+"t": [
+"Hantle w chwycie neutralnym (dłonie zwrócone do siebie). Lekko ugnij kolana i pochyl się z prostymi plecami prawie do poziomu. Głowa w górze, ramiona zwisają prostopadle.",
+"Nie ruszając tułowia, unoś hantle do boków z wydechem.",
+"Po napięciu wolno opuść."
+]
+},
+"Bent_Press": {
+"n": "Bent press z kettlebell",
+"t": [
+"Podrzuć kettlebell na bark, prostując nogi i biodra i obracając nadgarstek.",
+"Odchyl się w stronę przeciwną do kettlebell, aż wolną ręką dotkniesz podłogi, oczy na kettlebell. W tym czasie wyciskaj ciężar pionowo, prostując łokieć.",
+"Wróć do stania, utrzymując kettlebell nad głową. Ćwiczenie zaawansowane, wymaga mobilności."
+]
+},
+"Bicycling": {
+"n": "Jazda na rowerze",
+"t": [
+"Usiądź na rowerze i wyreguluj siodełko do swojego wzrostu.",
+"Jedź w wybranym tempie."
+]
+},
+"Board_Press": {
+"n": "Wyciskanie sztangi z deską na klatce",
+"t": [
+"Połóż się na ławce, głowa nieco poza sztangą. Na klatce leży stos 1–5 desek (2×6), trzyma je partner, gumy lub koszulka. Stopy pod siebie, łuk pleców, łopatki ściągnięte i dociśnięte.",
+"Zdejmij sztangę i opuszczaj ją aż do deski, a następnie wyciśnij.",
+"Deska skraca drogę i pozwala trenować końcową fazę ruchu."
+]
+},
+"Body-Up": {
+"n": "Body-up (podnoszenie z podpórki na przedramionach)",
+"t": [
+"Przyjmij pozycję deski na palcach i przedramionach, tułów prosty, przedramiona na szerokość barków.",
+"Dociskając dłonie do podłogi, prostuj łokcie i unieś ciało. Tułów sztywny.",
+"Wolno opuść na przedramiona, zginając łokcie."
+]
+},
+"Body_Tricep_Press": {
+"n": "Prostowanie przedramion z ciężarem ciała na sztandze",
+"t": [
+"Ustaw sztangę w stojaku na wysokości klatki. Chwyć ją na szerokość barków i cofnij się o 1–2 kroki, stopy razem, ramiona wyprostowane, opierasz się o sztangę.",
+"Zginaj łokcie, opuszczając się w stronę sztangi. Pauza, i prostuj łokcie.",
+"Aby zwiększyć trudność, dodaj łańcuchy na barki."
+]
+},
+"Bodyweight_Flyes": {
+"n": "Rozpiętki z ciężarem ciała na rolujących sztangach",
+"t": [
+"Połóż dwie jednakowo obciążone sztangi łamane na podłodze obok siebie tak, aby mogły się toczyć. Przyjmij pozycję jak do pompki, dłonie na sztangach, ramiona wyprostowane.",
+"Wolno rozsuwaj dłonie od osi ciała, rozkręcając sztangi na boki. Wdech.",
+"Gdy zjedziesz najniżej, zawróć i zbliż dłonie z wydechem."
+]
+},
+"Bodyweight_Mid_Row": {
+"n": "Wiosłowanie z ciężarem ciała na drążku (nachwytem do góry)",
+"t": [
+"Chwyć drążek chwytem średnim lub szerokim, dłonie od siebie. Z zawisu podciągnij kolana do klatki, odchyl się i przełóż nogi na swoją stronę drążka.",
+"Zginając łokcie i ściągając łopatki, unieś ciało, aż nogi dotkną drążka.",
+"Po krótkiej pauzie wróć."
+]
+},
+"Bodyweight_Squat": {
+"n": "Przysiad z ciężarem ciała",
+"t": [
+"Stań, stopy na szerokość barków, dłonie możesz położyć za głową.",
+"Zegnij kolana i biodra, siadając biodrami do tyłu. Zejdź do pełnej głębokości, jeśli możesz, i szybko wróć w górę.",
+"Głowa i klatka w górze, kolana wypychaj na zewnątrz."
+]
+},
+"Bodyweight_Walking_Lunge": {
+"n": "Wykroki chodzone z ciężarem ciała",
+"t": [
+"Stań, stopy na szerokość barków, dłonie na biodrach.",
+"Zrób krok do przodu i opuść biodra, tylne kolano prawie dotyka podłogi. Tułów pionowo, przednie kolano nad stopą.",
+"Odepchnij się piętą przedniej nogi i wyprostuj nogi. Wystąp tylną nogą do przodu i powtórz drugą stroną."
+]
+}
+}
