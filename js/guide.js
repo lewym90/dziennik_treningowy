@@ -11,59 +11,62 @@
       ['h', 'Trzy filary'], ['ul', ['Bodziec — odpowiednio ciężkie, blisko-wyczerpujące serie.', 'Regeneracja — sen, odżywianie i dni odpoczynku, w których mięśnie się odbudowują.', 'Regularność — kilka dobrych tygodni z rzędu znaczy więcej niż jeden idealny trening.']],
       ['h', 'Ile to minimum dla zdrowia'], ['p', 'Wytyczne WHO zalecają dorosłym ćwiczenia wzmacniające główne grupy mięśni co najmniej 2 dni w tygodniu oraz 150–300 minut aktywności tlenowej o umiarkowanej intensywności. Jeśli dopiero zaczynasz, to jest dobry cel na start.']
     ] },
-    { id: 'volume', c: 'plan', ic: 'layers', t: 'Ile serii i jak często trenować', lead: 'Objętość (liczba serii tygodniowo) jest jednym z głównych czynników przyrostu mięśni.', f: ['volume', 'volumeStrength', 'freq'], b: [
-      ['h', 'Serie na grupę mięśniową'], ['p', 'Dla przyrostu masy zwykle sprawdza się od ok. 10 do 20 serii tygodniowo na grupę mięśniową; początkujący potrzebują mniej (8–12), bo rosną szybciej od mniejszego bodźca. Więcej nie zawsze znaczy lepiej — korzyści maleją, a rośnie zmęczenie.'],
-      ['h', 'Jak często'], ['p', 'Tę samą objętość można rozłożyć na 1, 2 lub 3 treningi tej grupy w tygodniu. Najnowsze stanowisko ACSM nie widzi różnicy dla przyrostu masy, jeśli łączna objętość jest taka sama, a wcześniejsze przeglądy lekko faworyzowały 2 treningi. Dlatego kreator planu domyślnie szuka wygodnego rozkładu z co najmniej dwoma kontaktami z grupą tygodniowo, ale nie jest to jedyna słuszna droga.'],
-      ['h', 'Praktyka'], ['ul', ['Zacznij od dolnej części zakresu i dokładaj serie, gdy dobrze się regenerujesz.', 'Serie wielostawowe (np. wyciskanie) liczą się także dla triceps i barków, więc nie potrzebujesz ich bardzo dużo bezpośrednio.', 'Jakość ma znaczenie: serie „na pół gwizdka” się nie liczą.']]
+    { id: 'volume', c: 'plan', ic: 'layers', t: 'Ile serii i jak często trenować', lead: 'Liczba serii tygodniowo na grupę mięśniową to jeden z głównych czynników przyrostu mięśni.', f: ['volume', 'strengthSets', 'freq'], b: [
+      ['h', 'Serie na grupę mięśniową'], ['p', 'Dla przyrostu masy korzystne jest co najmniej 10 serii tygodniowo na grupę mięśniową; zależność ma charakter dawka–efekt, a korzyści maleją w okolicy 18–20 serii. Początkującym wystarczy zacząć od dolnej części zakresu, a serie dokładać, gdy dobrze się regenerują.'],
+      ['h', 'Jak często'], ['p', 'Gdy łączna objętość jest taka sama, nie ma znaczenia, czy trenujesz grupę raz, czy kilka razy w tygodniu. Podział treningowy służy więc wygodnemu rozłożeniu serii — wybierz taki, który realnie wykonasz. Dla siły zaleca się co najmniej 2 sesje tygodniowo.'],
+      ['h', 'Praktyka'], ['ul', ['Serie wielostawowe (np. wyciskanie) liczą się częściowo także dla triceps i barków.', 'Do siły wystarczają zwykle 2–3 serie na ćwiczenie w sesji.', 'Jakość ma znaczenie: serie wykonane z dużym wysiłkiem i pełnym zakresem ruchu.']]
     ] },
-    { id: 'reps', c: 'plan', ic: 'repeat', t: 'Ciężar, powtórzenia i bliskość upadku', lead: 'Mięśnie rosną w szerokim zakresie powtórzeń, ale siła najbardziej lubi ciężkie serie.', f: ['reps', 'failure'], b: [
-      ['h', 'Zakresy powtórzeń'], ['ul', ['Siła: ciężkie serie, zwykle 1–6 powtórzeń (ACSM: ok. 80% maksymalnego ciężaru i więcej).', 'Masa mięśniowa: skuteczne są bardzo różne obciążenia — od ciężkich po umiarkowane (ok. 6–30 powtórzeń), pod warunkiem że serie są wymagające.', 'Wytrzymałość mięśniowa: wyższe powtórzenia (15–25 i więcej).']],
-      ['h', 'Zapas powtórzeń (RIR)'], ['p', 'RIR to liczba powtórzeń, które jeszcze byś zrobił. RIR 2 znaczy: „skończyłem serię, ale dwa powtórzenia jeszcze bym zrobił”. Dowody co do tego, jak blisko upadku trenować, są sprzeczne; rozsądny kompromis to RIR 1–3, a w ćwiczeniach izolowanych i na maszynach możesz schodzić bliżej upadku. Początkujący powinni zostawiać większy zapas — priorytetem jest technika.'],
-      ['h', 'Progresja w praktyce'], ['p', 'Gdy w kilku seriach dobijasz do górnej granicy zakresu powtórzeń z zachowanym zapasem, zwiększ ciężar o najmniejszy możliwy krok i wróć do dolnej granicy zakresu.']
+    { id: 'reps', c: 'plan', ic: 'repeat', t: 'Ciężar, powtórzenia i bliskość upadku', lead: 'Mięśnie rosną w szerokim zakresie obciążeń; siła najbardziej lubi ciężkie serie.', f: ['reps', 'failure'], b: [
+      ['h', 'Zakresy'], ['ul', ['Siła: obciążenia od ok. 80% maksymalnego ciężaru (1RM) i więcej, czyli zwykle kilka powtórzeń w serii.', 'Masa mięśniowa: podobne efekty daje obciążenie od ok. 30% do 100% 1RM, jeśli seria jest naprawdę wymagająca.']],
+      ['h', 'Zapas powtórzeń (RIR)'], ['p', 'RIR to liczba powtórzeń, które jeszcze byś zrobił. RIR 2 znaczy: „skończyłem serię, ale dwa powtórzenia jeszcze bym zrobił”. Trening do upadku nie dawał dodatkowych korzyści, a serie z zapasem 2–3 powtórzeń uznano za wystarczająco wymagające. U osób starszych upadek bywa niewskazany.'],
+      ['h', 'Progresja'], ['p', 'Gdy potrafisz wykonać o 1–2 powtórzenia więcej od planu, zwiększ ciężar o ok. 2–10%.']
     ] },
-    { id: 'rest', c: 'plan', ic: 'timer', t: 'Przerwy między seriami', lead: 'Odpoczynek pozwala utrzymać liczbę powtórzeń. Dłuższy jest ważniejszy w ciężkich ćwiczeniach.', f: ['rest'], b: [
-      ['ul', ['Ciężkie ćwiczenia wielostawowe (przysiad, martwy ciąg, wyciskanie): ok. 2–3 minut, w treningu siły do 5.', 'Ćwiczenia pomocnicze: ok. 1,5–2 minut.', 'Izolacje (uginanie, wznosy): ok. 1–1,5 minuty.', 'Wytrzymałość i obwody: 30–60 sekund.']],
-      ['p', 'Jeśli brakuje Ci czasu, zamiast skracać odpoczynek w ciężkich seriach, możesz łączyć ćwiczenia przeciwnych partii w superserie.']
+    { id: 'progress', c: 'plan', ic: 'chart-column', t: 'Progresja, zakres ruchu i kolejność ćwiczeń', lead: 'Jak dobierać ćwiczenia i zwiększać wymagania, by robić stałe postępy.', f: ['progression', 'rom', 'order'], b: [
+      ['ul', ['Pełny zakres ruchu poprawiał siłę wyraźniej niż częściowy.', 'Maszyny i wolne ciężary nie różniły się spójnie pod względem siły i przyrostu masy — wybierz to, co wygodne i bezpieczne.', 'Ćwiczenia zaczynaj od najważniejszych: ustawienie na początku sesji poprawiało siłę. Rozsądna kolejność: duże grupy przed małymi, wielostawowe przed jednostawowymi.', 'Zwiększaj obciążenie o ok. 2–10%, gdy potrafisz wykonać o 1–2 powtórzenia więcej od planu.']],
+      ['p', 'Periodyzacja (zmienianie obciążeń w cyklach) nie była istotnie lepsza od planu nieperiodyzowanego, jeśli przeciążenie jest odpowiednie. Najważniejsze jest stopniowe zwiększanie wymagań w czasie.']
     ] },
-    { id: 'splits', c: 'plan', ic: 'calendar', t: 'Jaki podział treningowy wybrać', lead: 'Najlepszy podział to taki, który realnie wykonasz — i który pozwala rozłożyć objętość.', f: ['freq', 'volume'], b: [
-      ['ul', ['1–2 dni w tygodniu: całe ciało (FBW).', '3 dni: FBW (A/B/C) — proste i skuteczne, szczególnie dla początkujących.', '4 dni: góra / dół, każda grupa 2 razy w tygodniu.', '5–6 dni: kombinacje góra/dół z Push-Pull-Nogi lub PPL ×2 — dla osób, które mają czas i dobrze się regenerują.']],
-      ['p', 'Superserie to dwa ćwiczenia wykonywane bez przerwy, jedno po drugim (np. biceps i triceps). Oszczędzają czas. Obwód to seria wielu ćwiczeń z krótką przerwą — dobra opcja dla wytrzymałości.']
+    { id: 'cardio', c: 'rec', ic: 'heart', t: 'Cardio razem z siłą', lead: 'Aktywność tlenowa służy zdrowiu; przy celu masowym warto dobrać jej rodzaj.', f: ['who', 'concurrent', 'hrmax'], b: [
+      ['ul', ['WHO: 150–300 minut tygodniowo aktywności tlenowej o umiarkowanej intensywności oraz ćwiczenia siłowe co najmniej 2 dni w tygodniu.', 'Łączenie cardio z siłą może minimalnie osłabiać przyrost włókien mięśniowych, wyraźniej przy bieganiu niż przy jeździe na rowerze (dowody ograniczone).', 'Tętno maksymalne szacuje się jako 208 − 0,7 × wiek; to wartość orientacyjna.']]
+    ] },
+    { id: 'rest', c: 'plan', ic: 'timer', t: 'Przerwy między seriami', lead: 'Dłuższy odpoczynek bywa korzystny, ale różnice są mniejsze, niż się powszechnie uważa.', f: ['rest'], b: [
+      ['ul', ['Dla przyrostu masy przerwy dłuższe niż ok. 1 minuta dawały niewielką korzyść; powyżej ok. 1,5 minuty nie widać wyraźnych różnic.', 'Dla siły nie było różnicy między przerwą krótszą i dłuższą niż 1 minuta.', 'Starsze stanowisko ACSM (2009) zalecało 1–2 minuty dla przyrostu masy i 3–5 minut dla siły u zaawansowanych.']],
+      ['p', 'Praktycznie: w ciężkich ćwiczeniach wielostawowych odpoczywaj tak długo, aby utrzymać zaplanowane powtórzenia; w izolacjach możesz krócej. Gdy brakuje czasu, łącz ćwiczenia przeciwnych partii w superserie.']
+    ] },
+    { id: 'splits', c: 'plan', ic: 'calendar', t: 'Jaki podział treningowy wybrać', lead: 'Najlepszy podział to taki, który realnie wykonasz i który pozwala rozłożyć objętość.', f: ['freq', 'volume'], b: [
+      ['ul', ['Całe ciało (FBW): każdy trening angażuje całe ciało; sprawdza się przy 2–4 dniach, szczególnie na początku.', 'Góra / dół: dwa kontakty z grupą tygodniowo przy 4 dniach.', 'Push / Pull / Nogi: pchanie, ciągnięcie i nogi; 3 dni lub 6 dni (każda grupa 2×).', 'Klasyczny split „bro” (jedna–dwie partie dziennie): każda grupa raz w tygodniu, wysoka objętość w jednej sesji.', 'Połączenia: PHUL, PHAT i inne hybrydy siłowo-hipertroficzne dla 4–5 dni.']],
+      ['p', 'Skoro przy tej samej objętości częstotliwość nie rozstrzyga o przyroście masy, różnice między podziałami to głównie wygoda, regeneracja i organizacja. Dla siły przydają się co najmniej 2 sesje na grupę w tygodniu. Kreator pokazuje wszystkie podziały dla Twojej liczby dni i mówi, ile razy w tygodniu trenowana jest każda grupa.'],
+      ['p', 'Superserie to dwa ćwiczenia wykonywane jedno po drugim bez przerwy (np. biceps i triceps) — oszczędzają czas.']
     ] },
     { id: 'technique', c: 'tech', ic: 'shield', t: 'Technika i bezpieczeństwo', lead: 'Dobra technika to najlepszy sposób, by trenować latami bez kontuzji.', f: ['injury'], b: [
       ['ul', ['Naucz się ruchu na lekkim ciężarze, zanim go zwiększysz.', 'Pełny, kontrolowany zakres ruchu; opuszczaj ciężar wolniej niż go podnosisz.', 'Neutralny kręgosłup w przysiadzie i martwym ciągu; napnij brzuch.', 'Przy ciężkich seriach przysiadu i wyciskania leżąc używaj stojaka z ogranicznikami lub asekuracji.', 'Nagrywaj się z boku — to najszybszy sposób na wyłapanie błędów.']],
       ['p', 'Dobrze prowadzony trening siłowy w badaniach wiąże się z mniejszą, nie większą, liczbą urazów sportowych. Ryzyko rośnie, gdy za szybko zwiększasz ciężar lub objętość.']
-    ] },
-    { id: 'warmup', c: 'tech', ic: 'flame', t: 'Rozgrzewka', lead: 'Krótka, sensowna rozgrzewka zwykle poprawia wydajność pierwszych serii.', f: ['warmup'], b: [
-      ['ul', ['3–5 minut lekkiego ruchu ogólnego (rower, marsz, skakanka).', 'Ruchy dynamiczne dla stawów, które będą pracować (krążenia, wykroki, wymachy).', 'Serie przygotowawcze w pierwszym ćwiczeniu: np. 50% → 70% → 85% ciężaru roboczego, po kilka powtórzeń.']],
-      ['p', 'Długie statyczne rozciąganie przed ciężkim treningiem nie jest konieczne; możesz je zrobić po treningu lub osobno.']
     ] },
     { id: 'pain', c: 'tech', ic: 'shield', t: 'Ból, zakwasy i kiedy iść do lekarza', lead: 'Zakwasy to normalna sprawa, ostry ból w stawie nie.', f: ['doms', 'injury'], b: [
       ['h', 'Zakwasy (DOMS)'], ['p', 'To tępy ból mięśni 1–3 dni po nowym lub intensywnym treningu. Są normalne, ale nie świadczą o skuteczności treningu — możesz robić postępy bez nich.'],
       ['h', 'Czerwone flagi'], ['ul', ['Ostry, kłujący ból w stawie lub ścięgnie podczas ruchu — przerwij ćwiczenie.', 'Ból, który trwa dłużej niż kilka dni lub narasta.', 'Drętwienie, mrowienie, promieniowanie bólu do kończyny.', 'Ból w klatce piersiowej, duszność, zawroty głowy — natychmiast przerwij trening i skontaktuj się z lekarzem (pilnie: numer alarmowy 112).']],
       ['p', 'Ta aplikacja nie diagnozuje urazów i nie zastępuje lekarza ani fizjoterapeuty. Po kontuzji, przy chorobach serca, ciśnieniu, ciąży lub innych schorzeniach skonsultuj plan treningowy z lekarzem.']
     ] },
-    { id: 'recovery', c: 'rec', ic: 'calendar', t: 'Sen i regeneracja', lead: 'Mięśnie rosną w czasie odpoczynku, nie na siłowni.', f: ['sleep', 'deload'], b: [
-      ['ul', ['Śpij regularnie co najmniej 7 godzin na dobę.', 'Zadbaj o dni bez ciężkiego treningu tej samej partii.', 'Co kilka tygodni (u wielu osób co 4–8) rozważ lżejszy tydzień: mniej serii i nieco niższy ciężar. Dowody na odciążenia są słabe, dlatego traktuj to jako narzędzie do użycia, gdy czujesz przewlekłe zmęczenie i stagnację, a nie obowiązek.']]
+    { id: 'recovery', c: 'rec', ic: 'calendar', t: 'Sen i regeneracja', lead: 'Mięśnie odbudowują się w czasie odpoczynku, nie na siłowni.', f: ['sleep', 'deload'], b: [
+      ['ul', ['Dorośli w wieku 18–60 lat powinni regularnie spać co najmniej 7 godzin na dobę.', 'Zostaw dni bez ciężkiego treningu tej samej partii.', 'Odciążenie (lżejszy tydzień) to praktyka oparta na konsensusie ekspertów, nie na badaniach: zwykle mniej serii przy podobnym ciężarze i większym zapasie powtórzeń, na końcu kilkutygodniowego cyklu. Kreator planuje je jako tydzień ostatni, ale możesz je przesunąć, gdy czujesz się świetnie lub przeciwnie — przewlekle zmęczony.']]
     ] },
     { id: 'protein', c: 'rec', ic: 'flame', t: 'Białko i odżywianie', lead: 'Białko wspiera budowę mięśni; reszta to całkowita energia i jakość diety.', f: ['protein', 'bmr'], b: [
       ['ul', ['Dla osób trenujących siłowo zwykle zaleca się ok. 1,4–2,0 g białka na kg masy ciała na dobę.', 'Rozłóż je na kilka posiłków, ok. 20–40 g każdy (ok. 0,25 g/kg).', 'Moment spożycia jest elastyczny — nie ma magicznego „okna anabolicznego” 30 minut po treningu, choć posiłek z białkiem wokół treningu jest dobrym nawykiem.', 'Przy redukcji wyższe białko pomaga zachować mięśnie.']],
       ['p', 'Aplikacja szacuje zapotrzebowanie kaloryczne orientacyjnie (±10%). Przy chorobach, ciąży lub zaburzeniach odżywiania skonsultuj dietę ze specjalistą.']
     ] },
-    { id: 'beginner', c: 'base', ic: 'layers', t: 'Początkujący a zaawansowani', lead: 'Początkujący rosną szybko od małego bodźca; zaawansowani potrzebują więcej i dokładniejszego planowania.', f: ['volume', 'failure'], b: [
-      ['ul', ['Początkujący: 2–3 treningi całego ciała tygodniowo, mniej serii, większy zapas powtórzeń, nacisk na technikę i regularność.', 'Średniozaawansowani: więcej serii i podział góra/dół lub FBW 3–4 razy; progresja wolniejsza, zwykle co 1–3 treningi.', 'Zaawansowani: wyższa objętość, więcej zróżnicowania ćwiczeń, planowane odciążenia; postępy liczy się w miesiącach.']]
+    { id: 'beginner', c: 'base', ic: 'layers', t: 'Początkujący a zaawansowani', lead: 'Początkujący rosną szybko od małego bodźca; zaawansowani potrzebują więcej i dokładniejszego planowania.', f: ['volume', 'progression'], b: [
+      ['ul', ['Początkujący: 2–3 treningi całego ciała tygodniowo, mniej serii od dolnej granicy zakresu, większy zapas powtórzeń, nacisk na technikę i regularność.', 'Średniozaawansowani: więcej serii i podział góra/dół lub FBW 3–4 razy w tygodniu.', 'Zaawansowani: wyższa objętość i dokładniejsze planowanie; postępy są wolniejsze. Zalecenia ACSM (2009) dla zaawansowanych to 4–5 treningów tygodniowo.']]
     ] },
-    { id: 'myths', c: 'myth', ic: 'info', t: 'Popularne mity', lead: 'Krótkie sprostowania najczęstszych przekonań.', f: ['doms', 'freq', 'reps', 'protein', 'warmup'], b: [
-      ['h', '„Bez zakwasów nie ma wzrostu”'], ['p', 'Nieprawda. Zakwasy nie są wiarygodnym miernikiem skuteczności treningu.'],
-      ['h', '„Mięśnie rosną tylko przy ciężkich seriach”'], ['p', 'Nieprawda. Przy serii kończonej blisko upadku mięśnie rosną w szerokim zakresie obciążeń; ciężkie serie są jednak lepsze dla maksymalnej siły.'],
-      ['h', '„Każdą grupę trzeba trenować dokładnie 2 razy w tygodniu”'], ['p', 'Najnowsze stanowisko ACSM uważa, że przy tej samej objętości częstotliwość nie ma znaczenia dla przyrostu masy. To wygodna reguła, nie prawo.'],
-      ['h', '„Białko trzeba wypić do 30 minut po treningu”'], ['p', 'Okno jest dużo szersze; ważniejsza jest łączna dobowa podaż białka.'],
-      ['h', '„Rozciąganie przed treningiem chroni przed kontuzją”'], ['p', 'Dowody są słabe. Lepsza jest rozgrzewka dynamiczna i serie przygotowawcze.']
-    ] }
+    { id: 'myths', c: 'myth', ic: 'info', t: 'Popularne mity', lead: 'Krótkie sprostowania na podstawie przeglądów badań.', f: ['doms', 'freq', 'failure', 'protein', 'injury'], b: [
+      ['h', '„Bez zakwasów nie ma wzrostu”'], ['p', 'Zakwasy nie są wiarygodnym wskaźnikiem skuteczności treningu.'],
+      ['h', '„Zawsze trzeba trenować do upadku”'], ['p', 'Trening do upadku nie dawał dodatkowych korzyści; wystarczą serie z zapasem 2–3 powtórzeń.'],
+      ['h', '„Każdą grupę trzeba trenować dokładnie 2 razy w tygodniu”'], ['p', 'Przy tej samej objętości częstotliwość nie ma znaczenia dla przyrostu masy (dla siły zaleca się co najmniej 2 sesje).'],
+      ['h', '„Białko trzeba wypić do 30 minut po treningu”'], ['p', 'Efekt anaboliczny treningu utrzymuje się co najmniej 24 godziny; ważniejsza jest łączna dobowa podaż.'],
+      ['h', '„Samo rozciąganie chroni przed kontuzjami”'], ['p', 'W metaanalizie samo rozciąganie nie zmniejszało ryzyka urazów sportowych, a programy siłowe zmniejszały je do niecałej jednej trzeciej.']
+    ] },
   ];
   F.GUIDE = A;
 
   const srcHtml = ids => { const seen = [...new Set(ids)].map(k => F.KB.src[k]).filter(Boolean); return seen.length ? `<h3 class="sec">Źródła</h3><section class="card cut"><ol class="srcs">${seen.map(s => `<li><a href="${E(s.u)}" target="_blank" rel="noopener">${E(s.t)}</a><small>${E(s.a)} (${s.y}), ${E(s.j)} · ${E(s.k)}</small></li>`).join('')}</ol></section>` : ''; };
-  const confHtml = f => { const k = (f || []).map(x => F.KB.facts[x]).filter(Boolean); if (!k.length) return ''; const order = { niska: 0, średnia: 1, wysoka: 2 }; const c = k.reduce((a, x) => order[x.conf] < order[a] ? x.conf : a, 'wysoka'); return `<p class="conf ${c === 'wysoka' ? 'hi' : c === 'średnia' ? 'mid' : 'lo'}"><b>Pewność wiedzy:</b> ${c} <span class="dim">${c === 'wysoka' ? '(spójne wytyczne i przeglądy)' : c === 'średnia' ? '(przeglądy z zastrzeżeniami)' : '(dowody sprzeczne lub słabe — traktuj orientacyjnie)'}</span></p>`; };
 
   V.guide = () => {
     const q = F.norm(F.ui.guideQ || '');
@@ -72,15 +75,15 @@
     return { html: `${F.head('Porady i nauka', { back: 1, sub: 'Zasady treningu w prostych słowach' })}
       <label class="fld"><input data-b="guideq" type="search" placeholder="Szukaj w poradach…" value="${E(F.ui.guideQ || '')}"></label>
       <div id="guide-list">${html || '<p class="dim pad center">Brak wyników.</p>'}</div>
-      <p class="dim small pad">Treści mają charakter ogólny i edukacyjny. Opierają się na przeglądach badań i stanowiskach towarzystw naukowych; nauka ewoluuje, a część zaleceń jest sporna — zaznaczamy to poziomem pewności. Nie zastępują porady lekarza, fizjoterapeuty ani trenera.</p>` };
+      <p class="dim small pad">Treści mają charakter ogólny i edukacyjny. Opierają się na przeglądach badań, stanowiskach towarzystw naukowych i wytycznych WHO; przy każdym fakcie podajemy źródła i rodzaj dowodu. Nie zastępują porady lekarza, fizjoterapeuty ani trenera.</p>` };
   };
   F.bind.guideq = el => { F.ui.guideQ = el.value; const l = V.guide(); const tmp = document.createElement('div'); tmp.innerHTML = l.html; const n = tmp.querySelector('#guide-list'); if (n) F.$('#guide-list').innerHTML = n.innerHTML; };
   V.guideArt = id => {
     const a = A.find(x => x.id === id); if (!a) return { html: F.head('Porady', { back: 1 }) + '<p class="dim pad center">Nie znaleziono artykułu.</p>' };
     const body = a.b.map(([t, v]) => t === 'h' ? `<h4 class="lbl">${E(v)}</h4>` : t === 'p' ? `<p>${E(v)}</p>` : `<ul class="tips">${v.map(x => `<li>${E(x)}</li>`).join('')}</ul>`).join('');
     const facts = (a.f || []).map(k => F.KB.facts[k]).filter(Boolean);
-    return { html: `${F.head(a.t, { back: 1 })}<section class="card cut art"><p class="lead">${E(a.lead)}</p>${body}${confHtml(a.f)}</section>
-      ${facts.length ? `<h3 class="sec">Co mówią badania</h3><section class="card cut">${facts.map(f => `<p class="small">${E(f.pl)} <span class="dim">(pewność: ${f.conf})</span></p>`).join('')}</section>` : ''}
+    return { html: `${F.head(a.t, { back: 1 })}<section class="card cut art"><p class="lead">${E(a.lead)}</p>${body}</section>
+      ${facts.length ? `<h3 class="sec">Co mówią badania</h3><section class="card cut">${facts.map(f => `<p class="small">${E(f.pl)}</p>`).join('')}</section>` : ''}
       ${srcHtml(facts.flatMap(f => f.src))}` };
   };
 })();
