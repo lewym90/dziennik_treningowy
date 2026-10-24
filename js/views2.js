@@ -3,7 +3,7 @@
   const F = window.F; const ic = (n, s, c) => window.icon(n, s, c); const E = F.esc; const V = F.views;
   const MONTHS = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'];
   const exOf = id => F.S.ex.get(id);
-  const setTxt = (ex, s) => !ex ? `${F.fw(s.w)}×${s.r}` : ex.type === 'time' ? F.fmtDur(s.r || 0) : ex.type === 'br' ? `${s.r} powt.` : `${F.fw(s.w || 0)} ${F.unit()} × ${s.r}`;
+  const setTxt = (ex, s) => !ex ? `${F.fw(s.w)}×${s.r}` : ex.type === 'time' ? F.fmtDur(s.r || 0) : ex.type === 'br' ? `${s.r} powt.` : `${F.fwt(s.w || 0, ex)} ${F.unit()} × ${s.r}`;
   F.setTxt = setTxt;
   const stype = { n: '', w: 'rozgrzewka', d: 'drop set', f: 'do upadku' };
 
@@ -77,7 +77,7 @@
       const rows = e.sets.map((x, si) => {
         if (!edit && !x.done) return ''; if (x.t !== 'w') n++;
         const e1 = ex && !isT && !isB && x.w && x.r ? F.e1rm(F.effLoad(ex, x, s.start), x.r) : 0;
-        if (edit) return `<div class="ser edit"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><div class="se-in">${isT || isB ? '' : `<input inputmode="decimal" data-b="se" data-ei="${ei}" data-si="${si}" data-f="w" value="${F.fw(x.w || 0).replace(',', '.')}"><em>${F.unit()}</em>`}<input inputmode="decimal" data-b="se" data-ei="${ei}" data-si="${si}" data-f="r" value="${x.r || 0}"><em>${isT ? 's' : 'powt.'}</em></div><button class="ibtn" data-a="seDel" data-ei="${ei}" data-si="${si}" aria-label="Usuń serię">${ic('x', 16)}</button></div>`;
+        if (edit) return `<div class="ser edit"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><div class="se-in">${isT || isB ? '' : `<input inputmode="decimal" data-b="se" data-ei="${ei}" data-si="${si}" data-f="w" value="${F.fw((x.w || 0) / F.wm(e.exId)).replace(',', '.')}"><em>${F.wm(e.exId) === 2 ? '2× ' : ''}${F.unit()}</em>`}<input inputmode="decimal" data-b="se" data-ei="${ei}" data-si="${si}" data-f="r" value="${x.r || 0}"><em>${isT ? 's' : 'powt.'}</em></div><button class="ibtn" data-a="seDel" data-ei="${ei}" data-si="${si}" aria-label="Usuń serię">${ic('x', 16)}</button></div>`;
         return `<div class="ser ${x.t === 'w' ? 'warm' : ''}"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><b>${setTxt(ex, x)}</b>${x.t && x.t !== 'n' ? `<em class="tag">${stype[x.t]}</em>` : ''}${x.rpe ? `<em class="tag">RPE ${x.rpe}</em>` : ''}${x.pr && x.pr.length ? `<span class="prb sm">${ic('trophy', 12)} PR</span>` : ''}<span class="e1">${e1 ? '1RM ≈ ' + F.fw(e1) : ''}</span></div>`;
       }).join('');
       if (!rows.trim() && !edit) return '';
@@ -95,7 +95,7 @@
   };
   const SS = () => F.S.sessions.find(x => x.id === (location.hash.match(/session\/([^/]+)/) || [])[1]);
   let saveT = 0; const saveSess = s => { clearTimeout(saveT); saveT = setTimeout(() => F.dbPut('sessions', s), 300); };
-  F.bind.se = el => { const s = SS(); const set = s.exercises[+el.dataset.ei].sets[+el.dataset.si]; const v = parseFloat(String(el.value).replace(',', '.')) || 0; if (el.dataset.f === 'w') set.w = F.fromDisp(v); else set.r = v; saveSess(s); };
+  F.bind.se = el => { const s = SS(); const set = s.exercises[+el.dataset.ei].sets[+el.dataset.si]; const v = parseFloat(String(el.value).replace(',', '.')) || 0; if (el.dataset.f === 'w') set.w = F.fromDisp(v) * F.wm(s.exercises[+el.dataset.ei].exId); else set.r = v; saveSess(s); };
   F.bind.sname = el => { const s = SS(); s.name = el.value; saveSess(s); };
   F.bind.snote = el => { const s = SS(); s.note = el.value; saveSess(s); };
   F.bind.sdur = el => { const s = SS(); s.dur = (parseInt(el.value) || 0) * 60; saveSess(s); };
@@ -145,7 +145,7 @@
     const total = sq + bn + dl;
     const top = total ? `<section class="card cut total"><h3>Suma trójboju</h3><div class="big-n">${F.fw(total)} <small>${F.unit()}</small></div><div class="trio"><div><small>Przysiad</small><b>${sq ? F.fw(sq) : '–'}</b></div><div><small>Wyciskanie</small><b>${bn ? F.fw(bn) : '–'}</b></div><div><small>Martwy</small><b>${dl ? F.fw(dl) : '–'}</b></div></div></section>` : '';
     return `${top}<h3 class="sec">Tablica rekordów <small class="dim">${items.length}</small></h3><div class="exlist">${items.map(({ id, ex, p }) => {
-      let main = '', sub = ''; if (ex.type === 'time') { main = F.fmtDur(p.dur); } else if (ex.type === 'br') { main = p.reps + ' powt.'; } else { const r = p.byW[Math.round(p.w * 100)] || 0; main = `${F.fw(p.w)} ${F.unit()} × ${r}`; sub = p.e1 ? `1RM ≈ ${F.fw(p.e1)}` : ''; }
+      let main = '', sub = ''; if (ex.type === 'time') { main = F.fmtDur(p.dur); } else if (ex.type === 'br') { main = p.reps + ' powt.'; } else { const r = p.byW[Math.round(p.w * 100)] || 0; main = `${F.fwt(p.w, ex)} ${F.unit()} × ${r}`; sub = p.e1 ? `1RM ≈ ${F.fw(p.e1)}` : ''; }
       const last = Math.max(...Object.values(p.ts || { 0: 0 }));
       return `<a class="exrow pr" href="#/ex/${E(id)}">${F.mDot(ex.muscle)}<span><b>${E(ex.name)}</b><small>${sub ? sub + ' · ' : ''}${F.fmtDate(last)}</small></span><em>${main}</em></a>`;
     }).join('')}</div>`;

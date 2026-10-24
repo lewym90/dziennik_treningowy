@@ -163,7 +163,7 @@
       const g = inf[i];
       if (g && g.pos === 0) {
         const f = d.items[g.start];
-        h += `<li class="blk"><div class="blk-h"><span class="ssc-t">${ic('link-2', 15)} ${F.ssName(g.size)} ${g.L}</span><small>${f.sets} ${F.plur(f.sets, 'runda', 'rundy', 'rund')}${f.rest ? ' · przerwa ' + F.fmtDur(f.rest) : ''}</small></div><ul>${d.items.slice(g.start, g.end + 1).map((it, n) => `<li><a href="#/ex/${E(it.exId)}"><span class="ss-tag">${g.L}${n + 1}</span><span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}</span></a><b>${E(it.reps || '')}${it.w ? `<small> · ${F.fwu(it.w)}</small>` : ''}</b></li>`).join('')}</ul></li>`; i = g.end + 1;
+        h += `<li class="blk"><div class="blk-h"><span class="ssc-t">${ic('link-2', 15)} ${F.ssName(g.size)} ${g.L}</span><small>${f.sets} ${F.plur(f.sets, 'runda', 'rundy', 'rund')}${f.rest ? ' · przerwa ' + F.fmtDur(f.rest) : ''}</small></div><ul>${d.items.slice(g.start, g.end + 1).map((it, n) => `<li><a href="#/ex/${E(it.exId)}"><span class="ss-tag">${g.L}${n + 1}</span><span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}</span></a><b>${E(it.reps || '')}${it.w ? `<small> · ${F.fwtu(it.w, it.exId)}</small>` : ''}</b></li>`).join('')}</ul></li>`; i = g.end + 1;
       } else {
         const it = d.items[i]; h += `<li><a href="#/ex/${E(it.exId)}">${mDot((exOf(it.exId) || {}).muscle)}<span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}</span></a><b>${it.sets}×${E(it.reps || '')}${it.rest ? `<small> · ${F.fmtDur(it.rest)}</small>` : ''}</b></li>`; i++;
       }
@@ -201,13 +201,13 @@
   }
 
   /* ---------- elementy edytora: pojedyncze ćwiczenia i bloki superserii ---------- */
-  const piAdv = (it, di, ii) => `<details class="pi-adv" ${it.prog && it.prog !== 'auto' || it.inc || it.pct ? 'open' : ''}><summary>Progresja i % 1RM</summary><div class="pi-f three"><label><span>Progresja</span><select data-b="it" data-f="prog" data-di="${di}" data-ii="${ii}">${[['auto', 'Podwójna (auto)'], ['linear', 'Liniowa'], ['off', 'Wyłączona']].map(o => `<option value="${o[0]}" ${(it.prog || 'auto') === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></label><label><span>Skok ${F.unit()}</span><input inputmode="decimal" data-b="it" data-f="inc" data-di="${di}" data-ii="${ii}" value="${it.inc ? F.fw(it.inc).replace(',', '.') : ''}" placeholder="auto"></label><label><span>% 1RM</span><input inputmode="numeric" data-b="it" data-f="pct" data-di="${di}" data-ii="${ii}" value="${it.pct || ''}" placeholder="–"></label></div><p class="dim small">Podwójna: najpierw powtórzenia do góry zakresu, potem więcej kilogramów. Liniowa: stały schemat, ciężar rośnie co trening. % 1RM liczy ciężar z Twojego najlepszego szacowanego 1RM.</p></details>`;
+  const piAdv = (it, di, ii) => `<details class="pi-adv" ${it.prog && it.prog !== 'auto' || it.inc || it.pct ? 'open' : ''}><summary>Progresja i % 1RM</summary><div class="pi-f three"><label><span>Progresja</span><select data-b="it" data-f="prog" data-di="${di}" data-ii="${ii}">${[['auto', 'Podwójna (auto)'], ['linear', 'Liniowa'], ['off', 'Wyłączona']].map(o => `<option value="${o[0]}" ${(it.prog || 'auto') === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></label><label><span>Skok ${F.unit()}</span><input inputmode="decimal" data-b="it" data-f="inc" data-di="${di}" data-ii="${ii}" value="${it.inc ? F.fw(it.inc / F.wm(it.exId)).replace(',', '.') : ''}" placeholder="auto"></label><label><span>% 1RM</span><input inputmode="numeric" data-b="it" data-f="pct" data-di="${di}" data-ii="${ii}" value="${it.pct || ''}" placeholder="–"></label></div><p class="dim small">Podwójna: najpierw powtórzenia do góry zakresu, potem więcej kilogramów. Liniowa: stały schemat, ciężar rośnie co trening. % 1RM liczy ciężar z Twojego najlepszego szacowanego 1RM.</p></details>`;
   const fld = (lab, f, di, ii, v, ph, mode) => `<label><span>${lab}</span><input ${mode ? `inputmode="${mode}"` : ''} data-b="it" data-f="${f}" data-di="${di}" data-ii="${ii}" value="${E(String(v))}" placeholder="${ph || ''}"></label>`;
   const runsOf = items => { const inf = F.ssInfo(items); const runs = []; let i = 0; while (i < items.length) { const e = inf[i] ? inf[i].end : i; runs.push([i, e]); i = e + 1; } return runs; };
   function singleHtml(d, di, ii) {
     const it = d.items[ii]; const runs = runsOf(d.items); const ri = runs.findIndex(r => r[0] === ii);
     return `<div class="pi"><div class="pi-top">${mDot((exOf(it.exId) || {}).muscle)}<b>${E(exName(it.exId))}</b><div class="mini-btns"><button class="ibtn" data-a="itLink" data-di="${di}" data-ii="${ii}" ${ii === d.items.length - 1 ? 'disabled' : ''} aria-label="Połącz z następnym w superserię" title="Połącz z następnym w superserię">${ic('link-2', 16)}</button><button class="ibtn" data-a="blkMove" data-d="-1" data-di="${di}" data-ii="${ii}" ${ri === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="blkMove" data-d="1" data-di="${di}" data-ii="${ii}" ${ri === runs.length - 1 ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${ii}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
-      <div class="pi-f four">${fld('Serie', 'sets', di, ii, it.sets, '', 'numeric')}${fld('Powtórzenia', 'reps', di, ii, it.reps || '', '8-10')}${fld('Przerwa s', 'rest', di, ii, it.rest || '', '90', 'numeric')}${fld('Ciężar ' + F.unit(), 'w', di, ii, it.w ? F.fw(it.w).replace(',', '.') : '', '–', 'decimal')}</div>${piAdv(it, di, ii)}</div>`;
+      <div class="pi-f four">${fld('Serie', 'sets', di, ii, it.sets, '', 'numeric')}${fld('Powtórzenia', 'reps', di, ii, it.reps || '', '8-10')}${fld('Przerwa s', 'rest', di, ii, it.rest || '', '90', 'numeric')}${fld('Ciężar ' + (F.wm(it.exId) === 2 ? '2× ' : '') + F.unit(), 'w', di, ii, it.w ? F.fw(it.w / F.wm(it.exId)).replace(',', '.') : '', '–', 'decimal')}</div>${piAdv(it, di, ii)}</div>`;
   }
   function blockHtml(d, di, g) {
     const items = d.items, first = items[g.start]; const runs = runsOf(items); const ri = runs.findIndex(r => r[0] === g.start);
@@ -216,7 +216,7 @@
     for (let k = g.start; k <= g.end; k++) {
       const it = items[k], tag = F.ssInfo(items)[k].tag;
       h += `<div class="ssb-m"><div class="pi-top"><span class="ss-tag">${tag}</span><b>${E(exName(it.exId))}</b><div class="mini-btns"><button class="ibtn" data-a="itUp" data-di="${di}" data-ii="${k}" ${k === g.start ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="itDown" data-di="${di}" data-ii="${k}" ${k === g.end ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itUnlink" data-di="${di}" data-ii="${k}" aria-label="Wyjmij z superserii" title="Wyjmij z superserii">${ic('arrow-left-right', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${k}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
-        <div class="pi-f two">${fld('Powtórzenia', 'reps', di, k, it.reps || '', '10')}${fld('Ciężar ' + F.unit(), 'w', di, k, it.w ? F.fw(it.w).replace(',', '.') : '', '–', 'decimal')}</div>${piAdv(it, di, k)}</div>`;
+        <div class="pi-f two">${fld('Powtórzenia', 'reps', di, k, it.reps || '', '10')}${fld('Ciężar ' + (F.wm(it.exId) === 2 ? '2× ' : '') + F.unit(), 'w', di, k, it.w ? F.fw(it.w / F.wm(it.exId)).replace(',', '.') : '', '–', 'decimal')}</div>${piAdv(it, di, k)}</div>`;
     }
     const canJoin = g.end < items.length - 1 && !(F.ssInfo(items)[g.end + 1]);
     h += `<div class="btn-row split"><button class="btn ghost sm" data-a="itAddSS" data-di="${di}" data-ii="${g.end}">${ic('plus', 16)} Dodaj ćwiczenie</button>${canJoin ? `<button class="btn ghost sm" data-a="itLink" data-di="${di}" data-ii="${g.end}">${ic('link-2', 16)} Dołącz następne</button>` : ''}</div></div>`;
@@ -230,7 +230,7 @@
   const E_ = () => F.ui.edit.plan;
   F.bind.pname = el => { E_().name = el.value; };
   F.bind.dname = el => { E_().days[+el.dataset.di].name = el.value; };
-  F.bind.it = el => { const it = E_().days[+el.dataset.di].items[+el.dataset.ii]; const f = el.dataset.f; const pf = () => parseFloat(String(el.value).replace(',', '.')) || 0; if (f === 'reps' || f === 'prog') it[f] = el.value; else if (f === 'w' || f === 'inc') it[f] = F.fromDisp(pf()); else if (f === 'pct') it.pct = Math.max(0, Math.min(100, parseInt(el.value) || 0)); else it[f] = parseInt(el.value) || 0; };
+  F.bind.it = el => { const it = E_().days[+el.dataset.di].items[+el.dataset.ii]; const f = el.dataset.f; const pf = () => parseFloat(String(el.value).replace(',', '.')) || 0; if (f === 'reps' || f === 'prog') it[f] = el.value; else if (f === 'w' || f === 'inc') it[f] = F.fromDisp(pf()) * F.wm(it.exId); else if (f === 'pct') it.pct = Math.max(0, Math.min(100, parseInt(el.value) || 0)); else it[f] = parseInt(el.value) || 0; };
   F.act.dayAdd = () => { E_().days.push({ id: F.uid(), name: 'Dzień ' + (E_().days.length + 1), items: [] }); F.render(true); };
   F.act.dayDel = async b => { const i = +b.dataset.di; if (E_().days[i].items.length && !(await F.confirm({ title: 'Usunąć dzień?', text: 'Dzień wraz z ćwiczeniami zniknie z planu.', ok: 'Usuń', danger: true }))) return; E_().days.splice(i, 1); F.render(true); };
   F.act.dayUp = b => { const i = +b.dataset.di, d = E_().days; [d[i - 1], d[i]] = [d[i], d[i - 1]]; F.render(true); };
@@ -321,7 +321,7 @@
   function exList(q, mus) {
     const nq = F.norm(q); const arr = [...F.S.ex.values()].filter(e => (!mus || e.muscle === mus) && (!nq || F.norm(e.name + ' ' + (e.alias || '')).includes(nq))).sort((a, b) => a.name.localeCompare(b.name, 'pl'));
     if (!arr.length) return empty('search', 'Nic nie znaleziono', 'Spróbuj innej frazy lub dodaj własne ćwiczenie.');
-    return arr.map(e => { const p = F.PR[e.id]; const best = p ? (e.type === 'time' ? F.fmtDur(p.dur) : e.type === 'br' ? p.reps + ' powt.' : p.w ? F.fwu(p.w) : '') : ''; return `<a class="exrow" href="#/ex/${E(e.id)}">${mDot(e.muscle)}<span><b>${E(e.name)}</b><small>${F.MUSCLES[e.muscle]} · ${E(e.equip)}${e.custom ? ' · własne' : ''}</small></span>${best ? `<em>${best}</em>` : ''}${ic('chevron-right', 16)}</a>`; }).join('');
+    return arr.map(e => { const p = F.PR[e.id]; const best = p ? (e.type === 'time' ? F.fmtDur(p.dur) : e.type === 'br' ? p.reps + ' powt.' : p.w ? F.fwtu(p.w, e) : '') : ''; return `<a class="exrow" href="#/ex/${E(e.id)}">${mDot(e.muscle)}<span><b>${E(e.name)}</b><small>${F.MUSCLES[e.muscle]} · ${E(e.equip)}${e.custom ? ' · własne' : ''}</small></span>${best ? `<em>${best}</em>` : ''}${ic('chevron-right', 16)}</a>`; }).join('');
   }
   F.bind.exq = el => { F.ui.exQ = el.value; F.$('#ex-list').innerHTML = exList(F.ui.exQ, F.ui.exMus || ''); };
   F.act.exMus = b => { F.ui.exMus = b.dataset.m; F.render(true); };
@@ -336,7 +336,7 @@
     const mk = metrics.find(x => x[0] === m) ? m : metrics[0][0];
     const best = {}; hist.forEach(h => { const v = h[mk]; if (best[mk] == null || v > best[mk]) best[mk] = v; });
     let prevMax = -1; const pts = hist.map(h => { const v = h[mk]; const isPR = v > prevMax && prevMax >= 0; if (v > prevMax) prevMax = v; const fv = mk === 'dur' ? F.fmtDur(v) : (mk === 'reps' ? v : mk === 'vol' || mk === 'w' || mk === 'e1' ? F.fw(v) + ' ' + F.unit() : v); return { x: h.ts, y: (mk === 'w' || mk === 'e1' || mk === 'vol') ? F.toDisp(v) : v, pr: isPR, tip: `${F.fmtDate(h.ts)}: ${fv}` }; });
-    const cards = isT ? [['Najdłuższy czas', p ? F.fmtDur(p.dur) : '–']] : isB ? [['Max powtórzeń', p ? p.reps : '–']] : [['Max ciężar', p && p.w ? F.fwu(p.w) : '–'], ['Najlepsze 1RM', p && p.e1 ? F.fwu(p.e1) : '–'], ['Najcięższa seria (obj.)', p && p.vol ? F.fwu(p.vol) : '–'], ['Max powtórzeń', p ? p.reps : '–']];
+    const cards = isT ? [['Najdłuższy czas', p ? F.fmtDur(p.dur) : '–']] : isB ? [['Max powtórzeń', p ? p.reps : '–']] : [['Max ciężar', p && p.w ? F.fwtu(p.w, ex) : '–'], ['Najlepsze 1RM', p && p.e1 ? F.fwu(p.e1) : '–'], ['Najcięższa seria (obj.)', p && p.vol ? F.fwu(p.vol) : '–'], ['Max powtórzeń', p ? p.reps : '–']];
     // tabela rep max
     let rmTable = ''; if (p && !isT && !isB && Object.keys(p.repAt).length) {
       const rows = []; for (let r = 1; r <= 12; r++) if (p.repAt[r]) rows.push(`<div class="rm"><span>${r} powt.</span><b>${F.fwu(p.repAt[r])}</b></div>`);
@@ -346,7 +346,7 @@
     return {
       html: `${head(E(ex.name), { back: 1, sub: `${F.MUSCLES[ex.muscle]} · ${E(ex.equip)}`, right: `<button class="ibtn" data-a="exEdit" data-id="${id}" aria-label="Edytuj">${ic('pencil', 20)}</button>` })}
       <div class="tiles two">${cards.map(c => `<div class="tile cut"><span class="tl">${ic('trophy', 15)} ${c[0]}</span><b class="tv sm">${c[1]}</b></div>`).join('')}</div>
-      ${sug ? `<div class="banner hot"><div>${ic('target', 20)}</div><p><b>Cel na następny trening</b><br><small>${ex.type === 'time' ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fwu(sug.w) + ' × ' + sug.r} — ${sug.note}</small></p></div>` : ''}
+      ${sug ? `<div class="banner hot"><div>${ic('target', 20)}</div><p><b>Cel na następny trening</b><br><small>${ex.type === 'time' ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fwtu(sug.w, ex) + ' × ' + sug.r} — ${sug.note}</small></p></div>` : ''}
       <section class="card cut"><div class="seg m${metrics.length}">${metrics.map(x => `<button class="${x[0] === mk ? 'on' : ''}" data-a="exMetric" data-m="${x[0]}">${x[1]}</button>`).join('')}</div>${F.chart.line(pts, { w: 340, h: 200 })}<p class="dim small">Złote punkty oznaczają pobite rekordy.</p></section>
       ${rmTable}
       <section class="card cut tech"><h3>${ic('info', 18)} Technika i mięśnie</h3>${F.techHtml(id)}</section>

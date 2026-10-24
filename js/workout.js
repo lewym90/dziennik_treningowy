@@ -61,10 +61,10 @@
 
   function setRow(e, i, j) {
     const ex = exOf(e.exId) || { type: 'wr' }; const s = e.sets[j]; const last = F.LAST[e.exId];
-    const prev = last && last.sets[j]; const isT = ex.type === 'time', isB = ex.type === 'br'; const noW = isT || isB;
+    const prev = last && last.sets[j]; const isT = ex.type === 'time', isB = ex.type === 'br'; const noW = isT || isB; const m = F.wm(e.exId);
     let n = 0; for (let k = 0; k <= j; k++) if (e.sets[k].t !== 'w') n++;
     const lab = s.t === 'w' ? 'R' : s.t === 'd' ? 'D' : s.t === 'f' ? 'F' : n;
-    const wv = s.w ? F.fw(s.w) : ''; const pv = prev ? (isT ? F.fmtDur(prev.r) : isB ? prev.r : `${F.fw(prev.w)}×${prev.r}`) : '–';
+    const wv = s.w ? F.fw(s.w / m) : ''; const pv = prev ? (isT ? F.fmtDur(prev.r) : isB ? prev.r : `${F.fw(prev.w / m)}×${prev.r}`) : '–';
     return `<div class="sr ${s.done ? 'done' : ''} t-${s.t || 'n'} ${noW ? 'no-w' : ''}" id="sr-${i}-${j}" data-i="${i}" data-j="${j}">
       <button class="sn" data-a="setMenu" data-i="${i}" data-j="${j}" aria-label="Opcje serii">${lab}</button>
       <button class="prev" data-a="usePrev" data-i="${i}" data-j="${j}" title="Użyj poprzedniego wyniku">${pv}</button>
@@ -82,10 +82,10 @@
   const ssRounds = (st, en, arr) => { const a = arr || D().exercises; let R = 0; for (let k = st; k <= en; k++) R = Math.max(R, a[k].sets.length); return R; };
   const ssEqualize = (st, en, arr) => { const a = arr || D().exercises; const R = ssRounds(st, en, a); for (let k = st; k <= en; k++) { const e = a[k]; while (e.sets.length < R) { const l = e.sets[e.sets.length - 1] || { w: 0, r: 0 }; e.sets.push({ w: l.w, r: l.r, t: 'n', done: false }); } } };
   function ssLine(i, j, tag) {
-    const d = D(), e = d.exercises[i], ex = exOf(e.exId) || { type: 'wr' }, s = e.sets[j]; const isT = ex.type === 'time', isB = ex.type === 'br'; const noW = isT || isB;
+    const d = D(), e = d.exercises[i], ex = exOf(e.exId) || { type: 'wr' }, s = e.sets[j]; const isT = ex.type === 'time', isB = ex.type === 'br'; const noW = isT || isB; const m = F.wm(e.exId);
     if (!s) return `<div class="ssl empty"><span class="ss-tag">${tag}</span><span class="dim small">brak serii</span></div>`;
     return `<div class="ssl ${noW ? 'no-w' : ''}" id="sr-${i}-${j}"><span class="ss-tag" title="${E(ex.name || '')}">${tag}</span>
-      ${noW ? '' : `<div class="num"><button data-a="nudge" data-f="w" data-d="-1" data-i="${i}" data-j="${j}" aria-label="Mniej">${ic('minus', 13)}</button><input inputmode="decimal" data-b="wk" data-f="w" data-i="${i}" data-j="${j}" value="${s.w ? F.fw(s.w) : ''}" placeholder="0" aria-label="Ciężar ${E(ex.name || '')}"><button data-a="nudge" data-f="w" data-d="1" data-i="${i}" data-j="${j}" aria-label="Więcej">${ic('plus', 13)}</button></div>`}
+      ${noW ? '' : `<div class="num"><button data-a="nudge" data-f="w" data-d="-1" data-i="${i}" data-j="${j}" aria-label="Mniej">${ic('minus', 13)}</button><input inputmode="decimal" data-b="wk" data-f="w" data-i="${i}" data-j="${j}" value="${s.w ? F.fw(s.w / m) : ''}" placeholder="0" aria-label="Ciężar ${E(ex.name || '')}${m === 2 ? ' na jedną sztukę' : ''}"><button data-a="nudge" data-f="w" data-d="1" data-i="${i}" data-j="${j}" aria-label="Więcej">${ic('plus', 13)}</button></div>`}
       <div class="num"><button data-a="nudge" data-f="r" data-d="-1" data-i="${i}" data-j="${j}" aria-label="Mniej">${ic('minus', 13)}</button><input inputmode="numeric" data-b="wk" data-f="r" data-i="${i}" data-j="${j}" value="${s.r || ''}" placeholder="0" aria-label="${isT ? 'Sekundy' : 'Powtórzenia'} ${E(ex.name || '')}"><button data-a="nudge" data-f="r" data-d="1" data-i="${i}" data-j="${j}" aria-label="Więcej">${ic('plus', 13)}</button></div></div>`;
   }
   function ssCard(st, en) {
@@ -93,10 +93,10 @@
     for (let k = st; k <= en; k++) {
       const e = d.exercises[k], ex = exOf(e.exId) || { name: 'Usunięte ćwiczenie', muscle: 'full', type: 'wr' }; const tag = F.ssInfo(d.exercises)[k].tag; const last = F.LAST[e.exId];
       const isT = ex.type === 'time', isB = ex.type === 'br'; const sug = F.suggest(e.exId, e.target && e.target.reps, sugOpts(e));
-      const sugT = sug ? (isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w) + ' ' + F.unit() + ' × ' + sug.r) : ''; const p = last && last.sets[0];
+      const sugT = sug ? (isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w / F.wm(e.exId)) + ' ' + F.unit() + ' × ' + sug.r) : ''; const p = last && last.sets[0];
       rest = Math.max(rest, exRest(e, ex));
       hdr += `<div class="ssm"><div class="ssm-h"><span class="ss-tag">${tag}</span><a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><button class="ibtn" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${k}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
-        <div class="xc-m">${e.target && e.target.reps ? `<span>Cel ${E(e.target.reps)} ${isT ? 's' : 'powt.'}</span>` : ''}${p ? `<span>Poprz. ${isT ? F.fmtDur(p.r) : isB ? p.r : F.fw(p.w) + '×' + p.r}</span>` : ''}${sug ? `<span class="sug" data-a="applySug" data-i="${k}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
+        <div class="xc-m">${F.wm(e.exId) === 2 ? `<span class="x2c">${F.x2Label(ex)}</span>` : ''}${e.target && e.target.reps ? `<span>Cel ${E(e.target.reps)} ${isT ? 's' : 'powt.'}</span>` : ''}${p ? `<span>Poprz. ${isT ? F.fmtDur(p.r) : isB ? p.r : F.fw(p.w / F.wm(e.exId)) + '×' + p.r}</span>` : ''}${sug ? `<span class="sug" data-a="applySug" data-i="${k}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
         ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}${e.note ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(e.note)}</p>` : ''}</div>`;
     }
     for (let j = 0; j < R; j++) {
@@ -110,14 +110,14 @@
     const d = D(), e = d.exercises[i], ex = exOf(e.exId) || { name: 'Usunięte ćwiczenie', muscle: 'full', type: 'wr' }; const last = F.LAST[e.exId];
     const isT = ex.type === 'time', isB = ex.type === 'br'; const sug = F.suggest(e.exId, e.target && e.target.reps, sugOpts(e)); const inf = F.ssInfo(d.exercises)[i];
     const tgt = e.target && e.target.reps ? `Cel ${e.target.sets}×${E(e.target.reps)}` : '';
-    const sugT = sug ? `${isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w) + ' ' + F.unit() + ' × ' + sug.r}` : '';
+    const sugT = sug ? `${isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w / F.wm(e.exId)) + ' ' + F.unit() + ' × ' + sug.r}` : '';
     const doneN = e.sets.filter(s => s.done).length;
     return `<section class="xc cut ${doneN === e.sets.length && e.sets.length ? 'all' : ''}" id="xc-${i}">
       <div class="xc-h">${inf ? `<span class="ss-tag">${inf.tag}</span>` : F.mDot(ex.muscle)}<a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><span class="xc-c">${doneN}/${e.sets.length}</span><button class="ibtn" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${i}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
-      <div class="xc-m">${tgt ? `<span>${tgt}</span>` : ''}<span>${ic('timer', 12)} ${F.fmtDur(exRest(e, ex))}</span>${sug ? `<span class="sug" data-a="applySug" data-i="${i}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
+      <div class="xc-m">${F.wm(e.exId) === 2 ? `<span class="x2c">${F.x2Label(ex)}</span>` : ''}${tgt ? `<span>${tgt}</span>` : ''}<span>${ic('timer', 12)} ${F.fmtDur(exRest(e, ex))}</span>${sug ? `<span class="sug" data-a="applySug" data-i="${i}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
       ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}
       ${e.note ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(e.note)}</p>` : ''}
-      <div class="sh ${isT || isB ? 'no-w' : ''}"><span>Seria</span><span>Poprz.</span>${isT || isB ? '' : `<span>${ex.type === 'bwr' ? '+' : ''}${F.unit()}</span>`}<span>${isT ? 'Sek.' : 'Powt.'}</span><span></span></div>
+      <div class="sh ${isT || isB ? 'no-w' : ''}"><span>Seria</span><span>Poprz.</span>${isT || isB ? '' : `<span>${F.wm(e.exId) === 2 ? '2× ' : ''}${ex.type === 'bwr' ? '+' : ''}${F.unit()}</span>`}<span>${isT ? 'Sek.' : 'Powt.'}</span><span></span></div>
       ${e.sets.map((s, j) => setRow(e, i, j)).join('')}
       <button class="addset" data-a="addSet" data-i="${i}">${ic('plus', 16)} Dodaj serię</button></section>`;
   }
@@ -160,13 +160,14 @@
   const num = v => parseFloat(String(v).replace(',', '.'));
   F.bind.wname = el => { D().name = el.value; persist(); };
   F.bind.wnote = el => { D().note = el.value; persist(); };
-  F.bind.wk = el => { const e = D().exercises[+el.dataset.i], s = e.sets[+el.dataset.j]; const v = num(el.value) || 0; if (el.dataset.f === 'w') s.w = F.fromDisp(v); else s.r = v; persist(); if (s.done) updStats(); };
+  F.bind.wk = el => { const e = D().exercises[+el.dataset.i], s = e.sets[+el.dataset.j]; const v = num(el.value) || 0; if (el.dataset.f === 'w') s.w = F.fromDisp(v) * F.wm(e.exId); else s.r = v; persist(); if (s.done) updStats(); };
   const redraw = i => { const g = F.ssInfo(D().exercises)[i]; if (g) { const el = F.$('#ssg-' + g.start); if (el) el.outerHTML = ssCard(g.start, g.end); } else { const el = F.$('#xc-' + i); if (el) el.outerHTML = card(i); } updStats(); };
   F.act.nudge = b => {
-    const i = +b.dataset.i, j = +b.dataset.j, e = D().exercises[i], s = e.sets[j], ex = exOf(e.exId) || {}; const dir = +b.dataset.d;
-    if (b.dataset.f === 'w') { const cur = F.toDisp(s.w || 0); const nv = Math.max(0, Math.round((cur + dir * stepDisp()) * 100) / 100); s.w = F.fromDisp(nv); }
+    const i = +b.dataset.i, j = +b.dataset.j, e = D().exercises[i], s = e.sets[j], ex = exOf(e.exId) || {}; const dir = +b.dataset.d, m = F.wm(e.exId);
+    if (b.dataset.f === 'w') { const cur = F.toDisp(s.w || 0) / m; const nv = Math.max(0, Math.round((cur + dir * stepDisp()) * 100) / 100); s.w = F.fromDisp(nv) * m; }
     else { const st = ex.type === 'time' ? 5 : 1; s.r = Math.max(0, (s.r || 0) + dir * st); }
-    const row = F.$('#sr-' + i + '-' + j); row.querySelector('[data-f=w]') && (row.querySelector('[data-f=w]').value = s.w ? F.fw(s.w) : ''); row.querySelector('[data-f=r]').value = s.r || ''; F.haptic(8); persist(); if (s.done) updStats();
+    const row = F.$('#sr-' + i + '-' + j); if (!row) return; const wi = row.querySelector('input[data-f=w]'), ri = row.querySelector('input[data-f=r]');
+    if (wi) wi.value = s.w ? F.fw(s.w / m) : ''; if (ri) ri.value = s.r || ''; F.haptic(8); persist(); if (s.done) updStats();
   };
   F.act.usePrev = b => { const i = +b.dataset.i, j = +b.dataset.j, e = D().exercises[i]; const last = F.LAST[e.exId]; const p = last && last.sets[j]; if (!p) return; e.sets[j].w = p.w; e.sets[j].r = p.r; persist(); redraw(i); };
   F.act.applySug = b => { const i = +b.dataset.i, e = D().exercises[i]; const sug = F.suggest(e.exId, e.target && e.target.reps, sugOpts(e)); if (!sug) return; e.sets.forEach(s => { if (!s.done && s.t !== 'w') { s.w = sug.w; s.r = sug.r; } }); persist(); redraw(i); F.toast('Ustawiono cel: ' + sug.note); };
@@ -217,7 +218,7 @@
   F.act.ssDup = b => { const d = D(), g = F.ssInfo(d.exercises)[+b.dataset.s], j = +b.dataset.j; for (let k = g.start; k <= g.end; k++) { const e = d.exercises[k], s = e.sets[j]; if (s) e.sets.splice(j + 1, 0, { w: s.w, r: s.r, t: 'n', done: false }); } F.saveDraft(); F.closeSheet(true); redraw(g.start); };
   F.act.ssDel = b => { const d = D(), g = F.ssInfo(d.exercises)[+b.dataset.s], j = +b.dataset.j; if (ssRounds(g.start, g.end) <= 1) { F.toast('To ostatnia runda'); return; } for (let k = g.start; k <= g.end; k++) d.exercises[k].sets.splice(j, 1); F.saveDraft(); F.closeSheet(true); rebuildWkIdx(); redraw(g.start); };
   function celebrate(prs, ex, s, btn) {
-    const p = prs[0]; const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fw(s.w)} ${F.unit()} × ${s.r}`;
+    const p = prs[0]; const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fwt(s.w, ex)} ${F.unit()} × ${s.r}`;
     const el = document.createElement('div'); el.className = 'pr-banner'; el.innerHTML = `${ic('trophy', 28)}<div><b>Nowy rekord</b><span>${E(p.label)}</span><em>${E(ex.name)} · ${txt}</em></div>`;
     document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('in'));
     F.haptic([60, 40, 60, 40, 160]); F.beep([[660, .09], [880, .09], [1175, .09], [1568, .26]]);
@@ -238,9 +239,10 @@
   F.act.setDel = b => { const e = D().exercises[+b.dataset.i]; e.sets.splice(+b.dataset.j, 1); F.saveDraft(); F.closeSheet(true); rebuildWkIdx(); redraw(+b.dataset.i); };
 
   /* ---------- menu ćwiczenia ---------- */
+  F.act.exX2 = b => { const e = D().exercises[+b.dataset.i], ex = exOf(e.exId); if (!ex) return; const st = F.S.settings; st.x2 = st.x2 || {}; st.x2[ex.id] = !F.x2(ex); F.saveSettings(); F.closeSheet(true); F.render(true); F.toast(st.x2[ex.id] ? 'Wpisujesz ciężar jednej sztuki — razem ×2' : 'Wpisujesz ciężar łączny'); };
   F.act.exMenu = b => {
     const i = +b.dataset.i, d = D(), e = d.exercises[i], ex = exOf(e.exId) || {};
-    F.sheet(`<div class="menu">${F.ssInfo(d.exercises)[i] ? '' : `<button data-a="exWarm" data-i="${i}">${ic('flame', 20)}<span>Dodaj rozgrzewkę<small>Progresja serii rozgrzewkowych do ciężaru roboczego</small></span></button>`}<button data-a="exNote" data-i="${i}">${ic('notebook-pen', 20)}<span>Notatka do ćwiczenia</span></button><button data-a="exRestSet" data-i="${i}">${ic('timer', 20)}<span>Czas przerwy<small>Obecnie ${F.fmtDur(exRest(e, ex))}</small></span></button>${ssItems(i)}<button data-a="exSwap" data-i="${i}">${ic('arrow-left-right', 20)}<span>Zamień ćwiczenie</span></button><button data-a="exUp" data-i="${i}" ${i === 0 ? 'disabled' : ''}>${ic('arrow-up', 20)}Przesuń wyżej</button><button data-a="exDown" data-i="${i}" ${i === d.exercises.length - 1 ? 'disabled' : ''}>${ic('arrow-down', 20)}Przesuń niżej</button><button class="danger" data-a="exRemove" data-i="${i}">${ic('trash-2', 20)}Usuń z treningu</button></div>`, { title: E(ex.name || 'Ćwiczenie') });
+    F.sheet(`<div class="menu">${F.ssInfo(d.exercises)[i] ? '' : `<button data-a="exWarm" data-i="${i}">${ic('flame', 20)}<span>Dodaj rozgrzewkę<small>Progresja serii rozgrzewkowych do ciężaru roboczego</small></span></button>`}<button data-a="exNote" data-i="${i}">${ic('notebook-pen', 20)}<span>Notatka do ćwiczenia</span></button>${ex.type === 'wr' || ex.type === 'bwr' ? `<button data-a="exX2" data-i="${i}">${ic('dumbbell', 20)}<span>${F.x2(ex) ? 'Wpisuję łączny ciężar' : 'Wpisuję ciężar jednej sztuki (×2)'}<small>${F.x2(ex) ? 'Teraz: jedna hantla/strona, razem ×2. Dotknij, by wpisywać sumę' : 'Np. 2 hantle po 10 kg wpisujesz jako 10. Zapis i tonaż liczone razem'}</small></span></button>` : ''}<button data-a="exRestSet" data-i="${i}">${ic('timer', 20)}<span>Czas przerwy<small>Obecnie ${F.fmtDur(exRest(e, ex))}</small></span></button>${ssItems(i)}<button data-a="exSwap" data-i="${i}">${ic('arrow-left-right', 20)}<span>Zamień ćwiczenie</span></button><button data-a="exUp" data-i="${i}" ${i === 0 ? 'disabled' : ''}>${ic('arrow-up', 20)}Przesuń wyżej</button><button data-a="exDown" data-i="${i}" ${i === d.exercises.length - 1 ? 'disabled' : ''}>${ic('arrow-down', 20)}Przesuń niżej</button><button class="danger" data-a="exRemove" data-i="${i}">${ic('trash-2', 20)}Usuń z treningu</button></div>`, { title: E(ex.name || 'Ćwiczenie') });
   };
   function ssItems(i) {
     const d = D(), arr = d.exercises, inf = F.ssInfo(arr)[i]; let h = '';
@@ -284,7 +286,7 @@
     d.exercises.forEach(e => {
       const ex = exOf(e.exId); const sets = e.sets.filter(s => s.done).map(s => ({ w: s.w || 0, r: s.r || 0, t: s.t || 'n', rpe: s.rpe || null, done: true }));
       if (!sets.length) return;
-      sets.forEach(s => { s.pr = null; const p = ex ? F.checkPR(idx, ex, s, d.start) : []; if (ex && F.isWork(s)) F.addToIdx(idx, ex, s, d.start); if (p.length) { s.pr = p.map(x => x.k); const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fw(s.w)} ${F.unit()} × ${s.r}`; const k = p[0]; const prev = prs.findIndex(q => q.exId === e.exId); const rec = { exId: e.exId, k: k.k, label: k.label, text: txt }; if (prev >= 0) prs[prev] = rec; else prs.push(rec); } });
+      sets.forEach(s => { s.pr = null; const p = ex ? F.checkPR(idx, ex, s, d.start) : []; if (ex && F.isWork(s)) F.addToIdx(idx, ex, s, d.start); if (p.length) { s.pr = p.map(x => x.k); const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fwt(s.w, ex)} ${F.unit()} × ${s.r}`; const k = p[0]; const prev = prs.findIndex(q => q.exId === e.exId); const rec = { exId: e.exId, k: k.k, label: k.label, text: txt }; if (prev >= 0) prs[prev] = rec; else prs.push(rec); } });
       const rec = { exId: e.exId, note: e.note || '', rest: e.rest || 0, sets }; if (e.ss) rec.ss = e.ss; sess.exercises.push(rec);
     });
     sess.prs = prs;

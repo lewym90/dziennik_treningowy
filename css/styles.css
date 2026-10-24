@@ -584,3 +584,10 @@ details.en{margin:6px 0 12px}details.en summary{cursor:pointer;color:var(--tx2);
 .ssn{display:flex;align-items:center;gap:8px;padding:4px 0;font:700 17px var(--fb)}
 .ssrow{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center}.ssr-l{display:grid;gap:4px}.ssr-l>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sum-stats b{font-size:21px;white-space:nowrap}.sum-stats div{min-width:0}
+/* 1.5 pola liczbowe: większe przyciski +/−, bez zaznaczania tekstu przy przytrzymaniu */
+.sr .num button,.ssl .num button{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sr .num button{width:31px}
+.ssl .num button{width:29px}
+.sr .num input.lg,.ssl .num input.lg{font-size:16px}
+.x2c{color:var(--a1);font-weight:700}
+@media (max-width:380px){.sr .num button{width:28px}.ssl .num button{width:26px}}

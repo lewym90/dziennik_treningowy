@@ -83,6 +83,14 @@
   F.fmtNum = (n, d = 1) => { if (n == null || isNaN(n)) return '–'; const r = Math.round(n * Math.pow(10, d)) / Math.pow(10, d); return String(r).replace('.', ','); };
   F.fw = kg => F.fmtNum(F.toDisp(kg), 1);
   F.fwu = kg => F.fw(kg) + ' ' + F.unit();
+  /* Ciężar „na sztukę / na stronę”: w danych zawsze zapisujemy SUMĘ (stąd historia, tonaż i rekordy bez zmian),
+     a przy ćwiczeniach z hantlami i jednostronnych wpisujemy i pokazujemy jedną sztukę (2 × 10 kg). */
+  const X2_OFF = new Set(['row_db', 'pullover', 'tri_over', 'curl_con', 'kickback', 'sumo_sq']); // domyślnie jedna hantla
+  F.x2 = id => { const ex = id && typeof id === 'object' ? id : F.S.ex.get(id); if (!ex || (ex.type !== 'wr' && ex.type !== 'bwr')) return false; const o = (F.S.settings.x2 || {})[ex.id]; if (o != null) return !!o; return ex.equip === 'Hantle' && !X2_OFF.has(ex.id); };
+  F.wm = id => F.x2(id) ? 2 : 1;
+  F.fwt = (kg, id) => F.wm(id) === 2 ? '2×' + F.fw(kg / 2) : F.fw(kg);
+  F.fwtu = (kg, id) => F.fwt(kg, id) + ' ' + F.unit();
+  F.x2Label = ex => ex && ex.equip === 'Hantle' ? 'Wpisz ciężar jednej hantli (×2)' : 'Wpisz ciężar jednej strony (×2)';
   F.fmtVol = kg => { const v = F.toDisp(kg), lb = F.unit() === 'lb'; if (v >= 1e6) return F.fmtNum(v / 1e6, 2) + (lb ? ' M lb' : ' kt'); if (v >= 10000) return F.fmtNum(v / 1000, 1) + (lb ? ' k lb' : ' t'); return F.fmtNum(v, 0) + (lb ? ' lb' : ' kg'); };
   F.fmtDur = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? `${h}:${String(m).padStart(2, '0')}:${String(x).padStart(2, '0')}` : `${m}:${String(x).padStart(2, '0')}`; };
   F.fmtMin = s => !s ? '–' : s < 60 ? Math.round(s) + ' s' : Math.round(s / 60) + ' min';
