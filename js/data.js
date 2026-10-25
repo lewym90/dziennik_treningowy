@@ -128,7 +128,12 @@ F.SEED = [
   ['jump_rope', 'Skakanka', 'cardio', 'Inne', 'time', 0, 'jump rope;skipping;skakanie na skakance'],
   ['stairs', 'Stepper / schody', 'cardio', 'Maszyna', 'time', 0, 'stairmaster;stepper;schody;stair climber'],
   ['elliptical', 'Orbitrek', 'cardio', 'Maszyna', 'time', 0, 'elliptical;cross trainer;crosstrainer'],
-  ['incline_walk', 'Marsz pod górę', 'cardio', 'Maszyna', 'time', 0, 'incline walk;incline walking;marsz na bieżni;chodzenie pod górę']
+  ['incline_walk', 'Marsz pod górę', 'cardio', 'Maszyna', 'time', 0, 'incline walk;incline walking;marsz na bieżni;chodzenie pod górę'],
+  ['bike_out', 'Rower na zewnątrz', 'cardio', 'Inne', 'time', 0, 'cycling outdoor;kolarstwo;jazda na rowerze;rower szosowy;rower górski'],
+  ['walk', 'Spacer / marsz', 'cardio', 'Inne', 'time', 0, 'walking;spacer;marsz;nordic walking'],
+  ['swim', 'Pływanie', 'cardio', 'Inne', 'time', 0, 'swimming;basen;plywanie'],
+  ['skate', 'Rolki', 'cardio', 'Inne', 'time', 0, 'inline skating;rollerblading;wrotki'],
+  ['cardio_other', 'Inne cardio', 'cardio', 'Inne', 'time', 0, 'cardio;aerobik;taniec;zumba;inne']
 ];
 
 // Plany startowe: [nazwa, opis, [[dzień, [[exId, serie, powt, przerwa(s)]...]]...]]

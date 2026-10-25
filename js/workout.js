@@ -23,10 +23,10 @@
     const topW = last ? Math.max(...last.sets.map(s => s.w || 0)) : 0;
     for (let i = 0; i < count; i++) {
       const prev = last ? (last.sets[i] || last.sets[last.sets.length - 1]) : null; let w = 0, r = 0;
-      if (ex && ex.type === 'time') { r = prev ? prev.r : (lo || 45); }
+      if (ex && ex.type === 'time') { r = prev ? prev.r : (ex.muscle === 'cardio' ? 1200 : (lo || 45)); }
       else if (ex && ex.type === 'br') { r = prev ? prev.r : (lo || 10); }
       else { w = sug ? sug.w : (prev ? prev.w : (w0 || 0)); r = prev ? prev.r : (lo || 10); if (sug && sug.w > topW && lo) r = lo; }
-      sets.push({ w, r, t: 'n', done: false });
+      const st = { w, r, t: 'n', done: false }; if (ex && ex.muscle === 'cardio' && ex.type === 'time') st.int = (pg && pg.cint) || (prev && prev.int) || 2; sets.push(st);
     }
     return sets;
   }
@@ -34,7 +34,7 @@
     if (F.S.draft) { F.go('#/workout'); return; }
     const d = { id: F.uid(), start: o.backdate || Date.now(), name: dayPart(), planId: null, dayId: null, note: '', backdate: !!o.backdate, exercises: [], rest: null };
     if (o.backdate) d.start = o.backdate;
-    if (o.plan && o.day) { d.name = o.day.name; d.planId = o.plan.id; d.dayId = o.day.id; d.planName = o.plan.name; d.deload = F.deloadOn(); d.exercises = o.day.items.filter(i => exOf(i.exId)).map(i => { const n = d.deload && (i.sets || 3) >= 3 ? (i.sets || 3) - 1 : (i.sets || 3); const pg = pgOf(i); const e = { k: F.uid(), exId: i.exId, note: i.note || '', rest: i.rest || 0, target: { sets: n, reps: i.reps }, sets: buildSets(i.exId, n, i.reps, i.w, pg) }; if (i.ss) e.ss = i.ss; if (pg) e.pg = pg; return e; }); { const inf = F.ssInfo(d.exercises); inf.forEach((g, k) => { if (g && g.pos === 0) ssEqualize(g.start, g.end, d.exercises); }); } }
+    if (o.plan && o.day) { d.name = o.day.name; d.planId = o.plan.id; d.dayId = o.day.id; d.planName = o.plan.name; d.deload = F.deloadOn(); d.exercises = o.day.items.filter(i => exOf(i.exId)).map(i => { if (i.cardio) { const secs = +i.reps || 1800, ci = i.cardio.int || 2; return { k: F.uid(), exId: i.exId, note: i.note || '', rest: 0, target: { sets: 1, reps: String(secs) }, sets: [{ w: 0, r: secs, t: 'n', done: false, int: ci }], cardio: { int: ci, post: !!i.cardio.post } }; } const n = d.deload && (i.sets || 3) >= 3 ? (i.sets || 3) - 1 : (i.sets || 3); const pg = pgOf(i); const e = { k: F.uid(), exId: i.exId, note: i.note || '', rest: i.rest || 0, target: { sets: n, reps: i.reps }, sets: buildSets(i.exId, n, i.reps, i.w, pg) }; if (i.ss) e.ss = i.ss; if (pg) e.pg = pg; return e; }); { const inf = F.ssInfo(d.exercises); inf.forEach((g, k) => { if (g && g.pos === 0) ssEqualize(g.start, g.end, d.exercises); }); } }
     else if (o.fromSession) { const s = o.fromSession; d.name = s.name; d.planId = s.planId; d.dayId = s.dayId; d.exercises = s.exercises.filter(e => exOf(e.exId)).map(e => { const o2 = { k: F.uid(), exId: e.exId, note: '', rest: e.rest || 0, target: { sets: e.sets.filter(x => x.t !== 'w').length, reps: '' }, sets: e.sets.filter(x => x.t !== 'w' && x.done).map(x => ({ w: x.w, r: x.r, t: x.t || 'n', done: false })) }; if (e.ss) o2.ss = e.ss; return o2; }); }
     F.S.draft = d; F.saveDraft(); F.wakeLock(); F.haptic(30); F.go('#/workout');
   };
@@ -56,7 +56,7 @@
     wkIdx = F.cloneIdx(); const d = D(); if (!d) return;
     d.exercises.forEach(e => { const ex = exOf(e.exId); if (!ex) return; e.sets.forEach(s => { if (F.isWork(s)) F.addToIdx(wkIdx, ex, s, d.start); }); });
   };
-  const wkStats = () => { const d = D(); let vol = 0, sets = 0, all = 0; d.exercises.forEach(e => { const ex = exOf(e.exId); e.sets.forEach(s => { all++; if (F.isWork(s)) { sets++; vol += F.setVolume(ex, s, d.start); } }); }); return { vol, sets, all, done: d.exercises.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0) }; };
+  const wkStats = () => { const d = D(); let vol = 0, sets = 0, all = 0; d.exercises.forEach(e => { if (e.later || e.skip) return; const ex = exOf(e.exId); e.sets.forEach(s => { all++; if (F.isWork(s)) { sets++; vol += F.setVolume(ex, s, d.start); } }); }); return { vol, sets, all, done: d.exercises.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0) }; };
   const stepDisp = () => F.unit() === 'lb' ? 5 : F.S.settings.step;
 
   function setRow(e, i, j) {
@@ -106,8 +106,27 @@
     }
     return `<section class="xc cut ssc ${doneR === R && R ? 'all' : ''}" id="ssg-${st}"><div class="ssc-h"><span class="ssc-t">${ic('link-2', 15)} ${F.ssName(size)} ${info.L}</span><span class="xc-c">${doneR}/${R} rund</span><span class="ssc-r">${ic('timer', 13)} ${F.fmtDur(rest)}</span></div>${hdr}<div class="ssh2"><span>Runda</span><span>${F.unit()} · powt.</span><span></span></div>${rows}<button class="addset" data-a="ssAddRound" data-s="${st}">${ic('plus', 16)} Dodaj rundę</button></section>`;
   }
+  /* ---------- cardio: minuty zamiast serii; zrobione / zrobię później / pomiń ---------- */
+  const CI = { 1: 'Lekko', 2: 'Umiarkowanie', 3: 'Intensywnie' };
+  function cardioCard(i, e, ex) {
+    const s = e.sets[0] || (e.sets[0] = { w: 0, r: 1200, t: 'n', done: false, int: 2 }); const mins = Math.round((s.r || 0) / 60); const it = s.int || (e.cardio && e.cardio.int) || 2; const st = e.later ? 'later' : e.skip ? 'skip' : s.done ? 'done' : '';
+    const plan = e.target && +e.target.reps ? Math.round(+e.target.reps / 60) : 0;
+    return `<section class="xc cut cd ${st}" id="xc-${i}"><div class="xc-h">${F.mDot(ex.muscle)}<a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><span class="xc-c">${st === 'done' ? 'zrobione' : st === 'later' ? 'później' : st === 'skip' ? 'pominięte' : ''}</span><button class="ibtn" data-a="exMenu" data-i="${i}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
+      <div class="xc-m"><span>Cardio${plan ? ' · plan ' + plan + ' min' : ''}</span></div>
+      ${e.later ? '' : `<div class="cd-main"><div class="num"><button data-a="cdNudge" data-d="-1" data-i="${i}" aria-label="Mniej">${ic('minus', 14)}</button><input inputmode="numeric" data-b="wkcm" data-i="${i}" value="${mins || ''}" placeholder="0" aria-label="Minuty"><button data-a="cdNudge" data-d="1" data-i="${i}" aria-label="Więcej">${ic('plus', 14)}</button></div><span class="cd-u">min</span></div>
+      <div class="chips tiny">${[1, 2, 3].map(x => `<button class="chip ${it === x ? 'on' : ''}" data-a="cdInt" data-i="${i}" data-v="${x}">${CI[x]}</button>`).join('')}</div>`}
+      <div class="cd-btns"><button class="btn sm ${s.done ? 'primary' : 'ghost'}" data-a="cdDone" data-i="${i}">${ic('check', 16)} Zrobione</button><button class="btn sm ghost ${e.later ? 'on' : ''}" data-a="cdLater" data-i="${i}">Zrobię później</button><button class="btn sm ghost ${e.skip ? 'on' : ''}" data-a="cdSkip" data-i="${i}">Pomiń</button></div>
+      ${e.later ? `<p class="xc-note hint">${ic('timer', 13)} Zakończ trening — to cardio dopiszesz później (przypomnienie na ekranie głównym przez 48 godzin).</p>` : ''}${e.note ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(e.note)}</p>` : ''}</section>`;
+  }
+  F.bind.wkcm = el => { const e = D().exercises[+el.dataset.i], s = e.sets[0]; const v = num(el.value) || 0; s.r = Math.round(v * 60); persist(); if (s.done) updStats(); };
+  F.act.cdNudge = b => { const i = +b.dataset.i, e = D().exercises[i], s = e.sets[0]; s.r = Math.max(0, (s.r || 0) + (+b.dataset.d) * 300); F.haptic(8); F.saveDraft(); redraw(i); };
+  F.act.cdInt = b => { const i = +b.dataset.i, e = D().exercises[i]; e.sets[0].int = +b.dataset.v; if (e.cardio) e.cardio.int = +b.dataset.v; F.saveDraft(); redraw(i); };
+  F.act.cdDone = b => { const i = +b.dataset.i, e = D().exercises[i], s = e.sets[0]; s.done = !s.done; if (s.done) { e.later = false; e.skip = false; if (!s.r) s.r = 1200; F.haptic(25); } F.saveDraft(); rebuildWkIdx(); redraw(i); };
+  F.act.cdLater = b => { const i = +b.dataset.i, e = D().exercises[i]; e.later = !e.later; if (e.later) { e.skip = false; e.sets[0].done = false; } F.saveDraft(); redraw(i); };
+  F.act.cdSkip = b => { const i = +b.dataset.i, e = D().exercises[i]; e.skip = !e.skip; if (e.skip) { e.later = false; e.sets[0].done = false; } F.saveDraft(); redraw(i); };
   function card(i) {
     const d = D(), e = d.exercises[i], ex = exOf(e.exId) || { name: 'Usunięte ćwiczenie', muscle: 'full', type: 'wr' }; const last = F.LAST[e.exId];
+    if (ex.muscle === 'cardio' && ex.type === 'time') return cardioCard(i, e, ex);
     const isT = ex.type === 'time', isB = ex.type === 'br'; const sug = F.suggest(e.exId, e.target && e.target.reps, sugOpts(e)); const inf = F.ssInfo(d.exercises)[i];
     const tgt = e.target && e.target.reps ? `Cel ${e.target.sets}×${E(e.target.reps)}` : '';
     const sugT = sug ? `${isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w / F.wm(e.exId)) + ' ' + F.unit() + ' × ' + sug.r}` : '';
@@ -264,7 +283,7 @@
   F.act.exRemove = async b => { const i = +b.dataset.i; const e = D().exercises[i]; if (e.sets.some(s => s.done) && !(await F.confirm({ title: 'Usunąć ćwiczenie?', text: 'Zaliczone serie z tego ćwiczenia przepadną.', ok: 'Usuń', danger: true }))) return; D().exercises.splice(i, 1); F.cleanSS(D().exercises); F.saveDraft(); F.closeSheet(true); rebuildWkIdx(); F.render(true); };
   F.act.wkAdd = async () => {
     const ids = await F.pickExercises(); if (!ids || !ids.length) return;
-    ids.forEach(id => { const ex = exOf(id); D().exercises.push({ k: F.uid(), exId: id, note: '', rest: 0, target: null, sets: buildSets(id, 3, ex && ex.type === 'time' ? '45' : '') }); }); F.saveDraft(); F.render(true);
+    ids.forEach(id => { const ex = exOf(id); D().exercises.push({ k: F.uid(), exId: id, note: '', rest: 0, target: null, sets: buildSets(id, ex && ex.muscle === 'cardio' && ex.type === 'time' ? 1 : 3, ex && ex.type === 'time' ? '45' : '') }); }); F.saveDraft(); F.render(true);
     setTimeout(() => { const el = F.$('#xc-' + (D().exercises.length - 1)); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
   };
   F.act.wkMin = () => F.go('#/home');
@@ -283,13 +302,15 @@
     const now = Date.now();
     const sess = { id: d.id, start: d.start, end: now, dur: d.backdate ? 0 : Math.round((now - d.start) / 1000), name: d.name || 'Trening', deload: !!d.deload, planId: d.planId, dayId: d.dayId, note: d.note || '', exercises: [] };
     const idx = F.cloneIdx(); const prs = [];
+    const pendC = [];
     d.exercises.forEach(e => {
-      const ex = exOf(e.exId); const sets = e.sets.filter(s => s.done).map(s => ({ w: s.w || 0, r: s.r || 0, t: s.t || 'n', rpe: s.rpe || null, done: true }));
+      if (e.later && !e.sets.some(s => s.done)) { pendC.push({ id: F.uid(), exId: e.exId, mins: Math.max(5, Math.round(((e.sets[0] && e.sets[0].r) || 1200) / 60)), int: (e.sets[0] && e.sets[0].int) || 2, until: now + 48 * 36e5 }); return; }
+      const ex = exOf(e.exId); const sets = e.sets.filter(s => s.done).map(s => ({ w: s.w || 0, r: s.r || 0, t: s.t || 'n', rpe: s.rpe || null, done: true, ...(s.int ? { int: s.int } : {}) }));
       if (!sets.length) return;
       sets.forEach(s => { s.pr = null; const p = ex ? F.checkPR(idx, ex, s, d.start) : []; if (ex && F.isWork(s)) F.addToIdx(idx, ex, s, d.start); if (p.length) { s.pr = p.map(x => x.k); const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fwt(s.w, ex)} ${F.unit()} × ${s.r}`; const k = p[0]; const prev = prs.findIndex(q => q.exId === e.exId); const rec = { exId: e.exId, k: k.k, label: k.label, text: txt }; if (prev >= 0) prs[prev] = rec; else prs.push(rec); } });
       const rec = { exId: e.exId, note: e.note || '', rest: e.rest || 0, sets }; if (e.ss) rec.ss = e.ss; sess.exercises.push(rec);
     });
-    sess.prs = prs;
+    sess.prs = prs; if (pendC.length) sess.pend = pendC;
     await F.addSession(sess); F.S.draft = null; await F.saveDraft(); F.restStop(false); F.wakeRelease();
     summary(sess, F.xp() - xpBefore, F.rank().i > rankBefore);
   };
@@ -300,6 +321,7 @@
     F.go('#/home');
     const html = `<div class="sum"><div class="sum-top">${F.logo(54)}<h2>Trening<br>zaliczony</h2><p>${E(s.name)}</p></div>
       <div class="sum-stats"><div><small>Czas</small><b>${F.fmtMin(s.dur)}</b></div><div><small>Tonaż</small><b>${F.fmtVol(vol)}</b></div><div><small>Serie</small><b>${F.sessionSets(s)}</b></div><div><small>Kcal</small><b>${F.fmtNum(Math.round(F.sessKcal(s).net / 5) * 5, 0)}</b></div></div>
+      ${s.pend && s.pend.length ? `<p class="small">${ic('timer', 14)} Do dokończenia: ${s.pend.map(p => E(F.exName(p.exId)) + ' ' + p.mins + ' min').join(', ')}. Dopiszesz to z ekranu głównego w ciągu 48 godzin — trening zostanie przeliczony.</p>` : ''}
       ${s.prs.length ? `<div class="sum-pr"><h3>${ic('trophy', 20)} ${s.prs.length === 1 ? 'Nowy rekord' : s.prs.length + ' nowe rekordy'}</h3>${s.prs.map(p => `<div><b>${E(F.exName(p.exId))}</b><span>${E(p.text)}</span></div>`).join('')}</div>` : ''}
       <div class="sum-xp"><span>+${F.fmtNum(xpGain, 0)} XP</span><i class="bar"><i style="width:${(rk.pct * 100).toFixed(0)}%"></i></i><small>${rankUp ? `Awans! Nowa ranga: <b>${rk.name}</b>` : rk.next ? `Ranga ${rk.name} · ${F.fmtNum(rk.toNext, 0)} XP do ${rk.next}` : 'Ranga maksymalna'}</small></div>
       <div class="btn-row"><button class="btn ghost" data-a="sumShare" data-id="${s.id}">${ic('share-2', 18)} Karta</button><button class="btn primary grow" data-a="closeSheet">Gotowe</button></div></div>`;

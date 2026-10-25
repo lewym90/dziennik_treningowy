@@ -57,6 +57,17 @@
   /* ---------- raport tygodnia (punkt 6) ---------- */
   const wkStats = (a, b) => { let n = 0, sets = 0, vol = 0, pr = 0, min = 0, kc = 0; F.S.sessions.forEach(s => { if (s.start >= a && s.start < b) { n++; vol += F.sessionVolume(s); min += (s.dur || 0) / 60; s.exercises.forEach(e => e.sets.forEach(x => { if (F.isWork(x)) sets++; if (x.pr && x.pr.length) pr++; })); try { kc += F.sessKcal(s).net || 0; } catch (e) { } } }); return { n, sets, vol, pr, min: Math.round(min), kc: Math.round(kc) }; };
   const delta = (cur, prev, unit = '') => { if (!prev) return ''; const d = cur - prev; return d === 0 ? '<small class="dim"> bez zmian</small>' : `<small class="${d > 0 ? 'up' : 'dn'}"> ${d > 0 ? '+' : ''}${F.fmtNum ? F.fmtNum(round(d, 1)) : round(d, 1)}${unit} vs poprzedni</small>`; };
+  const cardioCard = (plan, ws, now) => {
+    if (!F.cardioWeek) return '';
+    const c = F.cardioWeek(ws, now + 1); const m = plan && plan.meta && plan.meta.cardio; const band = m && m.band;
+    const decl = (F.S.settings.wiz && F.S.settings.wiz.cNow && F.S.settings.wiz.cAct || []).filter(a => !a.plan);
+    if (!c.raw && !band && !decl.length) return '';
+    const lo = band ? band[0] : 0, hi = band ? band[1] : 0;
+    const st = !band ? '' : c.eq >= lo ? `<p class="small">${ic('check', 16)} Cel tygodnia (${lo}–${hi} min w przeliczeniu na umiarkowane) osiągnięty lub blisko.</p>` : `<p class="small">Do dolnej granicy celu (${lo} min) brakuje jeszcze ok. ${lo - c.eq} min w przeliczeniu na umiarkowane. Cardio możesz dopisać ręcznie (np. pływanie, rolki) w nowym treningu.</p>`;
+    const dl = decl.length ? `<p class="dim small">Poza aplikacją deklarowałeś: ${decl.map(a => E(F.CARDIO.label(a))).join(', ')} — wpisuj to ręcznie, jeśli chcesz, żeby się liczyło.</p>` : '';
+    return `<section class="card cut"><h3>${ic('heart-pulse', 18)} Cardio w tym tygodniu</h3><p class="small">Zapisane: <b>${c.raw} min</b> (ok. ${c.eq} min w przeliczeniu na umiarkowane; intensywne liczy się podwójnie, lekkie wcale).</p>${st}${dl}</section>`;
+  };
+
   V.report = () => {
     const now = Date.now(), ws = F.startOfWeek(now); const cur = wkStats(ws, ws + WK), prev = wkStats(ws - WK, ws), prev2 = wkStats(ws - 2 * WK, ws - WK);
     const last = prev.n || prev2.n ? { lab: 'Ostatni pełny tydzień', s: prev, p: prev2 } : null;
@@ -73,6 +84,7 @@
       ${last ? `<section class="card cut"><h3>${ic('rotate-ccw', 18)} ${last.lab}</h3>${stat(last.s, last.p)}</section>` : ''}
       ${bwNow && bwOld ? `<section class="card cut"><h3>${ic('scale', 18)} Masa ciała</h3><p class="small">Ostatnie 2 tygodnie: ${F.fwu(bwOld)} → <b>${F.fwu(bwNow)}</b> (${bwNow - bwOld > 0 ? '+' : ''}${F.fwu(Math.abs(bwNow - bwOld)).replace(/^/, bwNow - bwOld < 0 ? '−' : '')}). Pojedyncze ważenia wahają się o 1–2 kg przez wodę i zawartość jelit — patrz na trend z kilku tygodni.</p></section>` : ''}
       ${vol}
+      ${cardioCard(plan, ws, now)}
       <section class="card cut"><h3>${ic('sparkles', 18)} Co zmienić${plan ? ' w planie „' + E(plan.name) + '”' : ''}</h3>${an && an.meso ? `<p class="dim small">Tydzień ${an.week} planu${an.week <= an.meso ? ' z ' + an.meso + ' (potem odciążenie)' : ''}.</p>` : ''}${sug}</section>
       <p class="dim small pad">Korekty to propozycje oparte na Twoich zapisanych treningach — decyzja zawsze należy do Ciebie. Przy bólu lub chorobie skonsultuj się ze specjalistą.</p>` };
   };

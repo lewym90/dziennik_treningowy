@@ -211,6 +211,7 @@
     muscles0.forEach(m => { const hi = rangeOf(goal, exp, m)[1]; let es = allI().filter(i => i.m === m); while (es.length * 2 > hi + 2 && es.length > 1) { const cand = es.filter(i => i.role === 'iso').pop() || es[es.length - 1]; const d = dayOf(cand); d.items.splice(d.items.indexOf(cand), 1); es = allI().filter(i => i.m === m); } });
     // ---- superserie antagonistów ----
     const budget = w.time || 90; const tight = !!w.time && w.time <= 60;
+    days.forEach((d, di) => { d.bud = (w.timeByDay && w.timeByDay[di]) || budget; });
     const PAIRS = [['biceps', 'triceps'], ['chest', 'back'], ['quads', 'hams'], ['shoulders', 'back']];
     const ssAll = goal === 'endur' || goal === 'sculpt' || tight;
     const setS = (i, v) => { i.sets = v; if (i.mate) i.mate.sets = v; };
@@ -232,7 +233,7 @@
     const sessionCap = KB.perSession[exp] + (goal === 'str' ? -2 : 0);
     days.forEach(d => { // limit serii jednej grupy w sesji
       musclesNow().forEach(m => { let es = d.items.filter(i => i.m === m), tot = es.reduce((a, i) => a + i.sets, 0), g = 20; while (tot > sessionCap && g--) { const c = [...es].reverse().find(i => i.sets > 2); if (!c) break; setS(c, c.sets - 1); tot--; } });
-      let guard = 80; while (minutes(d) > budget && guard--) {
+      let guard = 80; while (minutes(d) > d.bud && guard--) {
         const cut = [...d.items].reverse().find(i => i.sets > 2 && i.role !== 'main') || [...d.items].reverse().find(i => i.sets > 2);
         if (cut) { setS(cut, cut.sets - 1); continue; }
         const long = d.items.find(i => restOf(i) > 90 && i.role !== 'iso'); if (long) { long.restX = Math.max(90, restOf(long) - 30); continue; }
@@ -244,7 +245,7 @@
     const EXTRA = { chest: ['chest_fly', 'chest_press2'], back: ['back_row2', 'back_iso'], shoulders: ['sh_lat', 'sh_rear'], biceps: ['bi2', 'bi'], triceps: ['tri2', 'tri_comp', 'tri'], quads: ['quad_iso', 'quad_uni'], hams: ['ham_curl'], glutes: ['glute2', 'glute'], calves: ['calf2', 'calf'], abs: ['abs2', 'abs'] };
     const addEntry = m => {
       const ds = days.filter(d => d.items.some(i => i.m === m)).sort((a, b) => minutes(a) - minutes(b));
-      for (const d of ds) { if (d.items.length >= 9 || perSess(d, m) + 2 > sessionCap || minutes(d) + 6 > budget) continue; const inD = new Set(d.items.map(i => i.exId)); for (const slot of (EXTRA[m] || [])) { const sl = SL[slot]; let pool = poolOf(slot, w).filter(id => !inD.has(id)); if (!pool.length) continue; d.items.push({ slot, m, role: sl.role, exId: pool[(used[slot] || 0) % pool.length], sets: 2 }); used[slot] = (used[slot] || 0) + 1; return true; } }
+      for (const d of ds) { if (d.items.length >= 9 || perSess(d, m) + 2 > sessionCap || minutes(d) + 6 > d.bud) continue; const inD = new Set(d.items.map(i => i.exId)); for (const slot of (EXTRA[m] || [])) { const sl = SL[slot]; let pool = poolOf(slot, w).filter(id => !inD.has(id)); if (!pool.length) continue; d.items.push({ slot, m, role: sl.role, exId: pool[(used[slot] || 0) % pool.length], sets: 2 }); used[slot] = (used[slot] || 0) + 1; return true; } }
       return false;
     };
     let guard = 80;
@@ -252,7 +253,7 @@
       let changed = false;
       musclesNow().forEach(m => {
         const [lo, hi] = rangeOf(goal, exp, m); const c = counted(m);
-        if (c < lo) { const es = allI().filter(i => i.m === m && i.sets < capOf(i)).sort((a, b) => (b.role === 'main') - (a.role === 'main')); const e0 = es.find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= budget && perSess(d, m) < sessionCap; });
+        if (c < lo) { const es = allI().filter(i => i.m === m && i.sets < capOf(i)).sort((a, b) => (b.role === 'main') - (a.role === 'main')); const e0 = es.find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= d.bud && perSess(d, m) < sessionCap; });
           if (e0) { setS(e0, e0.sets + 1); changed = true; }
           else if (addEntry(m)) changed = true;
           else { // brak czasu: zabierz serię z grupy, która ma nadwyżkę nad dolną granicą, w tym samym dniu
@@ -260,7 +261,7 @@
         else if (c > hi) { const es = allI().filter(i => i.m === m && i.sets > 2).reverse(); if (es[0]) { setS(es[0], es[0].sets - 1); changed = true; } }
       });
       const push = direct('chest') + allI().filter(i => i.slot === 'sh_press').reduce((a, i) => a + i.sets, 0), pull = direct('back') + allI().filter(i => i.slot === 'sh_rear').reduce((a, i) => a + i.sets, 0);
-      if (push > 0 && pull < 0.85 * push) { const e0 = allI().filter(i => i.m === 'back' && i.sets < 4).find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= budget && perSess(d, 'back') < sessionCap; }); if (e0) { setS(e0, e0.sets + 1); changed = true; } }
+      if (push > 0 && pull < 0.85 * push) { const e0 = allI().filter(i => i.m === 'back' && i.sets < 4).find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= d.bud && perSess(d, 'back') < sessionCap; }); if (e0) { setS(e0, e0.sets + 1); changed = true; } }
       if (!changed) break;
     }
     const muscles = musclesNow();
@@ -268,7 +269,7 @@
     const mfreq = freqMap(sp);
     if (goal === 'str' && minFreq(sp) < 2) notes.push('Przy tym podziale główne grupy mięśni są trenowane raz w tygodniu, a dla siły zalecane są co najmniej 2 sesje tygodniowo (ACSM). Rozważ FBW, górę/dół lub PHUL.');
     if (nd < 2) notes.push('WHO zaleca ćwiczenia wzmacniające mięśnie co najmniej 2 dni w tygodniu — przy jednym treningu zadbaj o dodatkową aktywność.');
-    days.forEach(d => { const m = minutes(d); if (w.time && m > w.time + 5) notes.push(`${d.name}: ok. ${m} min — dłużej niż Twój limit ${w.time} min.`); if (d.items.length < 3) notes.push(`${d.name}: przy tym sprzęcie i ograniczeniach dobrałem tylko ${d.items.length} ćw. — rozważ zmianę sprzętu lub ograniczeń.`); d.min = m; });
+    days.forEach(d => { const m = minutes(d); if (d.bud && w.time && m > d.bud + 5) notes.push(`${d.name}: ok. ${m} min — dłużej niż limit ${d.bud} min.`); if (d.items.length < 3) notes.push(`${d.name}: przy tym sprzęcie i ograniczeniach dobrałem tylko ${d.items.length} ćw. — rozważ zmianę sprzętu lub ograniczeń.`); d.min = m; });
     if (w.cautious) notes.push(older ? 'Ze względu na wiek zostawiaj większy zapas powtórzeń i nie dochodź do upadku mięśniowego; zadbaj też o ćwiczenia równowagi (WHO: 3+ dni w tygodniu dla osób 65+).' : 'Ustawiłem ostrożniejszy plan (większy zapas powtórzeń). Rozważ konsultację z lekarzem lub trenerem.');
     if (!w.active && exp !== 'beg') notes.push('Wracasz po przerwie: pierwsze 2 tygodnie zrób z ok. 70% zaplanowanych serii i lżejszymi ciężarami.');
     if (w.sleep === 1) notes.push('Śpisz mniej niż 6 godzin — ograniczyłem objętość. Konsensus towarzystw zaleca regularnie co najmniej 7 godzin snu dla dorosłych.');

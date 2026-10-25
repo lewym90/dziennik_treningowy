@@ -49,8 +49,11 @@
   /* ---------- główny model ---------- */
   // sess: { start, dur (s), exercises:[{exId, rest, sets:[{w,r,t,done}]}] }
   F.kcal = sess => {
-    const p = F.profile(sess.start); const exs = (sess.exercises || []).map(e => ({ e, ex: F.S.ex.get(e.exId), sets: (e.sets || []).filter(s => s.done) })).filter(x => x.ex && x.sets.length);
-    if (!exs.length) return { net: 0, lo: 0, hi: 0, gross: 0, met: 0, perEx: [], approx: true, raw: 0 };
+    const p = F.profile(sess.start); const allEx = (sess.exercises || []).map(e => ({ e, ex: F.S.ex.get(e.exId), sets: (e.sets || []).filter(s => s.done) })).filter(x => x.ex && x.sets.length);
+    // cardio z podaną intensywnością liczymy osobno (MET zależny od intensywności), resztę modelem pracy mechanicznej
+    const MET = { 1: 3, 2: 5, 3: 8 }; const rmr0 = F.bmr(p) / 24 / p.bw; const rf0 = clamp(rmr0, .75, 1.1); const cardPer = []; let cardNet = 0, cardGross = 0;
+    const exs = allEx.map(x => { if (x.ex.muscle === 'cardio' && x.ex.type === 'time' && x.sets.some(s => s.int)) { let k = 0, g = 0; x.sets.filter(s => s.int).forEach(s => { const h = (s.r || 0) / 3600; k += (MET[s.int] - 1) * p.bw * h * rf0 * 1.05; g += MET[s.int] * p.bw * h; }); cardNet += k; cardGross += g; cardPer.push({ exId: x.e.exId, kcal: k }); return { ...x, sets: x.sets.filter(s => !s.int) }; } return x; }).filter(x => x.sets.length);
+    if (!exs.length) { const cal0 = cardNet ? calFactor() : 1; const n0 = cardNet * cal0; const u0 = (p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown ? .17 : .27) + .05; return { net: n0, lo: n0 * (1 - u0), hi: n0 * (1 + u0), gross: cardGross * cal0, met: 0, perEx: cardPer.map(c => ({ exId: c.exId, kcal: c.kcal * cal0 })), approx: !(p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown), raw: cardNet, p }; }
     let W = 0, est = 0; const parts = exs.map(x => {
       let w = 0; x.sets.forEach(s => { w += setWork(x.ex, s, p.bw); est += (x.ex.type === 'time' ? (s.r || 30) : 40) + (x.e.rest || (x.ex.compound ? F.S.settings.defaultRest : 75)); });
       W += w; return { exId: x.e.exId, w, n: x.sets.length };
@@ -70,11 +73,11 @@
       const netHR = kpm * (dEff / 60) - rmr * p.bw * h;
       if (netHR > 0) { net = 0.7 * net + 0.3 * clamp(netHR, net * .6, net * 1.6); hrUsed = true; }
     }
-    const raw = net; const cal = calFactor(); net *= cal;
+    const raw = net; const cal = calFactor(); net *= cal; const netStr = net; net += cardNet * cal;
     const unc = (p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown ? .17 : .27) + (sess.dur > 0 ? 0 : .05) - (hrUsed ? .02 : 0);
     const base = parts.reduce((a, x) => a + x.w + 1500 * x.n, 0) || 1;
-    const perEx = parts.map(x => ({ exId: x.exId, kcal: net * (x.w + 1500 * x.n) / base }));
-    return { net, lo: net * (1 - unc), hi: net * (1 + unc), gross: gross * cal, met, perEx, approx: !(p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown), raw, p, hrUsed };
+    const perEx = parts.map(x => ({ exId: x.exId, kcal: netStr * (x.w + 1500 * x.n) / base })).concat(cardPer.map(c => ({ exId: c.exId, kcal: c.kcal * cal })));
+    return { net, lo: net * (1 - unc), hi: net * (1 + unc), gross: (gross + cardGross) * cal, met, perEx, approx: !(p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown), raw, p, hrUsed };
   };
   F.kcalDraft = d => F.kcal({ start: d.start, dur: d.backdate ? 0 : (Date.now() - d.start) / 1000, exercises: d.exercises });
   const sessKcalCache = new Map();
