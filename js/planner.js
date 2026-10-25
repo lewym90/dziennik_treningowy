@@ -218,21 +218,21 @@
     days.forEach(d => { for (let k = 0; k < d.items.length - 1; k++) { const a = d.items[k], b = d.items[k + 1]; if (a.mate || b.mate) continue; if (!PAIRS.some(p => (p[0] === a.m && p[1] === b.m) || (p[1] === a.m && p[0] === b.m))) continue; const arms = a.m === 'biceps' || a.m === 'triceps'; if (!arms && !ssAll) continue; if ((a.role === 'iso') !== (b.role === 'iso') && !ssAll) continue; if (a.m === 'shoulders' || b.m === 'shoulders') { if (!(a.role === 'iso' && b.role === 'iso')) continue; } const id = F.uid(); a.ss = id; b.ss = id; a.mate = b; b.mate = a; k++; } });
     // ---- przydział serii ----
     const fBase = tight ? 0.15 : 0.4; const fSleep = w.sleep === 1 ? 0.6 : 1;
-    const targetOf = m => { const [a, b] = rangeOf(goal, exp, m); let f = fBase; if (prioM.length) f = prioM.includes(m) ? 0.85 : Math.min(f, 0.3); f *= fSleep; if (cautious) f = Math.min(f, 0.3); return Math.round(a + f * (b - a)); };
+    const targetOf = m => { const [a, b] = rangeOf(goal, exp, m); let f = fBase; if (prioM.length) f = prioM.includes(m) ? 1 : Math.min(f, 0.3); f *= fSleep; if (cautious) f = Math.min(f, 0.3); return Math.round(a + f * (b - a)); };
     const capMain = goal === 'str' ? 3 : 4;
     const capOf = i => i.role === 'main' ? capMain : 4;
     const musclesNow = () => [...new Set(allI().map(i => i.m))];
     musclesNow().forEach(m => { const es = allI().filter(i => i.m === m); const T0 = targetOf(m); es.forEach(i => setS(i, clamp(Math.round(T0 / es.length), i.role === 'main' ? 3 : 2, capOf(i)))); });
     const direct = m => allI().filter(i => i.m === m).reduce((a, i) => a + i.sets, 0);
     const indirect = m => allI().reduce((a, i) => { if (i.m === m) return a; const ex = F.S.ex.get(i.exId); const inf = F.EXINFO && F.EXINFO[i.exId]; const sec = (ex && ex.sec) || (inf && inf.s) || []; return a + (ex && ex.compound && sec.includes(m) ? 0.5 * i.sets : 0); }, 0);
-    const counted = m => direct(m) + (MAJOR.includes(m) || KB.volSmall[m] ? 0 : indirect(m));
+    const counted = m => direct(m) + (MAJOR.includes(m) || KB.volSmall[m] || prioM.includes(m) ? 0 : indirect(m));
     // ---- czas ----
     const restOf = i => i.restX || KB.rest[goal][i.role];
     const minutes = d => { let sec = 480; const seen = new Set(); d.items.forEach(i => { if (i.ss) { if (seen.has(i.ss)) return; seen.add(i.ss); const g = d.items.filter(x => x.ss === i.ss); sec += i.sets * (40 * g.length + Math.max(...g.map(restOf))) + g.reduce((a, x) => a + (x.role === 'main' ? 150 : 45), 0); } else sec += i.sets * (40 + restOf(i)) + (i.role === 'main' ? 150 : 45); }); return Math.round(sec / 60); };
     const dropLast = d => { const last = d.items[d.items.length - 1]; if (last.mate) { delete last.mate.ss; last.mate.mate = null; } d.items.pop(); };
-    const sessionCap = KB.perSession[exp] + (goal === 'str' ? -2 : 0);
+    const sessionCap = KB.perSession[exp] + (goal === 'str' ? -2 : 0); const capM = m => sessionCap + (prioM.includes(m) ? 2 : 0);
     days.forEach(d => { // limit serii jednej grupy w sesji
-      musclesNow().forEach(m => { let es = d.items.filter(i => i.m === m), tot = es.reduce((a, i) => a + i.sets, 0), g = 20; while (tot > sessionCap && g--) { const c = [...es].reverse().find(i => i.sets > 2); if (!c) break; setS(c, c.sets - 1); tot--; } });
+      musclesNow().forEach(m => { let es = d.items.filter(i => i.m === m), tot = es.reduce((a, i) => a + i.sets, 0), g = 20; while (tot > capM(m) && g--) { const c = [...es].reverse().find(i => i.sets > 2); if (!c) break; setS(c, c.sets - 1); tot--; } });
       let guard = 80; while (minutes(d) > d.bud && guard--) {
         const cut = [...d.items].reverse().find(i => i.sets > 2 && i.role !== 'main') || [...d.items].reverse().find(i => i.sets > 2);
         if (cut) { setS(cut, cut.sets - 1); continue; }
@@ -245,31 +245,72 @@
     const EXTRA = { chest: ['chest_fly', 'chest_press2'], back: ['back_row2', 'back_iso'], shoulders: ['sh_lat', 'sh_rear'], biceps: ['bi2', 'bi'], triceps: ['tri2', 'tri_comp', 'tri'], quads: ['quad_iso', 'quad_uni'], hams: ['ham_curl'], glutes: ['glute2', 'glute'], calves: ['calf2', 'calf'], abs: ['abs2', 'abs'] };
     const addEntry = m => {
       const ds = days.filter(d => d.items.some(i => i.m === m)).sort((a, b) => minutes(a) - minutes(b));
-      for (const d of ds) { if (d.items.length >= 9 || perSess(d, m) + 2 > sessionCap || minutes(d) + 6 > d.bud) continue; const inD = new Set(d.items.map(i => i.exId)); for (const slot of (EXTRA[m] || [])) { const sl = SL[slot]; let pool = poolOf(slot, w).filter(id => !inD.has(id)); if (!pool.length) continue; d.items.push({ slot, m, role: sl.role, exId: pool[(used[slot] || 0) % pool.length], sets: 2 }); used[slot] = (used[slot] || 0) + 1; return true; } }
+      for (const d of ds) { if (d.items.length >= 9 || perSess(d, m) + 2 > capM(m) || minutes(d) + 6 > d.bud) continue; const inD = new Set(d.items.map(i => i.exId)); for (const slot of (EXTRA[m] || [])) { const sl = SL[slot]; let pool = poolOf(slot, w).filter(id => !inD.has(id)); if (!pool.length) continue; d.items.push({ slot, m, role: sl.role, exId: pool[(used[slot] || 0) % pool.length], sets: 2 }); used[slot] = (used[slot] || 0) + 1; return true; } }
       return false;
     };
+    const mfreq0 = m => days.filter(d => d.items.some(i => i.m === m)).length;
     let guard = 80;
     while (guard--) {
       let changed = false;
       musclesNow().forEach(m => {
         const [lo, hi] = rangeOf(goal, exp, m); const c = counted(m);
-        if (c < lo) { const es = allI().filter(i => i.m === m && i.sets < capOf(i)).sort((a, b) => (b.role === 'main') - (a.role === 'main')); const e0 = es.find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= d.bud && perSess(d, m) < sessionCap; });
+        if (c < lo) { const es = allI().filter(i => i.m === m && i.sets < capOf(i)).sort((a, b) => (b.role === 'main') - (a.role === 'main')); const e0 = es.find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= d.bud && perSess(d, m) < capM(m); });
           if (e0) { setS(e0, e0.sets + 1); changed = true; }
           else if (addEntry(m)) changed = true;
           else { // brak czasu: zabierz serię z grupy, która ma nadwyżkę nad dolną granicą, w tym samym dniu
-            for (const t of es) { const d = dayOf(t); if (!d || perSess(d, m) >= sessionCap) continue; const donor = [...d.items].reverse().find(x => x.m !== m && x.sets > 2 && counted(x.m) - (x.mate && x.mate.m === x.m ? 2 : 1) >= rangeOf(goal, exp, x.m)[0] && !(x.mate && x.mate.m === m)); if (donor) { setS(donor, donor.sets - 1); setS(t, t.sets + 1); changed = true; break; } } } }
+            for (const t of es) { const d = dayOf(t); if (!d || perSess(d, m) >= capM(m)) continue; const donor = [...d.items].reverse().find(x => x.m !== m && !prioM.includes(x.m) && x.sets > 2 && counted(x.m) - (x.mate && x.mate.m === x.m ? 2 : 1) >= rangeOf(goal, exp, x.m)[0] && !(x.mate && x.mate.m === m)); if (donor) { setS(donor, donor.sets - 1); setS(t, t.sets + 1); changed = true; break; } } } }
         else if (c > hi) { const es = allI().filter(i => i.m === m && i.sets > 2).reverse(); if (es[0]) { setS(es[0], es[0].sets - 1); changed = true; } }
       });
       const push = direct('chest') + allI().filter(i => i.slot === 'sh_press').reduce((a, i) => a + i.sets, 0), pull = direct('back') + allI().filter(i => i.slot === 'sh_rear').reduce((a, i) => a + i.sets, 0);
-      if (push > 0 && pull < 0.85 * push) { const e0 = allI().filter(i => i.m === 'back' && i.sets < 4).find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= d.bud && perSess(d, 'back') < sessionCap; }); if (e0) { setS(e0, e0.sets + 1); changed = true; } }
+      if (push > 0 && pull < 0.85 * push) { const e0 = allI().filter(i => i.m === 'back' && i.sets < 4).find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= d.bud && perSess(d, 'back') < capM('back'); }); if (e0) { setS(e0, e0.sets + 1); changed = true; } }
       if (!changed) break;
+    }
+
+    // ---- wykorzystanie zadeklarowanego czasu: najpierw partie priorytetowe, potem reszta ----
+    if (w.time || w.timeByDay) {
+      let pass = 0; const wantOf = m => { const [lo, hi] = rangeOf(goal, exp, m); if (cautious) return Math.min(hi, lo + 0.3 * (hi - lo)); if (prioM.includes(m)) return hi; const mid = lo + 0.6 * (hi - lo); return pass === 0 || w.sleep === 1 ? mid : hi; };
+      const spare = d => d.bud - minutes(d);
+      const addAnywhere = m => { // priorytet: dołóż ćwiczenie także do dnia, w którym ta partia normalnie nie występuje (częstsza stymulacja)
+        const ds = days.filter(d => spare(d) >= 9 && d.items.length < 9 && !d.items.some(i => i.m === m)).sort((a, b) => spare(b) - spare(a));
+        for (const d of ds) { const inD = new Set(d.items.map(i => i.exId)); for (const slot of (EXTRA[m] || [])) { const sl = SL[slot]; let pool = poolOf(slot, w).filter(id => !inD.has(id)); if (!pool.length) continue; d.items.push({ slot, m, role: sl.role, exId: pool[(used[slot] || 0) % pool.length], sets: 2 }); used[slot] = (used[slot] || 0) + 1; return true; } }
+        return false;
+      };
+      const takeFrom = (d, m, n) => { // zabierz n serii partiom nie-priorytetowym (z zachowaniem ich dolnej granicy) w tym samym dniu
+        const taken = []; for (let k = 0; k < n; k++) { const x = [...d.items].reverse().find(y => y.m !== m && !prioM.includes(y.m) && y.sets > 2 && counted(y.m) - (y.mate && y.mate.m === y.m ? 2 : 1) >= rangeOf(goal, exp, y.m)[0] && !(y.mate && y.mate.m === m) && !taken.includes(y)); if (!x) { taken.forEach(t => setS(t, t.sets + 1)); return false; } setS(x, x.sets - 1); taken.push(x); } return true; };
+      const swapIn = m => {
+        for (const d of days.filter(dd => dd.items.some(i => i.m === m) || dd.items.length < 9)) {
+          if (perSess(d, m) + 1 > capM(m)) continue; const mine = d.items.filter(i => i.m === m && i.sets < capOf(i));
+          if (mine.length) { if (takeFrom(d, m, 1)) { setS(mine[0], mine[0].sets + 1); return true; } continue; }
+          if (d.items.length >= 9) continue; const inD = new Set(d.items.map(i => i.exId));
+          for (const slot of (EXTRA[m] || [])) { const sl = SL[slot]; let pool = poolOf(slot, w).filter(id => !inD.has(id)); if (!pool.length) continue; if (!takeFrom(d, m, 2)) break; d.items.push({ slot, m, role: sl.role, exId: pool[(used[slot] || 0) % pool.length], sets: 2 }); used[slot] = (used[slot] || 0) + 1; return true; }
+        }
+        return false;
+      };
+      let g2 = 300; const order = () => { const ms = musclesNow(); return [...ms.filter(m => prioM.includes(m)), ...ms.filter(m => !prioM.includes(m))]; };
+      while (g2--) {
+        let did = false;
+        for (const m of order()) {
+          if (counted(m) >= wantOf(m)) continue;
+          const es = allI().filter(i => i.m === m && i.sets < capOf(i)).sort((a, b) => (b.role === 'main') - (a.role === 'main'));
+          const e0 = es.find(i => { const d = dayOf(i); return d && minutes(d) + 4 <= d.bud && perSess(d, m) < capM(m); });
+          if (e0) { setS(e0, e0.sets + 1); did = true; break; }
+          if (addEntry(m)) { did = true; break; }
+          if (prioM.includes(m) && swapIn(m)) { did = true; break; }
+          if (prioM.includes(m) && mfreq0(m) < 3 && addAnywhere(m)) { did = true; break; }
+        }
+        if (!did) { if (pass === 0) { pass = 1; continue; } break; }
+      }
+      // zostało dużo czasu — wydłuż przerwy przy ćwiczeniach głównych (więcej odpoczynku = lepsza jakość serii)
+      days.forEach(d => { let gg = 12; while (spare(d) > 6 && gg--) { const i = d.items.find(x => x.role === 'main' && restOf(x) < 180); if (!i) break; i.restX = Math.min(180, restOf(i) + 30); if (minutes(d) > d.bud) { i.restX -= 30; break; } } });
+      // partie priorytetowe na początku sesji (przy największej świeżości), ćwiczenia główne przed izolowanymi
+      if (prioM.length) days.forEach(d => { const blocks = []; const seen = new Set(); d.items.forEach(i => { if (i.ss) { if (seen.has(i.ss)) return; seen.add(i.ss); blocks.push(d.items.filter(x => x.ss === i.ss)); } else blocks.push([i]); }); const key = (b, ix) => [b.some(x => x.role === 'main') ? 0 : 1, b.some(x => prioM.includes(x.m)) ? 0 : 1, ix]; const sorted = blocks.map((b, ix) => ({ b, k: key(b, ix) })).sort((a, c) => a.k[0] - c.k[0] || a.k[1] - c.k[1] || a.k[2] - c.k[2]); d.items = sorted.flatMap(x => x.b); });
     }
     const muscles = musclesNow();
     muscles.forEach(m => { const c = counted(m), [lo, hi] = rangeOf(goal, exp, m); if (c < lo - 0.5) notes.push(`${MLABEL[m]}: ${Math.round(c)} serii tygodniowo (cel ${lo}–${hi}) — ogranicza to limit czasu, sprzęt lub podział.`); else if (c > hi * 1.25 && MAJOR.includes(m)) notes.push(`${MLABEL[m]}: ${Math.round(c)} serii tygodniowo (cel ${lo}–${hi}).`); });
     const mfreq = freqMap(sp);
     if (goal === 'str' && minFreq(sp) < 2) notes.push('Przy tym podziale główne grupy mięśni są trenowane raz w tygodniu, a dla siły zalecane są co najmniej 2 sesje tygodniowo (ACSM). Rozważ FBW, górę/dół lub PHUL.');
     if (nd < 2) notes.push('WHO zaleca ćwiczenia wzmacniające mięśnie co najmniej 2 dni w tygodniu — przy jednym treningu zadbaj o dodatkową aktywność.');
-    days.forEach(d => { const m = minutes(d); if (d.bud && w.time && m > d.bud + 5) notes.push(`${d.name}: ok. ${m} min — dłużej niż limit ${d.bud} min.`); if (d.items.length < 3) notes.push(`${d.name}: przy tym sprzęcie i ograniczeniach dobrałem tylko ${d.items.length} ćw. — rozważ zmianę sprzętu lub ograniczeń.`); d.min = m; });
+    days.forEach(d => { const m = minutes(d); if (d.bud && w.time && m > d.bud + 5) notes.push(`${d.name}: ok. ${m} min — dłużej niż limit ${d.bud} min.`); if (d.items.length < 3) notes.push(`${d.name}: przy tym sprzęcie i ograniczeniach dobrałem tylko ${d.items.length} ćw. — rozważ zmianę sprzętu lub ograniczeń.`); d.min = m; if (w.time && d.bud - m >= 14 && d.items.length >= 5) notes.push(`${d.name}: plan zajmuje ok. ${m} z ${d.bud} min — więcej serii jednej partii w jednej sesji nie przyniosłoby korzyści, więc zostawiłem zapas (możesz go wykorzystać na dłuższe przerwy lub rozgrzewkę).`); });
     if (w.cautious) notes.push(older ? 'Ze względu na wiek zostawiaj większy zapas powtórzeń i nie dochodź do upadku mięśniowego; zadbaj też o ćwiczenia równowagi (WHO: 3+ dni w tygodniu dla osób 65+).' : 'Ustawiłem ostrożniejszy plan (większy zapas powtórzeń). Rozważ konsultację z lekarzem lub trenerem.');
     if (!w.active && exp !== 'beg') notes.push('Wracasz po przerwie: pierwsze 2 tygodnie zrób z ok. 70% zaplanowanych serii i lżejszymi ciężarami.');
     if (w.sleep === 1) notes.push('Śpisz mniej niż 6 godzin — ograniczyłem objętość. Konsensus towarzystw zaleca regularnie co najmniej 7 godzin snu dla dorosłych.');

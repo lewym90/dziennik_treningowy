@@ -47,9 +47,13 @@
       if (wsum) { const x = r5(need / wsum, true); if (x <= 30) opts.push({ id: 'extend', label: `Wydłuż sesje o ${x} min`, desc: `Każdą z obecnych sesji o ${x} min — razem ok. ${cur + x * wsum} min tygodniowo.`, acts: acts.map(a => a.i >= 2 ? { ...a, m: a.m + x } : a) }); }
       const nd = (w.days || []).length || 3, sepMax = Math.max(0, 6 - nd); let s, m, place;
       const sA = Math.min(nd, Math.max(1, Math.ceil(need / 30)));
-      if (need / sA <= 30) { s = sA; m = Math.max(20, r5(need / sA, true)); place = 'after'; }
-      else { s = Math.min(3, sepMax, Math.max(1, Math.ceil(need / 60))); if (s >= 1 && need / s <= 90) { m = Math.max(20, r5(need / s, true)); place = 'sep'; } else { s = Math.min(nd, 3); m = Math.max(20, r5(need / s, true)); place = 'after'; } }
-      opts.push({ id: 'add', label: `Dodaj ${s} ${F.plur(s, 'sesję', 'sesje', 'sesji')} po ${m} min`, desc: `${T[addT][0]}, umiarkowanie: razem ok. ${cur + s * m} min tygodniowo. ${place === 'after' ? 'Po treningu siłowym.' : 'Jako osobna sesja w dzień bez siłowni (np. w domu).'}`, acts: [...acts, { t: addT, n: s, m, i: 2, plan: true, place, added: true }] });
+      const pickAfter = () => { s = sA; m = Math.max(15, r5(need / sA, true)); place = 'after'; };
+      const pickSep = () => { s = Math.max(1, Math.min(3, sepMax || 1, Math.ceil(need / 60))); m = Math.max(20, r5(need / s, true)); place = 'sep'; };
+      if (w.cPlaceNew === 'after') pickAfter();
+      else if (w.cPlaceNew === 'sep') pickSep();
+      else if (need / sA <= 30) pickAfter();
+      else { s = Math.min(3, sepMax, Math.max(1, Math.ceil(need / 60))); if (s >= 1 && need / s <= 90) pickSep(); else pickAfter(); }
+      opts.push({ id: 'add', label: `Dodaj ${s} ${F.plur(s, 'sesję', 'sesje', 'sesji')} po ${m} min`, desc: `${T[addT][0]}, umiarkowanie: razem ok. ${cur + s * m} min tygodniowo. ${place === 'after' ? 'Zaraz po treningu siłowym (możesz wtedy kliknąć „zrobię później” i zrobić w domu).' : 'Jako osobna sesja w dzień bez siłowni (np. w domu).'}`, acts: [...acts, { t: addT, n: s, m, i: 2, plan: true, place, added: true }] });
       opts.push({ id: 'keep', label: 'Zostaw jak jest', desc: 'Zostajesz poniżej zalecenia WHO — to Twoja decyzja.', acts });
     } else opts.push({ id: 'keep', label: 'Zostaw jak jest', desc: status === 'ok' ? 'Zalecane.' : 'Zalecane — nic nie dokładam.', acts });
     const chosen = opts.find(o => o.id === w.cChoice) || opts[0];
