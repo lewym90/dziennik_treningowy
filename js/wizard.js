@@ -21,15 +21,19 @@
   const CARDIO = { walk: 'Marsz / podejście', bike: 'Rower', run: 'Bieganie', row: 'Wioślarz', ellip: 'Orbitrek' };
 
   /* ---------- stan ---------- */
+  // dane zapisane przez starsze wersje kreatora mogą mieć inny kształt — przyjmujemy tylko poprawne typy
+  const arr = (v, ok) => Array.isArray(v) ? v.filter(ok) : null;
   const defaults = () => {
-    const s = F.S.settings, z = s.wiz || {}, p = F.profile(); const hist = F.S.sessions.length; const last = hist ? F.S.sessions[0].start : 0;
+    const s = F.S.settings, z = (s.wiz && typeof s.wiz === 'object') ? s.wiz : {}, p = F.profile(); const hist = F.S.sessions.length; const last = hist ? F.S.sessions[0].start : 0;
+    const str = x => typeof x === 'string'; const nm = x => typeof x === 'number' && isFinite(x);
+    const days = arr(z.days, d => Number.isInteger(d) && d >= 0 && d <= 6); const equip = arr(z.equip, str);
     return {
-      scr: Array(7).fill(null), preg: s.sex === 'f' ? null : 'no',
-      exp: s.exp || z.exp || '', active: hist ? (Date.now() - last < 56 * 864e5) : null,
-      goal: z.goal || 'hyp', prio: z.prio || [], cardioMin: z.cardioMin == null ? null : z.cardioMin, cardioAdd: z.cardioAdd == null ? null : z.cardioAdd, cardioPref: z.cardioPref || 'walk',
-      days: z.days || [0, 2, 4], time: z.time == null ? 60 : z.time,
-      equip: z.equip || [...EQ_ALL], bench: z.bench !== false, rack: z.rack !== false, preset: z.preset || 'gym',
-      inj: z.inj || [], avoid: z.avoid || [], fav: z.fav || [], split: 'auto', sleep: s.sleep || 0, bw: p.bwKnown ? p.bw : ''
+      scr: Array(7).fill(null), preg: s.sex === 'f' ? null : 'no', doc: false,
+      exp: P.EXPS[s.exp] ? s.exp : (P.EXPS[z.exp] ? z.exp : ''), active: hist ? (Date.now() - last < 56 * 864e5) : null,
+      goal: P.GOALS[z.goal] ? z.goal : 'hyp', prio: arr(z.prio, x => PRIO[x]) || [], cardioMin: [0, 60, 120, 180].includes(z.cardioMin) ? z.cardioMin : 0, cardioAdd: typeof z.cardioAdd === 'boolean' ? z.cardioAdd : null, cardioPref: CARDIO[z.cardioPref] ? z.cardioPref : 'walk',
+      days: days && days.length ? [...new Set(days)].sort((x, y) => x - y) : [0, 2, 4], time: [0, 30, 45, 60, 75, 90].includes(z.time) ? z.time : 60,
+      equip: equip && equip.length ? equip : [...EQ_ALL], bench: z.bench !== false, rack: z.rack !== false, preset: PRESET[z.preset] ? z.preset : (equip && equip.length ? '' : 'gym'),
+      inj: arr(z.inj, x => P.INJ[x]) || [], avoid: arr(z.avoid, str) || [], fav: arr(z.fav, str) || [], split: 'auto', sleep: [1, 2, 3].includes(s.sleep) ? s.sleep : 0, bw: p.bwKnown ? p.bw : ''
     };
   };
   F.wz = null; const Z = () => F.wz || (F.wz = { step: 'intro', w: defaults(), res: null, variant: 0, bwEdit: null });
@@ -38,7 +42,7 @@
 
   const chip = (on, act, attrs, label) => `<button class="chip ${on ? 'on' : ''}" data-a="${act}" ${attrs}>${E(label)}</button>`;
   const opt = (on, act, attrs, t, sub) => `<button class="wz-o ${on ? 'on' : ''}" data-a="${act}" ${attrs}><b>${E(t)}</b>${sub ? `<small>${E(sub)}</small>` : ''}</button>`;
-  const yn = (k, i, v) => `<div class="wz-yn"><p>${E(SCR[i])}</p><div class="chips">${chip(v === false, 'wzScr', `data-i="${i}" data-v="0"`, 'Nie')}${chip(v === true, 'wzScr', `data-i="${i}" data-v="1"`, 'Tak')}</div></div>`;
+  const yn = (k, i, v) => `<div class="wz-yn ${v === null ? 'miss' : ''}"><p>${E(SCR[i])}</p><div class="chips">${chip(v === false, 'wzScr', `data-i="${i}" data-v="0"`, 'Nie')}${chip(v === true, 'wzScr', `data-i="${i}" data-v="1"`, 'Tak')}</div></div>`;
 
   /* ---------- kroki ---------- */
   const bodies = {
@@ -58,15 +62,15 @@
       <div class="two"><label class="fld"><span>Data urodzenia</span><input type="date" data-b="prof" data-k="dob" value="${s.dob || ''}" max="${F.dateInput(Date.now())}">${!s.dob && s.age ? `<small class="dim">Wiek: ${F.ageNow()} lat</small>` : ''}</label>
         <label class="fld"><span>Wzrost (cm)</span><input data-b="prof" data-k="height" inputmode="numeric" value="${s.height || ''}" placeholder="178"></label></div>
       <div class="two"><label class="fld"><span>Masa ciała (${u})</span><input data-b="wzBw" inputmode="decimal" value="${w.bw === '' ? '' : F.fw(w.bw)}" placeholder="80"></label>
-        <label class="fld"><span>Tkanka tłuszczowa (%) — opcjonalnie</span><input data-b="prof" data-k="bf" inputmode="decimal" value="${s.bf || ''}" placeholder="np. 18"></label></div>
+        <label class="fld"><span>% tłuszczu (opc.)</span><input data-b="prof" data-k="bf" inputmode="decimal" value="${s.bf || ''}" placeholder="np. 18"></label></div>
       <label class="fld"><span>Aktywność w ciągu dnia (poza treningiem)</span><select data-b="prof" data-k="activity"><option value="">— wybierz —</option>${[[1, 'Siedząca praca, mało ruchu'], [2, 'Lekka — trochę chodzenia'], [3, 'Umiarkowana — dużo na nogach'], [4, 'Wysoka — praca fizyczna']].map(([k, t]) => `<option value="${k}" ${s.activity === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
-      <h4 class="lbl">Ile średnio śpisz?</h4><div class="chips">${chip(w.sleep === 1, 'wzSet', 'data-k="sleep" data-v="1" data-n="1"', 'poniżej 6 h')}${chip(w.sleep === 2, 'wzSet', 'data-k="sleep" data-v="2" data-n="1"', '6–7 h')}${chip(w.sleep === 3, 'wzSet', 'data-k="sleep" data-v="3" data-n="1"', '7 h i więcej')}</div>
+      <h4 class="lbl">Ile średnio śpisz?</h4><div class="chips" id="wz-sleep">${chip(w.sleep === 1, 'wzSet', 'data-k="sleep" data-v="1" data-n="1"', 'poniżej 6 h')}${chip(w.sleep === 2, 'wzSet', 'data-k="sleep" data-v="2" data-n="1"', '6–7 h')}${chip(w.sleep === 3, 'wzSet', 'data-k="sleep" data-v="3" data-n="1"', '7 h i więcej')}</div>
       </section>`; },
     exp: () => { const w = Z().w, n = F.S.sessions.length; return `<section class="card cut"><h3>${ic('dumbbell', 18)} Doświadczenie</h3>
       ${n ? `<p class="dim small">W aplikacji masz zapisanych ${n} ${F.plur(n, 'trening', 'treningi', 'treningów')}${w.active === false ? ', ostatni dawniej niż 8 tygodni temu' : ''}.</p>` : ''}
       <div class="wz-opts">${Object.entries(P.EXPS).map(([k, v]) => opt(w.exp === k, 'wzSet', `data-k="exp" data-v="${k}"`, v[0], v[1])).join('')}</div>
       <h4 class="lbl">Czy trenujesz regularnie od co najmniej 8 tygodni?</h4>
-      <div class="chips">${chip(w.active === true, 'wzSet', 'data-k="active" data-v="1" data-b1="1"', 'Tak')}${chip(w.active === false, 'wzSet', 'data-k="active" data-v="0" data-b1="1"', 'Nie, wracam po przerwie')}</div>
+      <div class="chips" id="wz-active">${chip(w.active === true, 'wzSet', 'data-k="active" data-v="1" data-b1="1"', 'Tak')}${chip(w.active === false, 'wzSet', 'data-k="active" data-v="0" data-b1="1"', 'Nie, wracam po przerwie')}</div>
       <p class="dim small">Jeśli nie jesteś pewien, wybierz niższy poziom — łatwiej dołożyć niż się przeciążyć.</p></section>`; },
     goal: () => { const w = Z().w; return `<section class="card cut"><h3>${ic('trophy', 18)} Cel</h3>
       <div class="wz-opts">${Object.entries(P.GOALS).map(([k, v]) => opt(w.goal === k, 'wzGoal', `data-v="${k}"`, v[0], v[1])).join('')}</div>
@@ -79,7 +83,7 @@
       ${w.cardioAdd ? `<div class="chips">${Object.entries(CARDIO).map(([k, t]) => chip(w.cardioPref === k, 'wzSet', `data-k="cardioPref" data-v="${k}"`, t)).join('')}</div>` : ''}
       <p class="dim small">WHO zaleca dorosłym 150–300 minut aktywności tlenowej o umiarkowanej intensywności tygodniowo oraz ćwiczenia siłowe co najmniej 2 dni w tygodniu.</p></section>`; },
     sched: () => { const w = Z().w; const n = w.days.length; return `<section class="card cut"><h3>${ic('calendar', 18)} Terminarz</h3>
-      <h4 class="lbl">W które dni tygodnia możesz trenować?</h4><div class="chips">${WD.map((t, i) => chip(w.days.includes(i), 'wzDay', `data-v="${i}"`, t)).join('')}</div>
+      <h4 class="lbl">W które dni tygodnia możesz trenować?</h4><div class="chips" id="wz-days">${WD.map((t, i) => chip(w.days.includes(i), 'wzDay', `data-v="${i}"`, t)).join('')}</div>
       <p class="small">${n ? `Wybrano ${n} ${F.plur(n, 'dzień', 'dni', 'dni')} tygodniowo.` : 'Wybierz co najmniej jeden dzień.'}${n >= 6 ? ' Zostaw przynajmniej jeden dzień na pełny odpoczynek.' : ''}</p>
       <h4 class="lbl">Ile czasu masz na jeden trening?</h4><div class="chips">${[[30, '30 min'], [45, '45 min'], [60, '60 min'], [75, '75 min'], [90, '90 min'], [0, 'bez limitu']].map(([v, t]) => chip(w.time === v, 'wzSet', `data-k="time" data-v="${v}" data-n="1"`, t)).join('')}</div>
       <p class="dim small">Podany czas obejmuje rozgrzewkę i przerwy.</p></section>`; },
@@ -124,7 +128,7 @@
     return { html: `${F.head('Kreator planu', { back: 1, sub: z.step === 'intro' ? 'Plan dopasowany do Ciebie' : `Krok ${i} z ${total - 1}: ${STEP_T[z.step]}` })}
       ${z.step !== 'intro' ? `<div class="wz-prog"><i style="width:${Math.round(i / (total - 1) * 100)}%"></i></div>` : ''}
       ${bodies[z.step]()}
-      <div class="wz-bar">${i > 0 ? `<button class="btn ghost" data-a="wzPrev">Wstecz</button>` : ''}<button class="btn primary ${i > 0 ? '' : 'full'}" data-a="wzNext">${z.step === 'split' ? ic('sparkles', 16) + ' Zaproponuj plan' : z.step === 'intro' ? 'Zaczynamy' : 'Dalej'}</button></div>` };
+      <div class="wz-spacer"></div><div class="wz-bar">${i > 0 ? `<button class="btn ghost" data-a="wzPrev">Wstecz</button>` : ''}<button class="btn primary ${i > 0 ? '' : 'full'}" data-a="wzNext">${z.step === 'split' ? ic('sparkles', 16) + ' Zaproponuj plan' : z.step === 'intro' ? 'Zaczynamy' : 'Dalej'}</button></div>` };
   };
   const rerender = () => { F.render(true); };
 
@@ -148,20 +152,22 @@
   F.act.wzUnfav = b => { const w = Z().w; w.fav = w.fav.filter(x => x !== b.dataset.id); rerender(); };
   F.act.wzSplit = b => { Z().w.split = b.dataset.v; rerender(); };
   F.act.wzPrev = () => { const z = Z(); z.step = STEPS[Math.max(0, cur() - 1)]; window.scrollTo(0, 0); rerender(); };
-  const validate = () => { const z = Z(), w = z.w, s = F.S.settings, p = F.profile();
+  const validate = () => { const z = Z(), w = z.w, s = F.S.settings;
+    const R = (m, sel) => [m, sel];
     switch (z.step) {
-      case 'health': if (w.scr.some(x => x === null)) return 'Odpowiedz na wszystkie pytania'; if (w.preg === null) return 'Odpowiedz na pytanie o ciążę'; if ((w.preg === 'preg' || w.preg === 'post') && !w.doc) return 'Potrzebna zgoda lekarza lub położnej'; if (false) return 'Plan w ciąży powinien ułożyć specjalista'; return '';
-      case 'about': if (!s.sex) return 'Wybierz płeć'; if (!F.ageNow()) return 'Podaj datę urodzenia'; if (!s.height) return 'Podaj wzrost'; if (!(w.bw > 20)) return 'Podaj masę ciała'; if (F.ageNow() < 14) return 'Aplikacja jest przeznaczona dla osób od 14 lat; młodsze osoby powinny trenować pod opieką trenera'; if (!w.sleep) return 'Wybierz, ile średnio śpisz'; return '';
-      case 'exp': if (!w.exp) return 'Wybierz poziom doświadczenia'; if (w.active === null) return 'Odpowiedz, czy trenujesz regularnie'; return '';
-      case 'goal': if (w.cardioAdd === null) w.cardioAdd = goalDefaultsCardio(w.goal); if (w.cardioMin === null) return 'Wybierz, ile ćwiczysz teraz tlenowo'; return '';
-      case 'sched': if (!w.days.length) return 'Wybierz co najmniej jeden dzień'; return '';
-      case 'equip': if (!w.equip.length && !w.bench) return 'Zaznacz dostępny sprzęt lub wybierz „Tylko masa ciała”'; return '';
-      default: return ''; } };
+      case 'health': if (w.scr.some(x => x === null)) return R('Odpowiedz na wszystkie pytania', '.wz-yn.miss'); if (w.preg === null) return R('Odpowiedz na pytanie o ciążę', '.wz-yn.miss'); if ((w.preg === 'preg' || w.preg === 'post') && !w.doc) return R('Potrzebna zgoda lekarza lub położnej', '.wz-warn'); return null;
+      case 'about': if (!s.sex) return R('Wybierz płeć', '.seg'); if (!F.ageNow()) return R('Podaj datę urodzenia', '[data-k=dob]'); if (!s.height) return R('Podaj wzrost', '[data-k=height]'); if (!(w.bw > 20)) return R('Podaj masę ciała', '[data-b=wzBw]'); if (F.ageNow() < 14) return R('Aplikacja jest przeznaczona dla osób od 14 lat; młodsze osoby powinny trenować pod opieką trenera', '[data-k=dob]'); if (!w.sleep) return R('Wybierz, ile średnio śpisz', '#wz-sleep'); return null;
+      case 'exp': if (!w.exp) return R('Wybierz poziom doświadczenia', '.wz-opts'); if (w.active === null) return R('Odpowiedz, czy trenujesz regularnie', '#wz-active'); return null;
+      case 'goal': if (w.cardioAdd === null) w.cardioAdd = goalDefaultsCardio(w.goal); return null;
+      case 'sched': if (!w.days.length) return R('Wybierz co najmniej jeden dzień', '#wz-days'); return null;
+      case 'equip': if (!w.equip.length && !w.bench) return R('Zaznacz dostępny sprzęt lub wybierz „Tylko masa ciała”', '.wz-opts'); return null;
+      default: return null; } };
   F.act.wzNext = async () => {
-    const z = Z(); const err = validate(); if (err) { F.toast(err, 'err'); return; }
+    const z = Z(); const err = validate(); if (err) { F.toast(err[0], 'err'); const el = document.querySelector(err[1]); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('need'); setTimeout(() => el.classList.remove('need'), 1800); } return; }
     if (z.step === 'about') { const w = z.w; const last = F.latestBW(); if (w.bw > 20 && (!last || Math.abs(last - w.bw) > 0.05)) { await F.addBW(w.bw); } }
     if (z.step === 'split') { storeAnswers(); z.variant = 0; z.res = gen(0); window.scrollTo(0, 0); rerender(); return; }
-    z.step = STEPS[cur() + 1]; window.scrollTo(0, 0); rerender();
+    const prev = z.step; z.step = STEPS[cur() + 1]; window.scrollTo(0, 0);
+    try { rerender(); } catch (e) { console.error(e); z.step = prev; F.toast('Coś poszło nie tak — spróbuj ponownie', 'err'); }
   };
   const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav, special: wFull().special }; F.saveSettings(); };
   F.act.wzBack = () => { Z().res = null; rerender(); };
@@ -192,6 +198,6 @@
       ${nutrition(r)}
       ${r.notes.length ? `<section class="card cut"><h3>${ic('info', 18)} Uwagi</h3><ul class="tips">${r.notes.map(n => `<li>${E(n)}</li>`).join('')}</ul></section>` : ''}
       <p class="dim small pad">Plan jest wskazówką opartą na ogólnych zasadach treningu, nie zastępuje porady lekarza ani trenera. Przy bólu przerwij ćwiczenie. Ciężary dobierz sam — pierwszą serię zrób lekko, aby poznać swoje możliwości.</p>
-      <div class="wz-bar"><button class="btn primary full" data-a="wzSave">Zapisz plan</button><button class="btn ghost" data-a="wzBack">Zmień odpowiedzi</button><button class="btn ghost" data-a="wzAgain">${ic('repeat', 16)} Inna wersja</button></div>` };
+      <div class="wz-spacer"></div><div class="wz-bar"><button class="btn primary full" data-a="wzSave">Zapisz plan</button><button class="btn ghost" data-a="wzBack">Zmień odpowiedzi</button><button class="btn ghost" data-a="wzAgain">${ic('repeat', 16)} Inna wersja</button></div>` };
   }
 })();
