@@ -326,7 +326,7 @@ svg .bar.hl{fill:url(#none);fill:var(--a1)}
 #toast-root{position:fixed;left:0;right:0;top:calc(var(--st) + 10px);z-index:90;display:grid;justify-items:center;gap:8px;pointer-events:none;padding:0 16px}
 .toast{display:flex;align-items:center;gap:8px;background:#fff;color:#0a0b0f;font:700 15px var(--fb);padding:11px 16px;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.55);transform:translateY(-30px);opacity:0;transition:.3s cubic-bezier(.2,.9,.2,1);max-width:480px}
 .toast.in{transform:none;opacity:1}.toast.hot{background:linear-gradient(135deg,var(--a2),var(--a1));color:var(--on-a)}.toast.err{background:#ff4d5e;color:#fff}
-.toast button{margin-left:6px;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,.18);font-weight:800}
+.toast{pointer-events:auto}.toast button{margin-left:6px;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,.18);font-weight:800}
 
 /* ---------- tabbar i dock ---------- */
 #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;pointer-events:none}

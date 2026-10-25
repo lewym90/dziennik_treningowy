@@ -74,7 +74,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.11.1';
+  F.APPVER = '1.11.2';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
