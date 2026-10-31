@@ -13,7 +13,7 @@
   F.ssInfo = arr => { const out = arr.map(() => null); let i = 0, g = 0; while (i < arr.length) { const id = arr[i].ss; let j = i; if (id) while (j + 1 < arr.length && arr[j + 1].ss === id) j++; if (id && j > i) { const L = String.fromCharCode(65 + (g++ % 26)); for (let k = i; k <= j; k++) out[k] = { tag: L + (k - i + 1), pos: k - i, size: j - i + 1, start: i, end: j, L }; } i = j + 1; } return out; };
   F.cleanSS = arr => { const inf = F.ssInfo(arr); arr.forEach((e, k) => { if (e.ss && !inf[k]) delete e.ss; }); };
   F.ssName = n => n >= 3 ? 'Obwód' : 'Superseria';
-  const pgOf = it => (it.prog && it.prog !== 'auto') || it.inc || it.pct ? { prog: it.prog || 'auto', inc: it.inc || 0, pct: it.pct || 0 } : null;
+  const pgOf = it => (it.prog && it.prog !== 'auto') || it.inc || it.pct || it.scheme === 'pyr' ? { prog: it.prog || 'auto', inc: it.inc || 0, pct: it.pct || 0, scheme: it.scheme === 'pyr' ? 'pyr' : '' } : null;
 
   /* ---------- budowanie treningu ---------- */
   function buildSets(exId, count, reps, w0, pg) {
@@ -21,11 +21,20 @@
     const useSug = (F.S.settings.autoProg !== false && pg.prog !== 'off') || pg.pct;
     const ex = exOf(exId), last = F.LAST[exId], sug = useSug ? F.suggest(exId, reps, { mode: pg.prog === 'linear' ? 'linear' : 'auto', inc: pg.inc, pct: pg.pct }) : null, lo = parseRepsLo(reps); const sets = [];
     const topW = last ? Math.max(...last.sets.map(s => s.w || 0)) : 0;
-    const shaped = !!(sug && !sug.pct && last && last.sets.length > 1 && new Set(last.sets.map(s => s.w || 0)).size > 1 && ex && ex.type !== 'time' && ex.type !== 'br'); const delta = shaped ? (sug.w - topW) : 0;
+    // piramida: powtórzenia maleją od góry zakresu do dołu, ciężar rośnie tak, by zapas powtórzeń był podobny w każdej serii (wzór Epleya); ostatnia seria = ciężar „górny”
+    const pyrOn = !!(pg.scheme === 'pyr' && ex && ex.type !== 'time' && ex.type !== 'br' && count >= 3); const pyrR = [], pyrW = [];
+    if (pyrOn) {
+      const mm = String(reps || '').match(/(\d+)(?:\s*[-–]\s*(\d+))?/); const lo2 = mm ? +mm[1] : 6, hi2 = mm ? +(mm[2] || mm[1]) : 10; const st = F.S.settings.step || 2.5; const incr = pg.inc > 0 ? pg.inc : F.stepFor(ex);
+      let topW2 = w0 || 0; if (last && last.sets.length) { topW2 = Math.max(...last.sets.map(s => s.w || 0)); const planned = []; for (let k = 0; k < count; k++) planned.push(Math.round(hi2 - (hi2 - lo2) * k / (count - 1))); const hit = last.sets.length >= count && planned.every((pr, k) => (last.sets[k].r || 0) >= pr); if (hit && !F.deloadOn()) topW2 += incr; else if (F.deloadOn()) topW2 = Math.round(topW2 * 0.9 / st) * st; }
+      const rir0 = 2, e1 = topW2 * (1 + (lo2 + rir0) / 30);
+      for (let k = 0; k < count; k++) { const rk = Math.round(hi2 - (hi2 - lo2) * k / (count - 1)); pyrR.push(rk); pyrW.push(topW2 ? Math.max(0, Math.round(e1 / (1 + (rk + rir0) / 30) / st) * st) : 0); }
+    }
+    const shaped = !pyrOn && !!(sug && !sug.pct && last && last.sets.length > 1 && new Set(last.sets.map(s => s.w || 0)).size > 1 && ex && ex.type !== 'time' && ex.type !== 'br'); const delta = shaped ? (sug.w - topW) : 0;
     for (let i = 0; i < count; i++) {
       const prev = last ? (last.sets[i] || last.sets[last.sets.length - 1]) : null; let w = 0, r = 0;
       if (ex && ex.type === 'time') { r = prev ? prev.r : (ex.muscle === 'cardio' ? 1200 : (lo || 45)); }
       else if (ex && ex.type === 'br') { r = prev ? prev.r : (lo || 10); }
+      else if (pyrOn) { w = pyrW[i]; r = pyrR[i]; }
       else if (shaped && prev) { w = Math.max(0, Math.round((prev.w + delta) / (F.S.settings.step || 2.5)) * (F.S.settings.step || 2.5)); r = prev.r; } // zachowaj Twój schemat (np. piramidę): kolejne serie dalej cięższe, a progresja przesuwa cały schemat
       else { w = sug ? sug.w : (prev ? prev.w : (w0 || 0)); r = prev ? prev.r : (lo || 10); if (sug && sug.w > topW && lo) r = lo; }
       const st = { w, r, t: 'n', done: false }; if (ex && ex.muscle === 'cardio' && ex.type === 'time') st.int = (pg && pg.cint) || (prev && prev.int) || 2; sets.push(st);

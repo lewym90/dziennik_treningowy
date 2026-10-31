@@ -33,7 +33,7 @@
       goal: P.GOALS[z.goal] ? z.goal : 'hyp', prio: arr(z.prio, x => PRIO[x]) || [], cardioMin: [0, 60, 120, 180].includes(z.cardioMin) ? z.cardioMin : 0, cardioAdd: typeof z.cardioAdd === 'boolean' ? z.cardioAdd : null, cardioPref: CARDIO[z.cardioPref] ? z.cardioPref : 'walk',
       days: days && days.length ? [...new Set(days)].sort((x, y) => x - y) : [0, 2, 4], time: [0, 30, 45, 60, 75, 90].includes(z.time) ? z.time : 60,
       equip: equip && equip.length ? equip : [...EQ_ALL], bench: z.bench !== false, rack: z.rack !== false, preset: PRESET[z.preset] ? z.preset : (equip && equip.length ? '' : 'gym'),
-      cAct: (arr(z.cAct, x => F.CARDIO.valid(x)) || []).map(x => ({ t: x.t, n: x.n, m: x.m, i: x.i, plan: !!x.plan && !!F.CARDIO.T[x.t][2], place: x.place === 'sep' ? 'sep' : 'after' })), cNow: typeof z.cNow === 'boolean' ? z.cNow : null, cChoice: typeof z.cChoice === 'string' ? z.cChoice : '', cAddType: F.CARDIO.T[z.cAddType] ? z.cAddType : '', cPlaceNew: z.cPlaceNew === 'after' || z.cPlaceNew === 'sep' ? z.cPlaceNew : '',
+      cAct: (arr(z.cAct, x => F.CARDIO.valid(x)) || []).map(x => ({ t: x.t, n: x.n, m: x.m, i: x.i, plan: !!x.plan && !!F.CARDIO.T[x.t][2], place: x.place === 'sep' ? 'sep' : 'after' })), cNow: typeof z.cNow === 'boolean' ? z.cNow : null, cChoice: typeof z.cChoice === 'string' ? z.cChoice : '', cAddType: F.CARDIO.T[z.cAddType] ? z.cAddType : '', scheme: z.scheme === 'pyr' ? 'pyr' : '', cPlaceNew: z.cPlaceNew === 'after' || z.cPlaceNew === 'sep' ? z.cPlaceNew : '',
       inj: arr(z.inj, x => P.INJ[x]) || [], avoid: arr(z.avoid, str) || [], fav: arr(z.fav, str) || [], split: 'auto', sleep: [1, 2, 3].includes(s.sleep) ? s.sleep : 0, bw: p.bwKnown ? p.bw : ''
     };
   };
@@ -72,7 +72,10 @@
       <div class="wz-opts">${Object.entries(P.EXPS).map(([k, v]) => opt(w.exp === k, 'wzSet', `data-k="exp" data-v="${k}"`, v[0], v[1])).join('')}</div>
       <h4 class="lbl">Czy trenujesz regularnie od co najmniej 8 tygodni?</h4>
       <div class="chips" id="wz-active">${chip(w.active === true, 'wzSet', 'data-k="active" data-v="1" data-b1="1"', 'Tak')}${chip(w.active === false, 'wzSet', 'data-k="active" data-v="0" data-b1="1"', 'Nie, wracam po przerwie')}</div>
-      <p class="dim small">Jeśli nie jesteś pewien, wybierz niższy poziom — łatwiej dołożyć niż się przeciążyć.</p></section>`; },
+      <p class="dim small">Jeśli nie jesteś pewien, wybierz niższy poziom — łatwiej dołożyć niż się przeciążyć.</p>
+      ${w.exp && w.exp !== 'beg' ? `<h4 class="lbl">Jak robić serie w ćwiczeniach głównych?</h4>
+      <div class="chips">${chip(!w.scheme, 'wzScheme', 'data-v=""', 'Jeden ciężar we wszystkich seriach')}${chip(w.scheme === 'pyr', 'wzScheme', 'data-v="pyr"', 'Narastająco (piramida)')}</div>
+      <p class="dim small">Badania nie pokazują przewagi żadnego z tych sposobów dla siły i masy mięśniowej — wybierz ten, który lepiej Ci służy. Piramida: w kolejnych seriach ciężar rośnie, a powtórzeń jest mniej (nie dotyczy planów dla osób 65+, w ciąży i po porodzie).</p>` : ''}</section>`; },
     goal: () => { const w = Z().w; return `<section class="card cut"><h3>${ic('trophy', 18)} Cel</h3>
       <div class="wz-opts">${Object.entries(P.GOALS).map(([k, v]) => opt(w.goal === k, 'wzGoal', `data-v="${k}"`, v[0], v[1])).join('')}</div>
       <h4 class="lbl">Partie priorytetowe (do 3, opcjonalnie)</h4><div class="chips">${Object.entries(PRIO).map(([k, t]) => chip(w.prio.includes(k), 'wzPrio', `data-v="${k}"`, t)).join('')}</div>
@@ -184,6 +187,7 @@
   F.act.wzCStep = b => { const a = Z().w.cAct[+b.dataset.i], k = b.dataset.k, d = +b.dataset.d; if (k === 'n') a.n = Math.max(1, Math.min(7, a.n + d)); else a.m = Math.max(5, Math.min(240, a.m + 5 * d)); Z().w.cChoice = ''; rerender(); };
   F.bind.wzCf = (el, ev) => { const a = Z().w.cAct[+el.dataset.i]; if (!a) return; const k = el.dataset.k; if (k === 't') { a.t = el.value; if (!F.CARDIO.T[a.t][2]) a.plan = false; } else { const v = parseInt(el.value, 10) || 0; if (k === 'n') a.n = Math.max(1, Math.min(7, v || 1)); else a.m = Math.max(5, Math.min(240, v || 5)); } Z().w.cChoice = ''; if (ev === 'change') rerender(); };
   F.act.wzCChoice = b => { Z().w.cChoice = b.dataset.v; rerender(); };
+  F.act.wzScheme = b => { Z().w.scheme = b.dataset.v; rerender(); };
   F.act.wzCPN = b => { Z().w.cPlaceNew = b.dataset.v; rerender(); };
   F.act.wzCType = b => { Z().w.cAddType = b.dataset.v; rerender(); };
   F.act.wzPrev = () => { const z = Z(); z.step = STEPS[Math.max(0, cur() - 1)]; window.scrollTo(0, 0); rerender(); };
@@ -204,7 +208,7 @@
     const prev = z.step; z.step = STEPS[cur() + 1]; window.scrollTo(0, 0);
     try { rerender(); } catch (e) { console.error(e); z.step = prev; F.toast('Coś poszło nie tak — spróbuj ponownie', 'err'); }
   };
-  const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav, cAct: w.cAct, cNow: w.cNow, cChoice: w.cChoice, cAddType: w.cAddType, cPlaceNew: w.cPlaceNew, special: wFull().special }; F.saveSettings(); };
+  const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav, cAct: w.cAct, cNow: w.cNow, cChoice: w.cChoice, cAddType: w.cAddType, cPlaceNew: w.cPlaceNew, scheme: w.scheme, special: wFull().special }; F.saveSettings(); };
   F.act.wzBack = () => { Z().res = null; rerender(); };
   F.act.wzAgain = () => { const z = Z(); z.variant++; z.res = gen(z.variant); window.scrollTo(0, 0); rerender(); };
   F.act.wzSave = async () => { const z = Z(); if (!z.res) return; const plan = z.res.plan; await F.savePlan(plan); F.wz = null; F.toast('Zapisano plan: ' + E(plan.name), 'hot'); F.go('#/plan/' + plan.id); };
