@@ -9,6 +9,9 @@
 
   F.KB.src = {
     acsm2026: { a: 'Phillips SM i in. (American College of Sports Medicine)', y: 2026, t: 'Resistance training prescription for muscle function, hypertrophy, and physical performance in healthy adults: an overview of reviews', j: 'Med Sci Sports Exerc 58(4):851–872', u: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12965823', k: 'stanowisko towarzystwa: przegląd 137 przeglądów systematycznych, ponad 30 000 uczestników' },
+    schoenfeld2016: { a: 'Schoenfeld BJ, Pope ZK, Benik FM i in.', y: 2016, t: 'Longer interset rest periods enhance muscle strength and hypertrophy in resistance-trained men', j: 'J Strength Cond Res 30(7):1805–1812', u: 'https://pubmed.ncbi.nlm.nih.gov/26605807/', k: 'badanie kontrolowane (21 mężczyzn trenujących siłowo, 8 tygodni; przerwa 1 min vs 3 min)' },
+    miranda2009: { a: 'Miranda H, Simão R, Moreira LM, de Souza RA, de Souza JA, de Salles BF, Willardson JM', y: 2009, t: 'Effect of rest interval length on the volume completed during upper body resistance exercise', j: 'J Sports Sci Med 8(3):388–392', u: 'https://www.jssm.org/jssm-08-388.xml', k: 'badanie krzyżowe (12 mężczyzn trenujących, 3 serie po 8RM; przerwa 1 vs 3 min)' },
+    pelland2025: { a: 'Pelland JC i in.', y: 2025, t: 'Per-session training volume and muscle hypertrophy/strength: Bayesian meta-regression (preprint)', j: 'SportRxiv (preprint, bez recenzji)', u: 'https://sportrxiv.org/index.php/server/preprint/view/537', k: 'metaregresja (preprint)' },
     acsm2009: { a: 'American College of Sports Medicine (Ratamess N i in.)', y: 2009, t: 'Progression models in resistance training for healthy adults', j: 'Med Sci Sports Exerc 41(3):687–708', u: 'https://www.sportgeneeskunde.com/wp-content/uploads/ACSM-Position-Stand-Progression-Models-in-Resistance-Training-for-Healthy-Adults.pdf', k: 'stanowisko towarzystwa' },
     who2020: { a: 'Bull FC i in. (Światowa Organizacja Zdrowia)', y: 2020, t: 'World Health Organization 2020 guidelines on physical activity and sedentary behaviour', j: 'Br J Sports Med 54(24):1451–1462', u: 'https://www.ncbi.nlm.nih.gov/books/NBK566048/', k: 'wytyczne WHO (rekomendacje „silne”, pewność dowodów umiarkowana)' },
     baz2022: { a: 'Baz-Valle E, Balsalobre-Fernández C, Alix-Fages C, Santos-Concejero J', y: 2022, t: 'A systematic review of the effects of different resistance training volumes on muscle hypertrophy', j: 'J Hum Kinet 81:199–210', u: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8884877/', k: 'przegląd systematyczny' },
@@ -34,7 +37,7 @@
     freq: { src: ['acsm2026'], pl: 'ACSM (2026): dla przyrostu masy mięśniowej, gdy łączna tygodniowa objętość jest taka sama, nie ma znaczenia, czy trenujesz grupę mięśniową raz, czy kilka razy w tygodniu. Dla siły zalecane są co najmniej 2 sesje tygodniowo. Wniosek: podział treningowy to narzędzie do wygodnego rozłożenia objętości, a nie czynnik rozstrzygający.' },
     reps: { src: ['acsm2026', 'schoenfeld2021'], pl: 'ACSM (2026): dla przyrostu masy ciężar w zakresie od ok. 30% do 100% 1RM daje podobne efekty, jeśli wysiłek jest duży; dla siły wyraźnie lepsze są ciężary od ok. 80% 1RM. Przegląd Schoenfelda i in. (2021) wskazuje, że dolna granica skutecznego obciążenia to ok. 30% 1RM, a lekkie obciążenia wymagają bardzo dużego wysiłku w serii.' },
     failure: { src: ['acsm2026'], pl: 'ACSM (2026): trening do upadku mięśniowego nie dawał dodatkowych korzyści dla siły, masy ani mocy. Za wystarczający wysiłek uznano serie kończone blisko upadku, np. z zapasem 2–3 powtórzeń (RIR 2–3); autorzy zaznaczają, że brakuje danych, by wskazać dokładną liczbę. U osób starszych trening do upadku może być niewskazany ze względu na ryzyko naczyniowe i urazowe.' },
-    rest: { src: ['singer2024', 'acsm2026', 'acsm2009'], pl: 'Singer i in. (2024): dla przyrostu masy przerwy dłuższe niż ok. 1 minuta dawały niewielką korzyść, a powyżej ok. 1,5 minuty nie widać wyraźnych różnic. ACSM (2026): dla siły nie było różnicy między krótszą (poniżej 1 min) a dłuższą (powyżej 1 min) przerwą. Starsze stanowisko ACSM (2009) zalecało 1–2 min dla przyrostu masy i 3–5 min dla siły i mocy u zaawansowanych.' },
+    rest: { src: ['acsm2009', 'schoenfeld2016', 'miranda2009', 'singer2024', 'acsm2026'], pl: 'ACSM (2009): przy ciężkich ćwiczeniach głównych (np. przysiad, wyciskanie) przerwy co najmniej 2–3 min, przy ćwiczeniach pomocniczych 1–2 min, a w ciężkim treningu siłowym zaawansowanych 3–5 min; u osób starszych 1–3 min. Schoenfeld i in. (2016): u trenujących siłowo mężczyzn przerwa 3 min dała większy przyrost siły i grubości mięśnia uda niż 1 min (przy tej samej liczbie serii). Miranda i in. (2009): u 12 trenujących mężczyzn (3 serie po 8RM, pięć ćwiczeń górnej części ciała) po przerwie 3 min wykonano istotnie większą łączną objętość (ciężar × powtórzenia) niż po 1 min. Metaanaliza Singera i in. (2024) nie wykazała wyraźnej dodatkowej korzyści dla przyrostu masy powyżej ok. 1,5 min, ale nie przeczy to korzyści z dłuższych przerw dla jakości serii i siły. ACSM (2026): dla siły nie było różnicy między krótszą a dłuższą przerwą. Wniosek praktyczny: krótsza przerwa oszczędza czas, ale przy ciężkich ćwiczeniach kosztuje powtórzenia, więc plan przewiduje czas na dłuższy odpoczynek.' },
     rom: { src: ['acsm2026'], pl: 'ACSM (2026): pełny zakres ruchu poprawiał siłę wyraźniej niż częściowy. Maszyny i wolne ciężary nie różniły się spójnie pod względem siły i przyrostu masy. Wykonywanie ćwiczeń na początku sesji poprawiało siłę, a dla przyrostu masy kolejność nie miała znaczenia.' },
     order: { src: ['acsm2009'], pl: 'ACSM (2009): rozsądna kolejność to duże grupy przed małymi, ćwiczenia wielostawowe przed jednostawowymi i cięższe przed lżejszymi; warto łączyć ćwiczenia jedno- i obustronne oraz wielo- i jednostawowe.' },
     progression: { src: ['acsm2009', 'acsm2026'], pl: 'ACSM (2009): zwiększ obciążenie o ok. 2–10%, gdy potrafisz wykonać o 1–2 powtórzenia więcej od zaplanowanych. ACSM (2026): periodyzacja nie była istotnie lepsza od planu nieperiodyzowanego, jeśli przeciążenie jest odpowiednie; do dalszych postępów w dłuższym czasie prawdopodobnie potrzebne jest stopniowe zwiększanie wymagań.' },
@@ -61,7 +64,7 @@
   };
   F.KB.volSmall = { calves: [4, 10], abs: [4, 10], glutes: [6, 12], forearms: [0, 6] };
   // ile serii jednej grupy w jednej sesji (górna granica, heurystyka)
-  F.KB.perSession = { beg: 8, mid: 10, adv: 12 };
+  F.KB.perSession = { beg: 8, mid: 10, adv: 11 };  // preprint Pelland: ok. 11 serii (liczonych ułamkowo) na partię w sesji to punkt, za którym korzyść jest trudna do wykrycia
   F.KB.reps = {
     hyp:    { main: '6-10',  sec: '8-12',  iso: '10-15' },
     str:    { main: '3-6',   sec: '6-10',  iso: '8-12' },
@@ -71,13 +74,18 @@
   };
   F.KB.repsPower = { main: '3-5', sec: '5-8', iso: '8-10' };        // dni „power” w PHUL/PHAT (ciężkie)
   F.KB.repsHyp = { main: '8-12', sec: '10-15', iso: '12-20' };        // dni „hipertrofia” w PHUL/PHAT
-  F.KB.rest = {
-    hyp:    { main: 120, sec: 105, iso: 75 },
-    str:    { main: 180, sec: 120, iso: 90 },
-    sculpt: { main: 105, sec: 90,  iso: 60 },
-    endur:  { main: 60,  sec: 45,  iso: 45 },
-    health: { main: 105, sec: 90,  iso: 60 }
+  // przerwy (s) wg celu, doświadczenia i roli ćwiczenia: main = ciężkie wielostawowe, sec = pomocnicze wielostawowe, iso = izolowane
+  F.KB.restT = {
+    hyp:    { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 180, sec: 120, iso: 75 }, adv: { main: 210, sec: 150, iso: 90 } },
+    str:    { beg: { main: 150, sec: 120, iso: 75 }, mid: { main: 240, sec: 150, iso: 90 }, adv: { main: 300, sec: 180, iso: 105 } },
+    sculpt: { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 150, sec: 105, iso: 60 }, adv: { main: 180, sec: 120, iso: 75 } },
+    endur:  { beg: { main: 60,  sec: 45,  iso: 45 }, mid: { main: 60,  sec: 45,  iso: 45 }, adv: { main: 60,  sec: 45,  iso: 45 } },
+    health: { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 120, sec: 90,  iso: 60 }, adv: { main: 120, sec: 90,  iso: 60 } }
   };
+  F.KB.restOf = (goal, exp, role, o) => { o = o || {}; const t = (F.KB.restT[goal] || F.KB.restT.hyp)[exp] || F.KB.restT.hyp.mid; let r = t[role] || t.iso; if (o.special) r = Math.min(r, role === 'main' ? 120 : 90); else if (o.cautious) r = Math.min(r, role === 'main' ? 150 : 105); return r; };
+  F.KB.restMax = (goal, o) => (o && (o.special || o.cautious)) ? 150 : goal === 'str' ? 300 : 240;
+  F.KB.rest = Object.fromEntries(Object.keys(F.KB.restT).map(g => [g, F.KB.restT[g].mid]));
+
   // zapas powtórzeń (RIR) w tygodniu 1 mezocyklu; później maleje do wartości docelowej
   F.KB.rir = {
     beg: { main: '3', sec: '3', iso: '2-3' },

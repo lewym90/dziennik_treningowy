@@ -21,10 +21,12 @@
     const useSug = (F.S.settings.autoProg !== false && pg.prog !== 'off') || pg.pct;
     const ex = exOf(exId), last = F.LAST[exId], sug = useSug ? F.suggest(exId, reps, { mode: pg.prog === 'linear' ? 'linear' : 'auto', inc: pg.inc, pct: pg.pct }) : null, lo = parseRepsLo(reps); const sets = [];
     const topW = last ? Math.max(...last.sets.map(s => s.w || 0)) : 0;
+    const shaped = !!(sug && !sug.pct && last && last.sets.length > 1 && new Set(last.sets.map(s => s.w || 0)).size > 1 && ex && ex.type !== 'time' && ex.type !== 'br'); const delta = shaped ? (sug.w - topW) : 0;
     for (let i = 0; i < count; i++) {
       const prev = last ? (last.sets[i] || last.sets[last.sets.length - 1]) : null; let w = 0, r = 0;
       if (ex && ex.type === 'time') { r = prev ? prev.r : (ex.muscle === 'cardio' ? 1200 : (lo || 45)); }
       else if (ex && ex.type === 'br') { r = prev ? prev.r : (lo || 10); }
+      else if (shaped && prev) { w = Math.max(0, Math.round((prev.w + delta) / (F.S.settings.step || 2.5)) * (F.S.settings.step || 2.5)); r = prev.r; } // zachowaj Twój schemat (np. piramidę): kolejne serie dalej cięższe, a progresja przesuwa cały schemat
       else { w = sug ? sug.w : (prev ? prev.w : (w0 || 0)); r = prev ? prev.r : (lo || 10); if (sug && sug.w > topW && lo) r = lo; }
       const st = { w, r, t: 'n', done: false }; if (ex && ex.muscle === 'cardio' && ex.type === 'time') st.int = (pg && pg.cint) || (prev && prev.int) || 2; sets.push(st);
     }

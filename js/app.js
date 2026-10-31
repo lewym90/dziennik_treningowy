@@ -26,7 +26,7 @@
     let di = 0; if (last && last.planId === plan.id) { const i = plan.days.findIndex(d => d.id === last.dayId); di = i >= 0 ? (i + 1) % plan.days.length : 0; }
     return { plan, day: plan.days[di], di };
   };
-  const estMin = day => { const inf = F.ssInfo(day.items); let t = 0; day.items.forEach((it, k) => { if (it.cardio) { t += (+it.reps || 0); return; } const g = inf[k]; if (g && g.pos > 0) { t += (it.sets || 3) * 45; return; } t += (it.sets || 3) * (45 + (it.rest || 90)); }); return Math.round(t / 60); };
+  const estMin = day => F.PLN && F.PLN.estMin ? F.PLN.estMin(day.items) : 0;
 
   /* ---------- ROUTER ---------- */
   const routes = [
