@@ -38,10 +38,14 @@
 
   // sprzęt do ćwiczenia: dokładnie przypisany albo dobrany po nazwie i rodzaju sprzętu
   // Zasada: grafika tylko wtedy, gdy pokazuje dokładnie ten sprzęt, na którym robi się ćwiczenie. Inaczej zostają same mięśnie.
-  const EQ = { 0: 'bench cgbp', 1: 'db_inc curl_inc', 2: 'squat front_sq ohp good_m', 3: 'deadlift sumo rdl', 4: 'lat_pull', 5: 'row_cable', 6: 'fly_cable lateral_c facepull tri_push tri_rope curl_cab cab_crunch woodchop glute_kick', 7: 'leg_press calf_press', 8: 'leg_ext leg_curl_s', 9: 'chest_mach', 10: 'pullup chinup dips leg_raise' };
+  const EQ = { 0: 'bench cgbp', 1: 'db_inc curl_inc', 2: 'squat front_sq ohp good_m', 3: 'deadlift sumo rdl push_press clean snatch thruster', 4: 'lat_pull', 5: 'row_cable', 6: 'fly_cable lateral_c facepull tri_push tri_rope curl_cab cab_crunch woodchop glute_kick', 7: 'leg_press calf_press', 8: 'leg_ext leg_curl_s', 9: 'chest_mach', 10: 'pullup chinup dips leg_raise', 12: 'curl_ez skull', 13: 'curl_bb row_bb upright shrug wrist_curl', 14: 'row_mach', 15: 'pec_deck', 16: 'sh_mach', 17: 'hack', 18: 'smith_sq', 19: 'leg_curl', 20: 'calf_st', 21: 'calf_se', 22: 'hip_thrust', 23: 'hyper', 24: 'curl_pre', 25: 'db_bench fly_db pullover', 26: 'bench_dec', 27: 'bench_inc', 28: 'abduct adduct', 29: 'row_tbar' };
   const EQ_ID = {}; Object.entries(EQ).forEach(([k, v]) => v.split(' ').forEach(id => { EQ_ID[id] = +k; }));
+  // ćwiczenia z bazy 886: tylko nazwy, które jednoznacznie wskazują dany sprzęt
+  const EQ_NAME = [[/^(barbell squat|barbell squat to a bench|wide stance barbell squat|narrow stance squats|olympic squat|front squat \(clean grip\))$/, 2], [/^(bench press - powerlifting|wide-grip barbell bench press)$/, 0], [/^wide-grip decline barbell bench press$/, 26], [/ez[- ]bar/, 12], [/^reverse barbell preacher curls$/, 24], [/^(reverse barbell curl|close-grip standing barbell curl|wide-grip standing barbell curl)$/, 13], [/barbell wrist curl$/, 13], [/^narrow stance hack squats$/, 17], [/^(narrow stance leg press|calf press on the leg press machine)$/, 7], [/^thigh adductor$/, 28], [/^machine bench press$/, 9]];
   const eqOf = id => {
     if (EQ_ID[id] != null) return EQ_ID[id]; const ex = F.S.ex.get(id); if (!ex || ex.type === 'time') return -1; const n = String(ex.alias || ex.name).toLowerCase();
+    if (/^smith/.test(n)) return 18;
+    if (ex.equip === 'Sztanga' || ex.equip === 'Maszyna') { for (const [re, k] of EQ_NAME) if (re.test(n)) return k; return -1; }
     if (ex.equip === 'Hantle' || ex.equip === 'Kettlebell') return 11; // stojak z hantlami i kettlebell: to wciąż ten sam sprzęt
     if (ex.equip === 'Drążek') return /pull-?up|chin-?up|hanging/.test(n) ? 10 : -1;
     if (ex.equip === 'Wyciąg') return /pulldown/.test(n) ? 4 : /seated cable row/.test(n) ? 5 : 6;
