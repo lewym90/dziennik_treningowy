@@ -783,3 +783,10 @@ body.kbd .wk-art{height:0;margin:0}
 .wk-art.eq .ma .bodyc{width:100%;height:100%}
 .wk-art.eq.mus>img{inset:auto 10px 8px auto;width:32%;height:auto;aspect-ratio:2/1;z-index:2;border-radius:9px;background:#0d0b09;box-shadow:0 0 0 1px rgba(var(--a1-rgb),.6);mix-blend-mode:normal}
 .wk-art.eq.mus .ma{inset:0;right:0;bottom:0;width:100%;aspect-ratio:auto;height:100%;background:none;box-shadow:none;border-radius:0}
+
+/* ekran startowy: węgle wjeżdżają prosto od dołu, logo stoi w miejscu */
+#splash::before{animation:coals 1.15s cubic-bezier(.16,.8,.3,1) both;background-position:center bottom;transform-origin:center bottom}
+@keyframes coals{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#splash .sp-img{animation:splogo .7s .35s ease-out both}
+@keyframes splogo{from{opacity:0}to{opacity:1}}
+#splash .sp-tag{animation:fadeup .6s .75s forwards}

@@ -37,14 +37,14 @@
   F.bodyCv = (view, colors, o = {}) => `<canvas class="bodyc ${o.cls || ''}" data-v="${view}" data-c="${E(JSON.stringify(colors || {}))}"${o.f ? ` data-f="${o.f}"` : ''}${o.dim ? ` data-dim="${o.dim}"` : ''}${o.tap ? ' data-tap="1"' : ''} aria-hidden="true"></canvas>`;
 
   // sprzęt do ćwiczenia: dokładnie przypisany albo dobrany po nazwie i rodzaju sprzętu
-  const EQ = { 0: 'bench bench_dec cgbp skull', 1: 'bench_inc db_bench db_inc fly_db curl_inc pullover', 2: 'squat front_sq ohp good_m push_press smith_sq thruster', 3: 'deadlift sumo rdl row_bb row_tbar clean snatch hip_thrust curl_bb curl_ez curl_pre shrug upright wrist_curl', 4: 'lat_pull tri_push tri_rope facepull', 5: 'row_cable curl_cab', 6: 'fly_cable lateral_c cab_crunch woodchop glute_kick', 7: 'leg_press hack calf_press', 8: 'leg_ext leg_curl leg_curl_s abduct adduct calf_st calf_se', 9: 'chest_mach pec_deck sh_mach row_mach', 10: 'pullup chinup dips leg_raise', 11: 'row_db db_ohp arnold lateral front_raise rear_fly curl_db curl_ham curl_con tri_over kickback lunge bulgar goblet step_up sumo_sq farmer kb_swing' };
+  // Zasada: grafika tylko wtedy, gdy pokazuje dokładnie ten sprzęt, na którym robi się ćwiczenie. Inaczej zostają same mięśnie.
+  const EQ = { 0: 'bench cgbp', 1: 'db_inc curl_inc', 2: 'squat front_sq ohp good_m', 3: 'deadlift sumo rdl', 4: 'lat_pull', 5: 'row_cable', 6: 'fly_cable lateral_c facepull tri_push tri_rope curl_cab cab_crunch woodchop glute_kick', 7: 'leg_press calf_press', 8: 'leg_ext leg_curl_s', 9: 'chest_mach', 10: 'pullup chinup dips leg_raise' };
   const EQ_ID = {}; Object.entries(EQ).forEach(([k, v]) => v.split(' ').forEach(id => { EQ_ID[id] = +k; }));
   const eqOf = id => {
     if (EQ_ID[id] != null) return EQ_ID[id]; const ex = F.S.ex.get(id); if (!ex || ex.type === 'time') return -1; const n = String(ex.alias || ex.name).toLowerCase();
-    if (ex.equip === 'Sztanga') return /bench|press.*lying|floor press/.test(n) ? 0 : /squat|overhead|military|push press|shoulder press/.test(n) ? 2 : 3;
-    if (ex.equip === 'Hantle') return /bench|incline|decline/.test(n) ? 1 : 11; if (ex.equip === 'Kettlebell') return 11;
-    if (ex.equip === 'Drążek') return 10; if (ex.equip === 'Wyciąg') return /pulldown|pushdown|pressdown/.test(n) ? 4 : /seated|row/.test(n) ? 5 : 6;
-    if (ex.equip === 'Maszyna') return /leg press|hack|sled/.test(n) ? 7 : /leg|calf|thigh|adduct|abduct/.test(n) ? 8 : /chest|fly|butterfly|shoulder|row/.test(n) ? 9 : -1;
+    if (ex.equip === 'Hantle' || ex.equip === 'Kettlebell') return 11; // stojak z hantlami i kettlebell: to wciąż ten sam sprzęt
+    if (ex.equip === 'Drążek') return /pull-?up|chin-?up|hanging/.test(n) ? 10 : -1;
+    if (ex.equip === 'Wyciąg') return /pulldown/.test(n) ? 4 : /seated cable row/.test(n) ? 5 : 6;
     return -1;
   };
   // grafika ćwiczenia: zbliżenie z pracującymi mięśniami, w kolorze aplikacji
