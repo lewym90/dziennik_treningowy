@@ -36,6 +36,17 @@
 
   F.bodyCv = (view, colors, o = {}) => `<canvas class="bodyc ${o.cls || ''}" data-v="${view}" data-c="${E(JSON.stringify(colors || {}))}"${o.f ? ` data-f="${o.f}"` : ''}${o.dim ? ` data-dim="${o.dim}"` : ''}${o.tap ? ' data-tap="1"' : ''} aria-hidden="true"></canvas>`;
 
+  // sprzęt do ćwiczenia: dokładnie przypisany albo dobrany po nazwie i rodzaju sprzętu
+  const EQ = { 0: 'bench bench_dec cgbp skull', 1: 'bench_inc db_bench db_inc fly_db curl_inc pullover', 2: 'squat front_sq ohp good_m push_press smith_sq thruster', 3: 'deadlift sumo rdl row_bb row_tbar clean snatch hip_thrust curl_bb curl_ez curl_pre shrug upright wrist_curl', 4: 'lat_pull tri_push tri_rope facepull', 5: 'row_cable curl_cab', 6: 'fly_cable lateral_c cab_crunch woodchop glute_kick', 7: 'leg_press hack calf_press', 8: 'leg_ext leg_curl leg_curl_s abduct adduct calf_st calf_se', 9: 'chest_mach pec_deck sh_mach row_mach', 10: 'pullup chinup dips leg_raise', 11: 'row_db db_ohp arnold lateral front_raise rear_fly curl_db curl_ham curl_con tri_over kickback lunge bulgar goblet step_up sumo_sq farmer kb_swing' };
+  const EQ_ID = {}; Object.entries(EQ).forEach(([k, v]) => v.split(' ').forEach(id => { EQ_ID[id] = +k; }));
+  const eqOf = id => {
+    if (EQ_ID[id] != null) return EQ_ID[id]; const ex = F.S.ex.get(id); if (!ex || ex.type === 'time') return -1; const n = String(ex.alias || ex.name).toLowerCase();
+    if (ex.equip === 'Sztanga') return /bench|press.*lying|floor press/.test(n) ? 0 : /squat|overhead|military|push press|shoulder press/.test(n) ? 2 : 3;
+    if (ex.equip === 'Hantle') return /bench|incline|decline/.test(n) ? 1 : 11; if (ex.equip === 'Kettlebell') return 11;
+    if (ex.equip === 'Drążek') return 10; if (ex.equip === 'Wyciąg') return /pulldown|pushdown|pressdown/.test(n) ? 4 : /seated|row/.test(n) ? 5 : 6;
+    if (ex.equip === 'Maszyna') return /leg press|hack|sled/.test(n) ? 7 : /leg|calf|thigh|adduct|abduct/.test(n) ? 8 : /chest|fly|butterfly|shoulder|row/.test(n) ? 9 : -1;
+    return -1;
+  };
   // grafika ćwiczenia: zbliżenie z pracującymi mięśniami, w kolorze aplikacji
   const VIEWS = { chest: ['fu'], abs: ['fu'], shoulders: ['fu', 'bu', 'ar'], biceps: ['fu', 'ar'], forearms: ['ar', 'fu', 'bu'], triceps: ['bu', 'ar'], back: ['bu'], quads: ['lf'], calves: ['lb', 'lf'], hams: ['lb'], glutes: ['lb'] };
   F.exArt = ids => {
@@ -45,6 +56,8 @@
     const armsOnly = pri.every(n => ['biceps', 'triceps', 'forearms'].includes(n)); const score = v => pri.filter(n => VIEWS[n].includes(v)).length;
     let view = armsOnly ? 'ar' : VIEWS[pri[0]][0]; if (!armsOnly) ['fu', 'bu', 'lf', 'lb'].forEach(v => { if (score(v) > score(view)) view = v; });
     const colors = {}; sec.forEach(n => { if (ORDER.includes(n)) colors[n] = 'a2'; }); pri.forEach(n => { colors[n] = 'a1'; });
-    return `<div class="wk-art">${F.bodyCv(view, colors, { f: view, dim: .62 })}</div>`;
+    const cv = F.bodyCv(view, colors, { f: view, dim: .62 }), eq = !Array.isArray(ids) || ids.length === 1 ? eqOf(Array.isArray(ids) ? ids[0] : ids) : -1;
+    return eq >= 0 ? `<div class="wk-art eq" data-a="artSwap" role="button" aria-label="Przełącz sprzęt i mięśnie"><img src="assets/eq/${eq}.webp" alt="" loading="lazy"><div class="ma">${cv}</div></div>` : `<div class="wk-art">${cv}</div>`;
   };
+  F.act.artSwap = b => b.classList.toggle('mus');
 })();

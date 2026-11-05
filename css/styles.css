@@ -774,3 +774,12 @@ body.kbd .wk-art{height:0;margin:0}
 .wz-opts .wz-o.im{display:flex!important;align-items:center;justify-items:start;text-align:left}
 .wz-opts .wz-o.im{flex-direction:row!important;grid-template-columns:none}
 .sheet.full-sum::before{filter:var(--img-f) brightness(.42)}
+
+/* ===== 1.15: sprzęt na kartach ===== */
+.wk-art.eq{cursor:pointer;background:radial-gradient(50% 75% at 50% 50%,rgba(var(--a1-rgb),.14),transparent 75%)}
+.wk-art.eq::after{display:none}
+.wk-art.eq>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:var(--img-f);mix-blend-mode:lighten;transition:.25s}
+.wk-art.eq .ma{position:absolute;right:10px;bottom:8px;width:32%;aspect-ratio:2/1;border-radius:9px;overflow:hidden;background:#0d0b09;box-shadow:0 0 0 1px rgba(var(--a1-rgb),.6),0 6px 16px -6px #000;transition:.25s}
+.wk-art.eq .ma .bodyc{width:100%;height:100%}
+.wk-art.eq.mus>img{inset:auto 10px 8px auto;width:32%;height:auto;aspect-ratio:2/1;z-index:2;border-radius:9px;background:#0d0b09;box-shadow:0 0 0 1px rgba(var(--a1-rgb),.6);mix-blend-mode:normal}
+.wk-art.eq.mus .ma{inset:0;right:0;bottom:0;width:100%;aspect-ratio:auto;height:100%;background:none;box-shadow:none;border-radius:0}
