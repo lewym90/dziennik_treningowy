@@ -76,7 +76,7 @@
   V.guide = () => {
     const q = F.norm(F.ui.guideQ || '');
     const list = A.filter(a => !q || F.norm(a.t + ' ' + a.lead).includes(q));
-    const html = Object.entries(CATS).map(([k, n]) => { const it = list.filter(a => a.c === k); return it.length ? `<h3 class="sec">${n}</h3><div class="stack">${it.map(a => `<a class="plan cut" href="#/guide/${a.id}"><div class="plan-i">${ic(a.ic, 22)}</div><div class="plan-b"><h3>${E(a.t)}</h3><p>${E(a.lead)}</p></div>${ic('chevron-right', 20)}</a>`).join('')}</div>` : ''; }).join('');
+    const html = Object.entries(CATS).map(([k, n]) => { const it = list.filter(a => a.c === k); return it.length ? `<h3 class="sec">${n}</h3><div class="stack">${it.map(a => `<a class="plan cut" href="#/guide/${a.id}"><div class="plan-i im"><img src="assets/guide/${A.indexOf(a)}.webp" width="64" height="64" alt="" loading="lazy"></div><div class="plan-b"><h3>${E(a.t)}</h3><p>${E(a.lead)}</p></div>${ic('chevron-right', 20)}</a>`).join('')}</div>` : ''; }).join('');
     return { html: `${F.head('Porady i nauka', { back: 1, sub: 'Zasady treningu w prostych słowach' })}
       <label class="fld"><input data-b="guideq" type="search" placeholder="Szukaj w poradach…" value="${E(F.ui.guideQ || '')}"></label>
       <div id="guide-list">${html || '<p class="dim pad center">Brak wyników.</p>'}</div>
@@ -87,7 +87,7 @@
     const a = A.find(x => x.id === id); if (!a) return { html: F.head('Porady', { back: 1 }) + '<p class="dim pad center">Nie znaleziono artykułu.</p>' };
     const body = a.b.map(([t, v]) => t === 'h' ? `<h4 class="lbl">${E(v)}</h4>` : t === 'p' ? `<p>${E(v)}</p>` : `<ul class="tips">${v.map(x => `<li>${E(x)}</li>`).join('')}</ul>`).join('');
     const facts = (a.f || []).map(k => F.KB.facts[k]).filter(Boolean);
-    return { html: `${F.head(a.t, { back: 1 })}<section class="card cut art"><p class="lead">${E(a.lead)}</p>${body}</section>
+    return { html: `${F.head(a.t, { back: 1 })}<section class="card cut art"><img class="art-im" src="assets/guide/${A.indexOf(a)}.webp" alt=""><p class="lead">${E(a.lead)}</p>${body}</section>
       ${facts.length ? `<h3 class="sec">Co mówią badania</h3><section class="card cut">${facts.map(f => `<p class="small">${E(f.pl)}</p>`).join('')}</section>` : ''}
       ${srcHtml(facts.flatMap(f => f.src))}` };
   };

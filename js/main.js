@@ -2,11 +2,11 @@
 (function () {
   const F = window.F; const ic = (n, s) => window.icon(n, s);
   const tabs = () => `<div class="tb">
-    <button class="t" data-a="tab" data-tab="home" aria-label="Dziś">${ic('house', 24)}<span>Dziś</span></button>
-    <button class="t" data-a="tab" data-tab="plans" aria-label="Plany">${ic('clipboard-list', 24)}<span>Plany</span></button>
+    <button class="t" data-a="tab" data-tab="home" aria-label="Dziś">${F.gly(0, 25)}<span>Dziś</span></button>
+    <button class="t" data-a="tab" data-tab="plans" aria-label="Plany">${F.gly(1, 25)}<span>Plany</span></button>
     <div class="mid ${F.S.draft ? 'live' : ''}"><button data-a="tab" data-tab="workout" aria-label="${F.S.draft ? 'Wróć do treningu' : 'Rozpocznij trening'}">${ic(F.S.draft ? 'play' : 'flame', 34)}</button></div>
-    <button class="t" data-a="tab" data-tab="history" aria-label="Historia">${ic('history', 24)}<span>Historia</span></button>
-    <button class="t" data-a="tab" data-tab="stats" aria-label="Postępy">${ic('chart-line', 24)}<span>Postępy</span></button></div>`;
+    <button class="t" data-a="tab" data-tab="history" aria-label="Historia">${F.gly(2, 25)}<span>Historia</span></button>
+    <button class="t" data-a="tab" data-tab="stats" aria-label="Postępy">${F.gly(3, 25)}<span>Postępy</span></button></div>`;
   F.drawTabs = () => { const el = F.$('#tabbar'); el.innerHTML = tabs(); const cur = document.body.dataset.route; F.$$('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === cur)); };
   const _r = F.render; F.render = k => { _r(k); F.drawTabs(); };
 

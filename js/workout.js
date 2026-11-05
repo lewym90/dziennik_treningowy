@@ -276,6 +276,7 @@
     const p = prs[0]; const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fwt(s.w, ex)} ${F.unit()} × ${s.r}`;
     const el = document.createElement('div'); el.className = 'pr-banner'; el.innerHTML = `${ic('trophy', 28)}<div><b>Nowy rekord</b><span>${E(p.label)}</span><em>${E(ex.name)} · ${txt}</em></div>`;
     document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('in'));
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) { const bst = document.createElement('img'); bst.className = 'pr-burst'; bst.src = 'assets/bg/burst.webp'; bst.alt = ''; document.body.appendChild(bst); setTimeout(() => bst.remove(), 1300); }
     F.haptic([60, 40, 60, 40, 160]); F.beep([[660, .09], [880, .09], [1175, .09], [1568, .26]]);
     if (btn) F.burstAt(btn, 70, 1.3); setTimeout(() => F.burst(innerWidth / 2, 90, 60, 1.1), 180);
     setTimeout(() => { el.classList.remove('in'); setTimeout(() => el.remove(), 400); }, 3200);
@@ -354,7 +355,7 @@
   function summary(s, xpGain, rankUp) {
     const vol = F.sessionVolume(s); const rk = F.rank();
     F.go('#/home');
-    const html = `<div class="sum"><div class="sum-top">${F.logo(54)}<h2>Trening<br>zaliczony</h2><p>${E(s.name)}</p></div>
+    const html = `<div class="sum"><div class="sum-top"><img class="sum-logo" src="assets/bg/logo.webp" alt="FORGE"><h2>Trening<br>zaliczony</h2><p>${E(s.name)}</p></div>
       <div class="sum-stats"><div><small>Czas</small><b>${F.fmtMin(s.dur)}</b></div><div><small>Tonaż</small><b>${F.fmtVol(vol)}</b></div><div><small>Serie</small><b>${F.sessionSets(s)}</b></div><div><small>Kcal</small><b>${F.fmtNum(Math.round(F.sessKcal(s).net / 5) * 5, 0)}</b></div></div>
       ${s.pend && s.pend.length ? `<p class="small">${ic('timer', 14)} Do dokończenia: ${s.pend.map(p => E(F.exName(p.exId)) + ' ' + p.mins + ' min').join(', ')}. Dopiszesz to z ekranu głównego w ciągu 48 godzin — trening zostanie przeliczony.</p>` : ''}
       ${s.prs.length ? `<div class="sum-pr"><h3>${ic('trophy', 20)} ${s.prs.length === 1 ? 'Nowy rekord' : s.prs.length + ' nowe rekordy'}</h3>${s.prs.map(p => `<div><b>${E(F.exName(p.exId))}</b><span>${E(p.text)}</span></div>`).join('')}</div>` : ''}
@@ -372,13 +373,11 @@
     try { await Promise.all([document.fonts.load('italic 800 80px "Barlow Condensed"'), document.fonts.load('700 40px "Barlow Condensed"'), document.fonts.load('500 30px Barlow')]); } catch (e) { }
     const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
     const cs = getComputedStyle(document.documentElement); const a1 = cs.getPropertyValue('--a1').trim() || '#ff4b1f', a2 = cs.getPropertyValue('--a2').trim() || '#ff9a1f';
-    g.fillStyle = '#0b0c0f'; g.fillRect(0, 0, W, H);
-    let rg = g.createRadialGradient(W * .85, 0, 0, W * .85, 0, 900); rg.addColorStop(0, a1 + '99'); rg.addColorStop(1, 'transparent'); g.fillStyle = rg; g.fillRect(0, 0, W, H);
-    g.save(); g.globalAlpha = .12; for (let i = 0; i < 9; i++) { g.fillStyle = i % 2 ? a1 : a2; g.beginPath(); g.moveTo(-100 + i * 150, H); g.lineTo(60 + i * 150, H); g.lineTo(560 + i * 150, 0); g.lineTo(400 + i * 150, 0); g.fill(); } g.restore();
-    const lg = g.createLinearGradient(0, 0, 100, 100); lg.addColorStop(0, a2); lg.addColorStop(1, a1);
-    g.save(); g.translate(70, 70); g.scale(1.1, 1.1); g.fillStyle = lg; g.fill(new Path2D(F.LOGO_PATH)); g.restore();
-    g.fillStyle = '#e8eaf0'; g.font = 'italic 800 64px "Barlow Condensed"'; g.fillText('FORGE', 200, 140);
-    g.fillStyle = '#8b91a0'; g.font = '500 34px Barlow'; g.textAlign = 'right'; g.fillText(F.fmtDateLong(s.start), W - 70, 138); g.textAlign = 'left';
+    const pic = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+    const [bgI, logoI] = await Promise.all([pic('assets/bg/share.webp'), pic('assets/bg/logo.webp')]);
+    g.fillStyle = '#0b0c0f'; g.fillRect(0, 0, W, H); if (bgI) g.drawImage(bgI, 0, 0, W, H);
+    if (logoI) g.drawImage(logoI, 70, 74, 360, 360 * logoI.naturalHeight / logoI.naturalWidth);
+    g.fillStyle = '#c9c0b6'; g.font = '500 34px Barlow'; g.textAlign = 'right'; g.fillText(F.fmtDateLong(s.start), W - 70, 124); g.textAlign = 'left';
     let fs = 170; const title = (s.name || 'Trening').toUpperCase(); g.font = `italic 800 ${fs}px "Barlow Condensed"`; while (g.measureText(title).width > W - 140 && fs > 60) { fs -= 6; g.font = `italic 800 ${fs}px "Barlow Condensed"`; }
     g.fillStyle = '#fff'; g.fillText(title, 70, 380);
     const bar = g.createLinearGradient(70, 0, 500, 0); bar.addColorStop(0, a2); bar.addColorStop(1, a1); g.fillStyle = bar; g.fillRect(70, 410, 420, 10);

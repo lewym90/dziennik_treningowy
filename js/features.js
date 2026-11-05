@@ -220,7 +220,7 @@
     else if (i && i.d) media = `<div class="tech-img n${i.n}">${Array.from({ length: Math.min(2, i.n) }, (_, k) => `<img crossorigin="anonymous" loading="lazy" decoding="async" data-d="${E(i.d)}" data-n="${k}" src="${IMG1(i.d, k)}" alt="${E(ex.name)} — ${k ? 'koniec' : 'start'} ruchu">`).join('')}<em class="tech-off">Zdjęcia pobiorą się po połączeniu z internetem.</em></div>`;
     const tips = ex.tip ? String(ex.tip).split(/\n+/).filter(Boolean) : ((i && i.t) || []);
     const yt = `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' technika')}`;
-    return `${media}<div class="tech-m"><div><small>Główne</small><div class="mchips">${chips(mu.p, 'p')}</div></div>${mu.s.length ? `<div><small>Pomocnicze</small><div class="mchips">${chips(mu.s, 's')}</div></div>` : ''}</div>
+    return `${F.exArt(id)}${media}<div class="tech-m"><div><small>Główne</small><div class="mchips">${chips(mu.p, 'p')}</div></div>${mu.s.length ? `<div><small>Pomocnicze</small><div class="mchips">${chips(mu.s, 's')}</div></div>` : ''}</div>
       ${tips.length ? `<h4 class="lbl">Technika</h4><ul class="tips">${tips.map(t => `<li>${E(t)}</li>`).join('')}</ul>` : `<p class="dim small">Brak opisu techniki. Dodaj własny w edycji ćwiczenia.</p>`}
       ${i && i.i && i.i.length ? `<details class="en"><summary>Instrukcja krok po kroku (angielski)</summary><ol>${i.i.map(t => `<li>${E(t)}</li>`).join('')}</ol></details>` : ''}
       <a class="btn ghost wide" href="${yt}" target="_blank" rel="noopener">${ic('play', 18)} Szukaj filmu z techniką</a>

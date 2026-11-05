@@ -42,7 +42,7 @@
   const goalDefaultsCardio = g => g === 'sculpt' || g === 'health' || g === 'endur';
 
   const chip = (on, act, attrs, label) => `<button class="chip ${on ? 'on' : ''}" data-a="${act}" ${attrs}>${E(label)}</button>`;
-  const opt = (on, act, attrs, t, sub) => `<button class="wz-o ${on ? 'on' : ''}" data-a="${act}" ${attrs}><b>${E(t)}</b>${sub ? `<small>${E(sub)}</small>` : ''}</button>`;
+  const opt = (on, act, attrs, t, sub, img) => `<button class="wz-o ${on ? 'on' : ''} ${img != null ? 'im' : ''}" data-a="${act}" ${attrs}>${img != null ? `<img src="assets/wiz/${img}.webp" width="64" height="64" alt="">` : ''}<span><b>${E(t)}</b>${sub ? `<small>${E(sub)}</small>` : ''}</span></button>`;
   const yn = (k, i, v) => `<div class="wz-yn ${v === null ? 'miss' : ''}"><p>${E(SCR[i])}</p><div class="chips">${chip(v === false, 'wzScr', `data-i="${i}" data-v="0"`, 'Nie')}${chip(v === true, 'wzScr', `data-i="${i}" data-v="1"`, 'Tak')}</div></div>`;
 
   /* ---------- kroki ---------- */
@@ -77,7 +77,7 @@
       <div class="chips">${chip(!w.scheme, 'wzScheme', 'data-v=""', 'Jeden ciężar we wszystkich seriach')}${chip(w.scheme === 'pyr', 'wzScheme', 'data-v="pyr"', 'Narastająco (piramida)')}</div>
       <p class="dim small">Badania nie pokazują przewagi żadnego z tych sposobów dla siły i masy mięśniowej — wybierz ten, który lepiej Ci służy. Piramida: w kolejnych seriach ciężar rośnie, a powtórzeń jest mniej (nie dotyczy planów dla osób 65+, w ciąży i po porodzie).</p>` : ''}</section>`; },
     goal: () => { const w = Z().w; return `<section class="card cut"><h3>${ic('trophy', 18)} Cel</h3>
-      <div class="wz-opts">${Object.entries(P.GOALS).map(([k, v]) => opt(w.goal === k, 'wzGoal', `data-v="${k}"`, v[0], v[1])).join('')}</div>
+      <div class="wz-opts">${Object.entries(P.GOALS).map(([k, v], i) => opt(w.goal === k, 'wzGoal', `data-v="${k}"`, v[0], v[1], i)).join('')}</div>
       <h4 class="lbl">Partie priorytetowe (do 3, opcjonalnie)</h4><div class="chips">${Object.entries(PRIO).map(([k, t]) => chip(w.prio.includes(k), 'wzPrio', `data-v="${k}"`, t)).join('')}</div>
       <p class="dim small">Priorytetowe partie dostaną więcej serii, pozostałe utrzymam na rozsądnym poziomie.</p>
       <p class="dim small">Cardio omówimy w następnym kroku.</p></section>`; },
@@ -104,7 +104,7 @@
       <p class="small">${n ? `Wybrano ${n} ${F.plur(n, 'dzień', 'dni', 'dni')} tygodniowo.` : 'Wybierz co najmniej jeden dzień.'}${n >= 6 ? ' Zostaw przynajmniej jeden dzień na pełny odpoczynek.' : ''}</p>
       ${timeBlock(w)}</section>`; },
     equip: () => { const w = Z().w; return `<section class="card cut"><h3>${ic('dumbbell', 18)} Sprzęt</h3>
-      <div class="wz-opts">${Object.entries(PRESET).map(([k, v]) => opt(w.preset === k, 'wzPreset', `data-v="${k}"`, v[0], v[1])).join('')}</div>
+      <div class="wz-opts">${Object.entries(PRESET).map(([k, v], i) => opt(w.preset === k, 'wzPreset', `data-v="${k}"`, v[0], v[1], i + 5)).join('')}</div>
       <h4 class="lbl">Dostosuj</h4>
       ${EQ_ALL.map(k => `<label class="sw"><span><b>${EQ_L[k]}</b></span><input type="checkbox" data-b="wzEq" data-k="${k}" ${w.equip.includes(k) ? 'checked' : ''}><i></i></label>`).join('')}
       <label class="sw"><span><b>Ławka (płaska / regulowana)</b></span><input type="checkbox" data-b="wzFlag" data-k="bench" ${w.bench ? 'checked' : ''}><i></i></label>

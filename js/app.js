@@ -5,14 +5,16 @@
   const exOf = id => F.S.ex.get(id);
   const exName = id => (exOf(id) || { name: 'Usunięte ćwiczenie' }).name;
   F.exName = exName;
-  const mDot = m => `<i class="mdot" style="--mc:${F.MUSCLE_COLORS[m] || '#888'}"></i>`;
+  const mDot = m => { const i = Object.keys(F.MUSCLES).indexOf(m); return `<i class="mdot" style="-webkit-mask-image:url(assets/mus/${i < 0 ? 11 : i}.webp);mask-image:url(assets/mus/${i < 0 ? 11 : i}.webp)"></i>`; };
+  F.gly = (n, s = 24) => `<i class="gly" style="-webkit-mask-image:url(assets/ic/${n}.webp);mask-image:url(assets/ic/${n}.webp);width:${s}px;height:${s}px"></i>`;
   F.mDot = mDot;
   F.rankImg = (i, s = 64) => `<img class="rk-em" src="assets/rank/${i}.webp" width="${s}" height="${s}" alt="">`;
 
   /* ---------- helpers widoku ---------- */
   const head = (title, o = {}) => `<header class="ph">${o.back ? `<button class="ibtn back" data-a="back" aria-label="Wstecz">${ic('chevron-left', 24)}</button>` : ''}<div class="ph-t"><h1>${title}</h1>${o.sub ? `<p>${o.sub}</p>` : ''}</div><div class="ph-r">${o.right || ''}</div></header>`;
   F.head = head;
-  const empty = (icon, title, text, cta) => `<div class="empty">${ic(icon, 40)}<h3>${title}</h3><p>${text}</p>${cta || ''}</div>`;
+  const EMPTY = { 'clipboard-list': 0, history: 1, 'chart-line': 2, ruler: 3, camera: 4, search: 5 };
+  const empty = (icon, title, text, cta) => `<div class="empty">${EMPTY[icon] != null ? `<img src="assets/empty/${EMPTY[icon]}.webp" width="130" height="130" alt="">` : ic(icon, 40)}<h3>${title}</h3><p>${text}</p>${cta || ''}</div>`;
   F.empty = empty;
   F.act.back = () => { if (history.length > 1) history.back(); else location.hash = '#/home'; };
   F.go = h => { location.hash = h; };
@@ -93,19 +95,19 @@
     if (F.installEvt && !F.isStandalone()) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Zainstaluj FORGE</b><br><small>Pełny ekran i działanie bez internetu.</small></p><button class="btn sm primary" data-a="installApp">Instaluj</button></div>`;
     else if (F.isIOS() && !F.isStandalone() && !s.installDismissed) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Dodaj do ekranu początkowego</b><br><small>Safari → Udostępnij → „Do ekranu początkowego”.</small></p><button class="ibtn" data-a="dismissInstall" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
     return {
-      html: `<header class="hm-top"><span class="hm-logo">${F.logo(34)}<b>FORGE</b></span><a class="ibtn" href="#/settings" aria-label="Ustawienia">${ic('settings', 22)}</a></header>
+      html: `<header class="hm-top"><img class="hm-logo" src="assets/bg/logo.webp" alt="FORGE"><a class="ibtn" href="#/settings" aria-label="Ustawienia">${ic('settings', 22)}</a></header>
       <section class="hm-greet"><div><h1>${greet}${s.name ? ', ' + E(s.name) : ''}</h1><p>${F.fmtDateLong(Date.now())}</p></div><a class="hm-rank" href="#/stats" data-a="goOver">${F.chart.ring(rk.pct, 76, 4, F.rankImg(rk.i, 50))}<small>${rk.name}</small></a></section>
       ${hero}
       ${F.pendHtml ? F.pendHtml() : ""}
       ${banners}
       <div class="qa">
-        <a class="qa-i cut" href="#/wizard" data-a="newWizard">${ic('sparkles', 24)}<span>Kreator planu</span></a>
-        <a class="qa-i cut" href="#/report">${ic('chart-column', 24)}<span>Raport tygodnia</span></a><a class="qa-i cut" href="#/nutrition">${ic('flame', 24)}<span>Żywienie</span></a>
-        <a class="qa-i cut" href="#/guide">${ic('info', 24)}<span>Porady i nauka</span></a>
-        <a class="qa-i cut" href="#/import">${ic('scan-text', 24)}<span>Import planu</span></a>
-        <a class="qa-i cut" href="#/tools">${ic('calculator', 24)}<span>Kalkulatory</span></a>
-        <a class="qa-i cut" href="#/exercises">${ic('dumbbell', 24)}<span>Ćwiczenia</span></a>
-        <a class="qa-i cut" href="#/stats" data-a="goBody">${ic('scale', 24)}<span>Waga ciała</span></a>
+        <a class="qa-i cut" href="#/wizard" data-a="newWizard">${F.gly(4, 26)}<span>Kreator planu</span></a>
+        <a class="qa-i cut" href="#/report">${F.gly(5, 26)}<span>Raport tygodnia</span></a><a class="qa-i cut" href="#/nutrition">${F.gly(6, 26)}<span>Żywienie</span></a>
+        <a class="qa-i cut" href="#/guide">${F.gly(7, 26)}<span>Porady i nauka</span></a>
+        <a class="qa-i cut" href="#/import">${F.gly(8, 26)}<span>Import planu</span></a>
+        <a class="qa-i cut" href="#/tools">${F.gly(9, 26)}<span>Kalkulatory</span></a>
+        <a class="qa-i cut" href="#/exercises">${F.gly(10, 26)}<span>Ćwiczenia</span></a>
+        <a class="qa-i cut" href="#/stats" data-a="goBody">${F.gly(11, 26)}<span>Waga ciała</span></a>
       </div>
       <section class="card cut week"><div class="week-top"><div><h3>Ten tydzień</h3><p class="dim">${wk.count} z ${goal} treningów</p></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
       <div class="tiles">
