@@ -50,7 +50,8 @@
     if (!out) { location.hash = '#/home'; return; }
     const sy = keepScroll ? window.scrollY : 0;
     document.body.dataset.route = curTab; document.body.classList.toggle('in-workout', curTab === 'workout');
-    view.className = 'view' + (keepScroll ? '' : ' enter'); view.innerHTML = out.html;
+    view.className = 'view' + (keepScroll || out.html.includes('wz-bar') ? '' : ' enter'); view.innerHTML = out.html;
+    // bez animacji z transform w kreatorze: odebrałaby paskowi przycisków pozycję fixed i przycisk skakałby
     F.$$('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === curTab));
     window.scrollTo(0, sy); F.countUp(view); if (out.after) out.after(view); F.updateDock();
     if (!keepScroll) setTimeout(() => view.classList.remove('enter'), 500);
