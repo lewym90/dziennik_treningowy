@@ -139,9 +139,9 @@
     <section class="card cut"><h3>Treningi w tygodniu <small class="dim">cel ${F.S.settings.weeklyGoal}</small></h3>${F.chart.bars(wk.map((w, i) => ({ label: F.fmtDateShort(w.start).split(' ')[0], value: w.count, tip: `Tydzień od ${F.fmtDate(w.start)}: ${w.count} tr.`, hl: i === wk.length - 1 })), { labelEvery: 3, values: it => it.value })}</section>
     <section class="card cut"><h3>Podział partii <small class="dim">ostatnie 30 dni</small></h3>${mus.length ? F.chart.hbars(mus) : '<p class="dim">Brak treningów w ostatnich 30 dniach.</p>'}</section>
     ${F.progressHtml()}
-    <section class="card cut rank"><div class="rank-top"><div><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Do rangi ${rk.next}: ${F.fmtNum(rk.toNext, 0)} XP` : 'Maksymalna ranga.'} Punkty zdobywasz za tonaż, serie, treningi i rekordy.</p></section>
+    <section class="card cut rank"><div class="rank-top">${F.rankImg(rk.i, 72)}<div class="grow"><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Do rangi ${rk.next}: ${F.fmtNum(rk.toNext, 0)} XP` : 'Maksymalna ranga.'} Punkty zdobywasz za tonaż, serie, treningi i rekordy.</p></section>
     <h3 class="sec">Osiągnięcia <small class="dim">${ach.filter(a => a.done).length}/${ach.length}</small></h3>
-    <div class="badges">${ach.map(a => `<div class="badge cut ${a.done ? 'done' : ''}">${ic(a.icon, 26)}<b>${E(a.name)}</b><small>${E(a.desc)}</small>${a.done ? '' : `<div class="bar sm"><i style="width:${(a.cur / a.goal * 100).toFixed(0)}%"></i></div>`}</div>`).join('')}</div>
+    <div class="badges">${ach.map((a, i) => `<div class="badge cut ${a.done ? 'done' : ''}"><img src="assets/ach/${i}.webp" width="84" height="84" alt="" loading="lazy"><b>${E(a.name)}</b><small>${E(a.desc)}</small>${a.done ? '' : `<div class="bar sm"><i style="width:${(a.cur / a.goal * 100).toFixed(0)}%"></i></div>`}</div>`).join('')}</div>
     ${top.length ? `<h3 class="sec">Najczęściej trenowane</h3><div class="exlist">${top.map(([id, c]) => { const ex = exOf(id); return ex ? `<a class="exrow" href="#/ex/${E(id)}">${F.mDot(ex.muscle)}<span><b>${E(ex.name)}</b><small>${c} treningów</small></span>${ic('chevron-right', 16)}</a>` : ''; }).join('')}</div>` : ''}`;
   }
   function statsPR() {
@@ -220,10 +220,10 @@
     const s = F.S.settings; const rk = F.rank(); const t = F.totals();
     const sw = (k, label, sub) => `<label class="sw"><span><b>${label}</b>${sub ? `<small>${sub}</small>` : ''}</span><input type="checkbox" data-b="set" data-k="${k}" ${s[k] ? 'checked' : ''}><i></i></label>`;
     const step = (k, label, val, unit, min, max, st) => `<div class="stp"><span><b>${label}</b></span><div class="num"><button data-a="setStep" data-k="${k}" data-d="${-st}" data-min="${min}" data-max="${max}">${ic('minus', 16)}</button><output>${val}${unit ? ' ' + unit : ''}</output><button data-a="setStep" data-k="${k}" data-d="${st}" data-min="${min}" data-max="${max}">${ic('plus', 16)}</button></div></div>`;
-    const accents = [['ember', 'Żar', '#ff4b1f', '#ff9a1f'], ['crimson', 'Karmin', '#ff2a55', '#ff6a3d'], ['volt', 'Volt', '#b6ff1f', '#3dff9a'], ['ice', 'Lód', '#3db8ff', '#7a5cff']];
+    const accents = [['ember', 'Żar', '#ff4b1f', '#ff9a1f'], ['crimson', 'Karmin', '#ff2a55', '#ff6a3d'], ['gold', 'Złoto', '#e0a100', '#ffd34d'], ['ice', 'Lód', '#3db8ff', '#7a5cff']];
     return {
       html: `${F.head('Ustawienia', { back: 1 })}
-      <section class="card cut"><label class="fld"><span>Twoje imię (na ekranie startowym)</span><input data-b="set" data-k="name" value="${E(s.name)}" maxlength="24" placeholder="np. Kasia"></label><div class="rank-mini">${ic('crown', 18)} Ranga <b>${rk.name}</b> · ${F.fmtNum(rk.xp, 0)} XP</div></section>
+      <section class="card cut"><label class="fld"><span>Twoje imię (na ekranie startowym)</span><input data-b="set" data-k="name" value="${E(s.name)}" maxlength="24" placeholder="np. Kasia"></label><div class="rank-mini">${F.rankImg(rk.i, 36)} Ranga <b>${rk.name}</b> · ${F.fmtNum(rk.xp, 0)} XP</div></section>
       <h3 class="sec">Profil</h3><section class="card cut">${F.profileHtml()}<p class="dim small">Wagę wpiszesz w Postępy → Ciało.</p></section>
       <h3 class="sec">Trening</h3><section class="card cut list">
         <div class="stp"><span><b>Jednostki</b></span><div class="seg tiny"><button class="${s.unit === 'kg' ? 'on' : ''}" data-a="setUnit" data-u="kg">kg</button><button class="${s.unit === 'lb' ? 'on' : ''}" data-a="setUnit" data-u="lb">lb</button></div></div>
@@ -252,7 +252,7 @@
   F.act.setStepW = b => { F.S.settings.step = +b.dataset.v; F.saveSettings(); F.render(true); };
   F.act.setUnit = b => { F.S.settings.unit = b.dataset.u; F.saveSettings(); F.render(true); };
   F.act.setPlate = b => { const p = +b.dataset.p, a = F.S.settings.plates; F.S.settings.plates = a.includes(p) ? a.filter(x => x !== p) : [...a, p].sort((x, y) => y - x); F.saveSettings(); F.render(true); };
-  F.applyAccent = () => { document.documentElement.dataset.accent = F.S.settings.accent; const m = { ember: '#ff4b1f', crimson: '#ff2a55', volt: '#b6ff1f', ice: '#3db8ff' }; };
+  F.applyAccent = () => { if (!['ember', 'crimson', 'gold', 'ice'].includes(F.S.settings.accent)) { F.S.settings.accent = 'ember'; F.saveSettings(); } document.documentElement.dataset.accent = F.S.settings.accent; };
   F.act.setAccent = b => { F.S.settings.accent = b.dataset.v; F.saveSettings(); F.applyAccent(); F.render(true); };
   F.act.persist = async () => { try { const ok = navigator.storage && navigator.storage.persist ? await navigator.storage.persist() : false; F.toast(ok ? 'Dane zabezpieczone przed automatycznym czyszczeniem' : 'Przeglądarka nie przyznała trwałej pamięci. Rób kopie zapasowe.', ok ? 'hot' : ''); } catch (e) { F.toast('Niedostępne w tej przeglądarce'); } };
   F.act.wipe = async () => {

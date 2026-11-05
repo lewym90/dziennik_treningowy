@@ -12,6 +12,7 @@ Instalowalna aplikacja (PWA) dla ludzi, którzy podnoszą ciężko. Działa offl
 - **iPhone (Safari):** Udostępnij → „Do ekranu początkowego".
 
 ## Funkcje
+- Trening na pełnoekranowych kartach przesuwanych palcem, superserie i obwody na jednej karcie.
 - Dziennik: własna biblioteka ćwiczeń (886 gotowych + własne), serie, powtórzenia, ciężar, RPE, rozgrzewki, drop sety.
 - Plany tworzone przez użytkownika, plany startowe (PPL, Góra/Dół, 5×5, Full Body, Pośladki i nogi).
 - Trening na żywo: podpowiedź celu (progresja), poprzedni wynik, automatyczny stoper przerw (dźwięk, wibracja, ekran nie gaśnie), wykrywanie rekordów z animacją.

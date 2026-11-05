@@ -12,7 +12,7 @@
   // zakres tygodniowych serii efektywnych (poniżej = za mało, powyżej = dużo)
   const TARGET = { chest: [10, 20], back: [10, 20], shoulders: [8, 16], biceps: [6, 14], triceps: [6, 14], forearms: [2, 8], abs: [6, 14], quads: [10, 20], hams: [6, 14], glutes: [6, 14], calves: [6, 14] };
   const ST = {
-    none: { c: '#3a3f4e', t: 'Brak serii', o: .55 }, low: { c: '#ffb02e', t: 'Za mało', o: .95 }, ok: { c: '#3ddc84', t: 'W normie', o: .95 }, high: { c: '#ff4b1f', t: 'Dużo', o: 1 }
+    none: { c: '#57524d', t: 'Brak serii' }, low: { c: '#a8693a', t: 'Za mało' }, ok: { c: '#ff9a1f', t: 'W normie' }, high: { c: '#ff3a14', t: 'Dużo' }
   };
   F.secondaryOf = id => { const ex = exOf(id); const i = F.EXINFO && F.EXINFO[id]; return (ex && ex.sec) || (i && i.s) || []; };
   // serie efektywne: ruch główny = 1, mięśnie pomocnicze = 0,5
@@ -28,43 +28,14 @@
   };
   const status = (m, v) => { const [lo, hi] = TARGET[m]; return v <= 0 ? 'none' : v < lo ? 'low' : v <= hi ? 'ok' : 'high'; };
 
-  const FRONT = {
-    shoulders: ['72,58 58,60 46,70 42,86 50,98 60,92 66,78 70,66'],
-    chest: ['98,66 72,60 68,74 64,90 70,104 84,110 98,108'],
-    biceps: ['42,88 51,98 53,125 46,134 37,128 35,104'],
-    forearms: ['37,134 46,138 45,168 38,188 30,184 31,152'],
-    abs: ['98,112 84,112 81,148 84,184 98,190', '83,113 72,108 69,148 73,182 83,184'],
-    quads: ['97,196 76,192 67,212 65,252 71,290 86,294 96,286 98,240'],
-    calves: ['86,298 72,298 69,328 73,360 82,364 88,334']
-  };
-  const BACK = {
-    back: ['100,46 84,52 66,62 76,78 100,90', '100,92 76,82 68,96 66,126 78,148 100,156', '100,158 82,152 80,180 100,188'],
-    shoulders: ['66,62 50,68 42,86 50,98 62,90 72,78'],
-    triceps: ['42,88 51,98 53,125 46,134 37,128 35,104'],
-    forearms: ['37,134 46,138 45,168 38,188 30,184 31,152'],
-    glutes: ['100,190 78,186 68,204 72,228 88,236 100,232'],
-    hams: ['98,238 74,234 66,258 69,290 84,294 97,286'],
-    calves: ['86,298 72,298 69,328 73,360 82,364 88,334']
-  };
-  function bodySvg(shapes, info, label) {
-    const polysOf = m => (shapes[m] || []);
-    const half = (mir) => {
-      const t = mir ? ' transform="translate(200 0) scale(-1 1)"' : '';
-      let g = '';
-      Object.keys(shapes).forEach(m => { const s = info[m]; polysOf(m).forEach(p => { g += `<polygon points="${p}" fill="${ST[s].c}" fill-opacity="${ST[s].o}" class="mp" data-a="musTap" data-m="${m}"/>`; }); });
-      return `<g${t}>${g}</g>`;
-    };
-    const base = Object.keys(shapes).flatMap(m => polysOf(m)).map(p => `<polygon points="${p}"/>`).join('');
-    const baseHalf = mir => `<g${mir ? ' transform="translate(200 0) scale(-1 1)"' : ''}>${base}</g>`;
-    return `<svg viewBox="0 0 200 380" class="mbody" role="img" aria-label="${label}"><g class="mbase">${baseHalf(0)}${baseHalf(1)}<circle cx="100" cy="27" r="17"/><rect x="91" y="40" width="18" height="18" rx="4"/><rect x="62" y="196" width="76" height="24" rx="10"/><circle cx="34" cy="192" r="6"/><circle cx="166" cy="192" r="6"/><rect x="66" y="360" width="26" height="12" rx="5"/><rect x="108" y="360" width="26" height="12" rx="5"/></g>${half(0)}${half(1)}<text x="100" y="378" class="mlab" text-anchor="middle">${label}</text></svg>`;
-  }
   F.statsMuscles = () => {
     const rng = F.ui.musRange || 7; const data = F.muscleSets(rng); const info = {}; MG.forEach(m => info[m] = status(m, data[m].perWeek));
+    const colors = {}; MG.forEach(m => { if (info[m] !== 'none') colors[m] = ST[info[m]].c; });
     const sorted = [...MG].sort((a, b) => { const o = { none: 0, low: 1, high: 2, ok: 3 }; return o[info[a]] - o[info[b]] || data[a].perWeek - data[b].perWeek; });
     const lacking = MG.filter(m => info[m] === 'none' || info[m] === 'low'); const heavy = MG.filter(m => info[m] === 'high');
     const tip = !F.S.sessions.length ? 'Zrób pierwszy trening, a mapa zapali się na kolorowo.' : lacking.length ? `Do dołożenia: <b>${lacking.slice(0, 4).map(m => F.MUSCLES[m].toLowerCase()).join(', ')}</b>.${heavy.length ? ` Dużo pracy: <b>${heavy.slice(0, 3).map(m => F.MUSCLES[m].toLowerCase()).join(', ')}</b>.` : ''}` : heavy.length ? `Wszystko w normie, a najwięcej pracy dostają: <b>${heavy.slice(0, 3).map(m => F.MUSCLES[m].toLowerCase()).join(', ')}</b>.` : 'Wszystkie partie w zakresie. Tak trzymać.';
     return `<div class="seg"><button class="${rng === 7 ? 'on' : ''}" data-a="musRange" data-r="7">Ostatnie 7 dni</button><button class="${rng === 28 ? 'on' : ''}" data-a="musRange" data-r="28">4 tyg. (średnio)</button></div>
-    <section class="card cut mmap"><div class="mmap-b">${bodySvg(FRONT, info, 'PRZÓD')}${bodySvg(BACK, info, 'TYŁ')}</div>
+    <section class="card cut mmap"><div class="mmap-b"><figure>${F.bodyCv('f', colors, { tap: 1, dim: .75 })}<figcaption>Przód</figcaption></figure><figure>${F.bodyCv('b', colors, { tap: 1, dim: .75 })}<figcaption>Tył</figcaption></figure></div>
       <div class="mleg">${['none', 'low', 'ok', 'high'].map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].t}</span>`).join('')}</div>
       <p class="dim small">Serie efektywne na tydzień: ruch główny liczy się za 1, mięśnie pomocnicze za 0,5. Dotknij partii, aby zobaczyć szczegóły.</p></section>
     <div class="banner hot"><div>${ic('target', 20)}</div><p>${tip}</p></div>

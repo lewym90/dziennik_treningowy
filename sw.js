@@ -1,8 +1,9 @@
 /* FORGE — service worker: działanie offline, odświeżanie w tle, odbiór plików z menu „Udostępnij” */
-const VERSION = 'forge-v1.12.3';
+const VERSION = 'forge-v1.13.0';
 const LIBS = 'forge-libs-1'; // moduły OCR i PDF (ok. 11 MB): osobna pamięć, która przetrwa aktualizacje aplikacji; zmień numer przy podmianie plików w vendor/
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'css/styles.css',
-  'js/icons.js', 'js/data.js', 'js/exinfo.js', 'js/exdb.js', 'js/kb.js', 'js/features.js', 'js/kcal.js', 'js/alert.js', 'js/inputs.js', 'js/core.js', 'js/charts.js', 'js/ui.js', 'js/parser.js', 'js/app.js', 'js/views2.js', 'js/workout.js', 'js/importer.js', 'js/planner.js', 'js/cardio.js', 'js/wizard.js', 'js/coach.js', 'js/guide.js', 'js/main.js',
+  'js/icons.js', 'js/data.js', 'js/exinfo.js', 'js/exdb.js', 'js/kb.js', 'js/features.js', 'js/kcal.js', 'js/body-data.js', 'js/body.js', 'js/alert.js', 'js/inputs.js', 'js/core.js', 'js/charts.js', 'js/ui.js', 'js/parser.js', 'js/app.js', 'js/views2.js', 'js/workout.js', 'js/importer.js', 'js/planner.js', 'js/cardio.js', 'js/wizard.js', 'js/coach.js', 'js/guide.js', 'js/main.js',
+  'assets/body/m.webp', 'assets/body/m-id.png', 'assets/body/f.webp', 'assets/body/f-id.png', 'assets/rank/0.webp', 'assets/rank/1.webp', 'assets/rank/2.webp', 'assets/rank/3.webp', 'assets/rank/4.webp', 'assets/rank/5.webp', 'assets/rank/6.webp', 'assets/ach/0.webp', 'assets/ach/1.webp', 'assets/ach/2.webp', 'assets/ach/3.webp', 'assets/ach/4.webp', 'assets/ach/5.webp', 'assets/ach/6.webp', 'assets/ach/7.webp', 'assets/ach/8.webp', 'assets/ach/9.webp', 'assets/ach/10.webp', 'assets/ach/11.webp', 'assets/ach/12.webp', 'assets/ach/13.webp', 'assets/ach/14.webp',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
   'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2', 'fonts/barlow-condensed-latin-800-normal.woff2',
   'fonts/barlow-condensed-latin-600-italic.woff2', 'fonts/barlow-condensed-latin-700-italic.woff2', 'fonts/barlow-condensed-latin-800-italic.woff2',

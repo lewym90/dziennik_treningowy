@@ -7,6 +7,7 @@
   F.exName = exName;
   const mDot = m => `<i class="mdot" style="--mc:${F.MUSCLE_COLORS[m] || '#888'}"></i>`;
   F.mDot = mDot;
+  F.rankImg = (i, s = 64) => `<img class="rk-em" src="assets/rank/${i}.webp" width="${s}" height="${s}" alt="">`;
 
   /* ---------- helpers widoku ---------- */
   const head = (title, o = {}) => `<header class="ph">${o.back ? `<button class="ibtn back" data-a="back" aria-label="Wstecz">${ic('chevron-left', 24)}</button>` : ''}<div class="ph-t"><h1>${title}</h1>${o.sub ? `<p>${o.sub}</p>` : ''}</div><div class="ph-r">${o.right || ''}</div></header>`;
@@ -77,11 +78,9 @@
       const done = d.exercises.reduce((a, e) => a + e.sets.filter(x => x.done).length, 0);
       hero = `<section class="hero cut live"><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} serii zaliczonych</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
     } else if (nx) {
-      const names = nx.day.items.slice(0, 4).map(it => exName(it.exId));
-      hero = `<section class="hero cut"><div class="hero-k">${E(nx.plan.name)} · dzień ${nx.di + 1} z ${nx.plan.days.length}</div><h2>${E(nx.day.name)}</h2>
-        <ul class="hero-l">${names.map(n => `<li>${E(n)}</li>`).join('')}${nx.day.items.length > 4 ? `<li class="more">+ ${nx.day.items.length - 4} więcej</li>` : ''}</ul>
-        <p class="hero-m">${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · ok. ${estMin(nx.day)} min</p>
-        <button class="forge-btn" data-a="startNext"><span>${ic('flame', 22)} Zaczynamy</span></button></section>`;
+            hero = `<section class="hero cut"><div class="hero-k">Następny trening</div><h2>${E(nx.day.name)}</h2>
+        <p class="hero-m"><span>${ic('calendar', 15)} Dzień ${nx.di + 1} z ${nx.plan.days.length}</span><span>${ic('timer', 15)} ok. ${estMin(nx.day)} min</span><span>${ic('dumbbell', 15)} ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
+        <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button></section>`;
     } else {
       hero = `<section class="hero cut"><div class="hero-k">Zacznij od zera</div><h2>Pora wykuć plan</h2><p class="hero-m">Zbuduj własny plan, wgraj ten, którego używasz dotąd (PDF lub zrzut ekranu) albo wystartuj z gotowego szablonu.</p>
         <div class="btn-row"><a class="btn primary" href="#/import">${ic('scan-text', 18)} Importuj plan</a><a class="btn ghost" href="#/plans">${ic('clipboard-list', 18)} Plany</a></div></section>`;
@@ -94,21 +93,11 @@
     if (F.installEvt && !F.isStandalone()) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Zainstaluj FORGE</b><br><small>Pełny ekran i działanie bez internetu.</small></p><button class="btn sm primary" data-a="installApp">Instaluj</button></div>`;
     else if (F.isIOS() && !F.isStandalone() && !s.installDismissed) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Dodaj do ekranu początkowego</b><br><small>Safari → Udostępnij → „Do ekranu początkowego”.</small></p><button class="ibtn" data-a="dismissInstall" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
     return {
-      html: `${head(`${greet}${s.name ? ', ' + E(s.name) : ''}`, { sub: F.fmtDateLong(Date.now()), right: `<a class="ibtn" href="#/settings" aria-label="Ustawienia">${ic('settings', 22)}</a>` })}
+      html: `<header class="hm-top"><span class="hm-logo">${F.logo(34)}<b>FORGE</b></span><a class="ibtn" href="#/settings" aria-label="Ustawienia">${ic('settings', 22)}</a></header>
+      <section class="hm-greet"><div><h1>${greet}${s.name ? ', ' + E(s.name) : ''}</h1><p>${F.fmtDateLong(Date.now())}</p></div><a class="hm-rank" href="#/stats" data-a="goOver">${F.chart.ring(rk.pct, 76, 4, F.rankImg(rk.i, 50))}<small>${rk.name}</small></a></section>
       ${hero}
       ${F.pendHtml ? F.pendHtml() : ""}
-      <p class="quote">${E(quote)}</p>
       ${banners}
-      <section class="card cut week"><div class="week-top"><div><h3>Ten tydzień</h3><p class="dim">${wk.count} z ${goal} treningów</p></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
-      <div class="tiles">
-        <div class="tile cut"><span class="tl">${ic('flame', 16)} Seria tygodni</span><b class="tv" data-count="${F.weekStreak()}">0</b><small>cel ${goal}×/tydz.</small></div>
-        <div class="tile cut"><span class="tl">${ic('weight', 16)} Tonaż w tygodniu</span><b class="tv" data-count="${F.toDisp(wk.vol) >= 10000 ? F.toDisp(wk.vol) / 1000 : F.toDisp(wk.vol)}" data-dec="${F.toDisp(wk.vol) >= 10000 ? 1 : 0}" data-suf="${F.toDisp(wk.vol) >= 10000 ? ' t' : ' ' + F.unit()}">0</b><small>łącznie ${F.fmtVol(t.vol)}</small></div>
-        <div class="tile cut"><span class="tl">${ic('trophy', 16)} Rekordy</span><b class="tv" data-count="${F.prEvents()}">0</b><small>pobitych w sumie</small></div>
-        <div class="tile cut"><span class="tl">${ic('calendar', 16)} Treningi</span><b class="tv" data-count="${t.count}">0</b><small>${F.fmtDurHuman(t.dur)} pod sztangą</small></div>
-      </div>
-      <section class="card cut rank"><div class="rank-top"><div><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Jeszcze ${F.fmtNum(rk.toNext, 0)} XP do rangi <b>${rk.next}</b>` : 'Maksymalna ranga. Szacunek.'}</p></section>
-      ${prShow.length ? `<h3 class="sec">Świeże rekordy</h3><div class="prow">${prShow.map(p => `<a class="prchip cut" href="#/ex/${E(p.exId)}">${ic('trophy', 16)}<span><b>${E(exName(p.exId))}</b><small>${E(p.text)} · ${F.relDay(p.ts)}</small></span></a>`).join('')}</div>` : ''}
-      <h3 class="sec">Narzędzia</h3>
       <div class="qa">
         <a class="qa-i cut" href="#/wizard" data-a="newWizard">${ic('sparkles', 24)}<span>Kreator planu</span></a>
         <a class="qa-i cut" href="#/report">${ic('chart-column', 24)}<span>Raport tygodnia</span></a><a class="qa-i cut" href="#/nutrition">${ic('flame', 24)}<span>Żywienie</span></a>
@@ -117,7 +106,17 @@
         <a class="qa-i cut" href="#/tools">${ic('calculator', 24)}<span>Kalkulatory</span></a>
         <a class="qa-i cut" href="#/exercises">${ic('dumbbell', 24)}<span>Ćwiczenia</span></a>
         <a class="qa-i cut" href="#/stats" data-a="goBody">${ic('scale', 24)}<span>Waga ciała</span></a>
-      </div>`,
+      </div>
+      <section class="card cut week"><div class="week-top"><div><h3>Ten tydzień</h3><p class="dim">${wk.count} z ${goal} treningów</p></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
+      <div class="tiles">
+        <div class="tile cut"><span class="tl">${ic('flame', 16)} Seria tygodni</span><b class="tv" data-count="${F.weekStreak()}">0</b><small>cel ${goal}×/tydz.</small></div>
+        <div class="tile cut"><span class="tl">${ic('weight', 16)} Tonaż w tygodniu</span><b class="tv" data-count="${F.toDisp(wk.vol) >= 10000 ? F.toDisp(wk.vol) / 1000 : F.toDisp(wk.vol)}" data-dec="${F.toDisp(wk.vol) >= 10000 ? 1 : 0}" data-suf="${F.toDisp(wk.vol) >= 10000 ? ' t' : ' ' + F.unit()}">0</b><small>łącznie ${F.fmtVol(t.vol)}</small></div>
+        <div class="tile cut"><span class="tl">${ic('trophy', 16)} Rekordy</span><b class="tv" data-count="${F.prEvents()}">0</b><small>pobitych w sumie</small></div>
+        <div class="tile cut"><span class="tl">${ic('calendar', 16)} Treningi</span><b class="tv" data-count="${t.count}">0</b><small>${F.fmtDurHuman(t.dur)} pod sztangą</small></div>
+      </div>
+      <section class="card cut rank"><div class="rank-top">${F.rankImg(rk.i, 72)}<div class="grow"><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Jeszcze ${F.fmtNum(rk.toNext, 0)} XP do rangi <b>${rk.next}</b>` : 'Maksymalna ranga. Szacunek.'}</p></section>
+      ${prShow.length ? `<h3 class="sec">Świeże rekordy</h3><div class="prow">${prShow.map(p => `<a class="prchip cut" href="#/ex/${E(p.exId)}">${ic('trophy', 16)}<span><b>${E(exName(p.exId))}</b><small>${E(p.text)} · ${F.relDay(p.ts)}</small></span></a>`).join('')}</div>` : ''}
+      <p class="quote">${E(quote)}</p>`,
       after: () => { }
     };
   }
@@ -128,6 +127,7 @@
   F.act.installApp = async () => { if (!F.installEvt) return; F.installEvt.prompt(); await F.installEvt.userChoice; F.installEvt = null; F.render(true); };
   F.act.dismissInstall = () => { F.S.settings.installDismissed = 1; F.saveSettings(); F.render(true); };
   F.act.goBody = () => { F.ui.statTab = 'body'; };
+  F.act.goOver = () => { F.ui.statTab = 'over'; };
   F.act.startNext = () => { const nx = F.nextWorkout(); if (nx) F.startWorkout({ plan: nx.plan, day: nx.day }); };
   F.act.backupNow = () => F.doBackup();
 
