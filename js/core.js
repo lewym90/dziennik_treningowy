@@ -74,7 +74,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.12.2';
+  F.APPVER = '1.12.3';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
@@ -269,7 +269,7 @@
       if (e.exId !== exId) return; const ws = e.sets.filter(isWork); if (!ws.length) return;
       let best = { w: 0, e1: 0, reps: 0, dur: 0 }, vol = 0;
       ws.forEach(s => { const m = F.setMetrics(ex, s, se.start); best.w = Math.max(best.w, m.w || 0); best.e1 = Math.max(best.e1, m.e1 || 0); best.reps = Math.max(best.reps, m.reps || 0); best.dur = Math.max(best.dur, m.dur || 0); vol += F.setVolume(ex, s, se.start); });
-      out.push({ ts: se.start, sid: se.id, ...best, vol, sets: ws });
+      out.push({ ts: se.start, sid: se.id, deload: !!se.deload, ...best, vol, sets: ws });
     }));
     return out;
   };
@@ -285,7 +285,6 @@
     if (targetReps) { const m = String(targetReps).match(/(\d+)(?:\s*[-–]\s*(\d+))?/); if (m) { lo = +m[1]; hi = +(m[2] || m[1]); } }
     const mode = opts.mode || 'auto';
     const dl = F.deloadOn();
-    const dlw = w => dl ? Math.max(0, roundTo(w * 0.9, F.S.settings.step)) : w;
     if (!last) {
       // brak historii: ewentualnie % 1RM z innych źródeł nie istnieje — zwracamy null
       return null;
@@ -298,11 +297,11 @@
     // % 1RM z planu
     if (opts.pct > 0) {
       const p = F.PR[exId]; const base = p && p.e1;
-      if (base) { const w = Math.max(0, roundTo(base * opts.pct / 100, F.S.settings.step)); return { w: dlw(w), r: lo || top.r, note: `${opts.pct}% 1RM (≈ ${F.fw(base)} ${F.unit()})`, pct: true }; }
+      if (base) { const w = Math.max(0, roundTo(base * opts.pct / 100, F.S.settings.step)); return { w, r: lo || top.r, note: `${opts.pct}% 1RM (≈ ${F.fw(base)} ${F.unit()})`, pct: true }; }
     }
-    if (mode === 'off') return { w: dlw(top.w), r: top.r, note: 'Bez automatycznej progresji', off: true };
+    if (mode === 'off') return { w: top.w, r: top.r, note: 'Bez automatycznej progresji', off: true };
     const st = F.stagnation(exId);
-    if (dl) return { w: dlw(top.w), r: lo || top.r, note: 'Tydzień deload: −10% ciężaru' };
+    if (dl) return { w: top.w, r: top.r, note: 'Tydzień odciążenia: ten sam ciężar, połowa serii, duży zapas powtórzeń' };
     const resetW = Math.max(0, roundTo(top.w * 0.9, F.S.settings.step));
     if (st && st.stuck >= 2 && resetW < top.w) return { w: resetW, r: lo || top.r, note: `Stagnacja (${st.stuck} ${F.plur(st.stuck, 'trening', 'treningi', 'treningów')} bez postępu) — zbij ciężar o 10% i wejdź od nowa`, stag: true };
     if (mode === 'linear') {
@@ -318,9 +317,9 @@
   // wykrywanie stagnacji: ile ostatnich treningów bez poprawy względem najlepszego e1RM z wcześniejszych
   F.stagnation = exId => {
     const ex = F.S.ex.get(exId); if (!ex || ex.type === 'time' || ex.type === 'br') return null;
-    const h = F.exHistory(exId); if (h.length < 4) return null;
+    const h = F.exHistory(exId).filter(x => !x.deload); if (h.length < 4) return null; // tydzień odciążenia nie jest stagnacją
     const key = h.some(x => x.e1) ? 'e1' : 'reps';
-    // wyraźnie lżejszy trening (reset −10%, deload) zaczyna liczenie od nowa: kolejne treningi porównujemy z nim, nie ze starym rekordem — inaczej reset nakręcałby następny reset
+    // wyraźnie lżejszy trening (reset −10%) zaczyna liczenie od nowa: kolejne treningi porównujemy z nim, nie ze starym rekordem — inaczej reset nakręcałby następny reset
     let bestBefore = 0, bestIdx = -1, peak = 0;
     h.forEach((x, i) => {
       const top = Math.max(...x.sets.map(s => s.w || 0));

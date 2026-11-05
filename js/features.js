@@ -262,11 +262,11 @@
      ===================================================================== */
   F.deloadBanner = () => {
     const s = F.S.settings;
-    if (F.deloadOn()) return `<div class="banner hot"><div>${ic('shield', 20)}</div><p><b>Tydzień deload do ${F.fmtDateShort(s.deloadUntil)}</b><br><small>Ciężary −10%, o jedną serię mniej. Regeneruj się.</small></p><button class="btn sm ghost" data-a="deloadStop">Zakończ</button></div>`;
+    if (F.deloadOn()) return `<div class="banner hot"><div>${ic('shield', 20)}</div><p><b>Tydzień deload do ${F.fmtDateShort(s.deloadUntil)}</b><br><small>Połowa serii, ten sam ciężar, duży zapas powtórzeń. Regeneruj się.</small></p><button class="btn sm ghost" data-a="deloadStop">Zakończ</button></div>`;
     const adv = F.deloadAdvice(); if (!adv || (s.deloadDismiss || 0) > Date.now() - 7 * DAY) return '';
     return `<div class="banner"><div>${ic('zap', 20)}</div><p><b>Rozważ tydzień deload</b><br><small>${E(adv.why)}.</small></p><button class="btn sm primary" data-a="deloadStart">Włącz</button><button class="ibtn" data-a="deloadDismiss" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
   };
-  F.act.deloadStart = async () => { F.S.settings.deloadUntil = Date.now() + 7 * DAY; F.S.settings.lastDeload = Date.now(); await F.saveSettings(); F.toast('Deload włączony na 7 dni: −10% ciężaru, −1 seria', 'hot', 3500); F.render(true); };
+  F.act.deloadStart = async () => { F.S.settings.deloadUntil = Date.now() + 7 * DAY; F.S.settings.lastDeload = Date.now(); await F.saveSettings(); F.toast('Deload włączony na 7 dni: połowa serii, ten sam ciężar', 'hot', 3500); F.render(true); };
   F.act.deloadStop = async () => { F.S.settings.deloadUntil = 0; await F.saveSettings(); F.toast('Deload zakończony'); F.render(true); };
   F.act.deloadDismiss = async () => { F.S.settings.deloadDismiss = Date.now(); await F.saveSettings(); F.render(true); };
   F.progressHtml = () => {

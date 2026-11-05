@@ -25,12 +25,12 @@
     const planned = plan.days.filter(d => !/^Cardio/.test(d.name)).length || strength;
     if (sess.length >= 2 && c1 < planned * 0.5 && c2 < planned * 0.5) out.push({ k: 'adh', sev: 2, t: `Wykonujesz mniej niż połowę zaplanowanych treningów (${c1} i ${c2} z ${planned} w ostatnich dwóch tygodniach).`, d: 'Lepiej mieć plan na mniej dni, który zrealizujesz, niż idealny na papierze. Ułóż go ponownie w kreatorze na realną liczbę dni.', act: { id: 'coachWizard', l: 'Ułóż plan na mniej dni' } });
     // mezocykl / odciążenie
-    if (mesoW && wk > mesoW && !F.deloadOn() && sess.length) out.push({ k: 'deload', sev: 1, t: `Tydzień ${wk} planu: czas na tydzień odciążenia.`, d: 'Zaplanowany cykl (' + mesoW + ' tygodni) się skończył. Lżejszy tydzień (mniej serii przy podobnym ciężarze i większym zapasie powtórzeń) to praktyka oparta na konsensusie ekspertów. Aplikacja obniży ciężary o ok. 10% na 7 dni.', act: { id: 'coachDeload', l: 'Włącz tydzień odciążenia' } });
+    if (mesoW && wk >= mesoW && !F.deloadOn() && sess.length) out.push({ k: 'deload', sev: 1, t: `Tydzień ${wk} planu: czas na tydzień odciążenia.`, d: 'To koniec zaplanowanego cyklu (' + mesoW + ' tygodni). Lżejszy tydzień (mniej serii przy podobnym ciężarze i większym zapasie powtórzeń) to praktyka oparta na konsensusie ekspertów. Przez 7 dni aplikacja zmniejszy liczbę serii o połowę, a ciężar zostawi bez zmian.', act: { id: 'coachDeload', l: 'Włącz tydzień odciążenia' } });
     // per ćwiczenie
     const seen = new Set();
     plan.days.forEach((d, di) => d.items.forEach((it, ii) => {
       if (seen.has(it.exId)) return; seen.add(it.exId); const ex = F.S.ex.get(it.exId); if (!ex || ex.type === 'time') return;
-      const hist = sess.filter(s => workSets(s, it.exId).length).slice(0, 5); if (hist.length < 3) return;
+      const hist = sess.filter(s => !s.deload && workSets(s, it.exId).length).slice(0, 5); if (hist.length < 3) return;
       const [lo, hi] = parseReps(it.reps); const last2 = hist.slice(0, 2);
       // za ciężko: powtórzenia poniżej zakresu w obu ostatnich sesjach lub RPE ≥ 9,5
       const below = last2.every(s => { const w = workSets(s, it.exId); return lo && w.filter(x => x.r < lo).length >= Math.ceil(w.length / 2); });
@@ -52,7 +52,7 @@
 
   /* ---------- akcje korekt ---------- */
   F.act.coachWizard = () => { F.wz = null; F.go('#/wizard'); };
-  F.act.coachDeload = async () => { F.S.settings.deloadUntil = Date.now() + WK; F.S.settings.lastDeload = Date.now(); F.saveSettings(); F.toast('Tydzień odciążenia włączony — ciężary obniżone o ok. 10%'); F.render(true); };
+  F.act.coachDeload = async () => { F.S.settings.deloadUntil = Date.now() + WK; F.S.settings.lastDeload = Date.now(); F.saveSettings(); F.toast('Tydzień odciążenia włączony: połowa serii, ten sam ciężar'); F.render(true); };
   F.act.coachSets = async b => { const a = JSON.parse(b.dataset.args), p = F.planOf(a.p); if (!p) return; const it = p.days[a.di].items[a.ii]; it.sets = Math.max(2, (+it.sets || 3) + a.dl); await F.savePlan(p); F.toast('Zmieniono liczbę serii'); F.render(true); };
   F.act.coachSwap = async b => { const a = JSON.parse(b.dataset.args), p = F.planOf(a.p); if (!p) return; const it = p.days[a.di].items[a.ii]; const cur = F.S.ex.get(it.exId); const ids = await F.pickExercises({ single: true }); if (!ids || !ids[0]) return; if (!F.S.ex.get(ids[0])) return; it.exId = ids[0]; await F.savePlan(p); F.toast('Zamieniono ćwiczenie' + (cur ? ' (' + cur.name + ')' : '')); F.render(true); };
 
@@ -87,7 +87,7 @@
       ${bwNow && bwOld ? `<section class="card cut"><h3>${ic('scale', 18)} Masa ciała</h3><p class="small">Ostatnie 2 tygodnie: ${F.fwu(bwOld)} → <b>${F.fwu(bwNow)}</b> (${bwNow - bwOld > 0 ? '+' : ''}${F.fwu(Math.abs(bwNow - bwOld)).replace(/^/, bwNow - bwOld < 0 ? '−' : '')}). Pojedyncze ważenia wahają się o 1–2 kg przez wodę i zawartość jelit — patrz na trend z kilku tygodni.</p></section>` : ''}
       ${vol}
       ${cardioCard(plan, ws, now)}
-      <section class="card cut"><h3>${ic('sparkles', 18)} Co zmienić${plan ? ' w planie „' + E(plan.name) + '”' : ''}</h3>${an && an.meso ? `<p class="dim small">Tydzień ${an.week} planu${an.week <= an.meso ? ' z ' + an.meso + ' (potem odciążenie)' : ''}.</p>` : ''}${sug}</section>
+      <section class="card cut"><h3>${ic('sparkles', 18)} Co zmienić${plan ? ' w planie „' + E(plan.name) + '”' : ''}</h3>${an && an.meso ? `<p class="dim small">Tydzień ${an.week} planu${an.week < an.meso ? ' z ' + an.meso + ' (ostatni to odciążenie)' : an.week === an.meso ? ' z ' + an.meso + ' (czas na odciążenie)' : ''}.</p>` : ''}${sug}</section>
       <p class="dim small pad">Korekty to propozycje oparte na Twoich zapisanych treningach — decyzja zawsze należy do Ciebie. Przy bólu lub chorobie skonsultuj się ze specjalistą.</p>` };
   };
 

@@ -357,7 +357,7 @@
   const mesoOf = (w, goal, exp) => {
     const L = KB.meso[exp]; const rows = []; const target = { beg: 2, mid: 1, adv: 1 }[exp];
     for (let k = 1; k < L; k++) { const rir = clamp(3 - Math.round((k - 1) * (3 - target) / Math.max(1, L - 2)), target, 3); rows.push({ week: k, text: `RIR ok. ${rir}${k === 1 && !w.active ? ' · ok. 70% serii (powrót po przerwie)' : ''}` }); }
-    rows.push({ week: L, text: 'Odciążenie: ok. połowa serii, ten sam lub nieco niższy ciężar, zapas 4+ powtórzeń', deload: true });
+    rows.push({ week: L, text: 'Odciążenie: ok. połowa serii, ten sam ciężar, zapas 4+ powtórzeń', deload: true });
     return { weeks: L, rows };
   };
 
