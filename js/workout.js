@@ -123,7 +123,7 @@
       const isT = ex.type === 'time', isB = ex.type === 'br'; const sug = F.suggest(e.exId, e.target && e.target.reps, sugOpts(e));
       const sugT = sug ? (isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w / F.wm(e.exId)) + ' ' + F.unit() + ' × ' + sug.r) : ''; const p = last && last.sets[0];
       rest = Math.max(rest, exRest(e, ex));
-      hdr += `<div class="ssm"><div class="ssm-h"><span class="ss-tag">${tag}</span><a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><button class="ibtn" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${k}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
+      hdr += `<div class="ssm"><div class="ssm-h"><span class="ss-tag">${tag}</span><a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><button class="ibtn${F.exHint(e.exId, e.target && e.target.reps) ? ' hnt' : ''}" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${k}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
         <div class="xc-m">${F.wm(e.exId) === 2 ? `<span class="x2c">${F.x2Label(ex)}</span>` : ''}${e.target && e.target.reps ? `<span>Cel ${E(e.target.reps)} ${isT ? 's' : 'powt.'}</span>` : ''}${p ? `<span>Poprz. ${isT ? F.fmtDur(p.r) : isB ? p.r : F.fw(p.w / F.wm(e.exId)) + '×' + p.r}</span>` : ''}${sug ? `<span class="sug" data-a="applySug" data-i="${k}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
         ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}${e.note ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(e.note)}</p>` : ''}</div>`;
     }
@@ -162,7 +162,7 @@
     const sugT = sug ? `${isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w / F.wm(e.exId)) + ' ' + F.unit() + ' × ' + sug.r}` : '';
     const doneN = e.sets.filter(s => s.done).length;
     return `<section class="xc cut ${doneN === e.sets.length && e.sets.length ? 'all' : ''}" id="xc-${i}">
-      <div class="xc-h">${inf ? `<span class="ss-tag">${inf.tag}</span>` : F.mDot(ex.muscle)}<a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><span class="xc-c">${doneN}/${e.sets.length}</span><button class="ibtn" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${i}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
+      <div class="xc-h">${inf ? `<span class="ss-tag">${inf.tag}</span>` : F.mDot(ex.muscle)}<a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><span class="xc-c">${doneN}/${e.sets.length}</span><button class="ibtn${F.exHint(e.exId, e.target && e.target.reps) ? ' hnt' : ''}" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${i}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
       <div class="xc-m"><span class="xc-mus">${E(muscTxt(e.exId))}</span>${F.wm(e.exId) === 2 ? `<span class="x2c">${F.x2Label(ex)}</span>` : ''}</div>
       <div class="xc-2"><div><small>Poprzedni trening</small><b>${lastTxt(e, ex)}</b></div><button class="${sug ? 'hot' : ''}" ${sug ? `data-a="applySug" data-i="${i}"` : ''}><small>Cel na dziś</small><b>${sug ? `${!isT && !isB ? e.sets.filter(s => s.t !== 'w').length + ' × ' : ''}${sugT}` : tgt.replace('Cel ', '') || '–'}</b></button></div>
       <p class="xc-rest">${ic('timer', 13)} Przerwa ${F.fmtDur(exRest(e, ex))}</p>
@@ -359,6 +359,7 @@
       <div class="sum-stats"><div><small>Czas</small><b>${F.fmtMin(s.dur)}</b></div><div><small>Tonaż</small><b>${F.fmtVol(vol)}</b></div><div><small>Serie</small><b>${F.sessionSets(s)}</b></div><div><small>Kcal</small><b>${F.fmtNum(Math.round(F.sessKcal(s).net / 5) * 5, 0)}</b></div></div>
       ${s.pend && s.pend.length ? `<p class="small">${ic('timer', 14)} Do dokończenia: ${s.pend.map(p => E(F.exName(p.exId)) + ' ' + p.mins + ' min').join(', ')}. Dopiszesz to z ekranu głównego w ciągu 48 godzin — trening zostanie przeliczony.</p>` : ''}
       ${s.prs.length ? `<div class="sum-pr"><h3>${ic('trophy', 20)} ${s.prs.length === 1 ? 'Nowy rekord' : s.prs.length + ' nowe rekordy'}</h3>${s.prs.map(p => `<div><b>${E(F.exName(p.exId))}</b><span>${E(p.text)}</span></div>`).join('')}</div>` : ''}
+      ${F.changesHtml(s)}
       <div class="sum-xp"><span>+${F.fmtNum(xpGain, 0)} XP</span><i class="bar"><i style="width:${(rk.pct * 100).toFixed(0)}%"></i></i><small>${rankUp ? `Awans! Nowa ranga: <b>${rk.name}</b>` : rk.next ? `Ranga ${rk.name} · ${F.fmtNum(rk.toNext, 0)} XP do ${rk.next}` : 'Ranga maksymalna'}</small></div>
       <div class="btn-row"><button class="btn ghost" data-a="sumShare" data-id="${s.id}">${ic('share-2', 18)} Karta</button><button class="btn primary grow" data-a="closeSheet">Gotowe</button></div></div>`;
     setTimeout(() => {

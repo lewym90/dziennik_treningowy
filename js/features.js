@@ -34,7 +34,9 @@
     const sorted = [...MG].sort((a, b) => { const o = { none: 0, low: 1, high: 2, ok: 3 }; return o[info[a]] - o[info[b]] || data[a].perWeek - data[b].perWeek; });
     const lacking = MG.filter(m => info[m] === 'none' || info[m] === 'low'); const heavy = MG.filter(m => info[m] === 'high');
     const tip = !F.S.sessions.length ? 'Zrób pierwszy trening, a mapa zapali się na kolorowo.' : lacking.length ? `Do dołożenia: <b>${lacking.slice(0, 4).map(m => F.MUSCLES[m].toLowerCase()).join(', ')}</b>.${heavy.length ? ` Dużo pracy: <b>${heavy.slice(0, 3).map(m => F.MUSCLES[m].toLowerCase()).join(', ')}</b>.` : ''}` : heavy.length ? `Wszystko w normie, a najwięcej pracy dostają: <b>${heavy.slice(0, 3).map(m => F.MUSCLES[m].toLowerCase()).join(', ')}</b>.` : 'Wszystkie partie w zakresie. Tak trzymać.';
-    return `<div class="seg"><button class="${rng === 7 ? 'on' : ''}" data-a="musRange" data-r="7">Ostatnie 7 dni</button><button class="${rng === 28 ? 'on' : ''}" data-a="musRange" data-r="28">4 tyg. (średnio)</button></div>
+    const rec = F.ui.musView === 'rec', seg = `<div class="seg m4"><button class="${!rec && rng === 7 ? 'on' : ''}" data-a="musRange" data-r="7">7 dni</button><button class="${!rec && rng === 28 ? 'on' : ''}" data-a="musRange" data-r="28">4 tygodnie</button><button class="${rec ? 'on' : ''}" data-a="musRec">Regeneracja</button></div>`;
+    if (rec) return seg + F.statsRecovery();
+    return `${seg}
     <section class="card cut mmap"><div class="mmap-b"><figure>${F.bodyCv('f', colors, { tap: 1, dim: .75 })}<figcaption>Przód</figcaption></figure><figure>${F.bodyCv('b', colors, { tap: 1, dim: .75 })}<figcaption>Tył</figcaption></figure></div>
       <div class="mleg">${['none', 'low', 'ok', 'high'].map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].t}</span>`).join('')}</div>
       <p class="dim small">Serie efektywne na tydzień: ruch główny liczy się za 1, mięśnie pomocnicze za 0,5. Dotknij partii, aby zobaczyć szczegóły.</p></section>
@@ -42,9 +44,9 @@
     <h3 class="sec">Serie tygodniowo vs zalecany zakres</h3>
     <section class="card cut">${sorted.map(m => { const v = data[m].perWeek, [lo, hi] = TARGET[m]; const pct = Math.min(100, v / (hi * 1.4) * 100); const a = lo / (hi * 1.4) * 100, b = hi / (hi * 1.4) * 100; return `<button class="mrow" data-a="musTap" data-m="${m}"><span class="mn">${F.mDot(m)}${F.MUSCLES[m]}</span><span class="mb"><i class="mz" style="left:${a}%;width:${b - a}%"></i><i class="mf" style="width:${pct}%;background:${ST[info[m]].c}"></i></span><b>${F.fmtNum(v, 1)}</b><em>${lo}–${hi}</em></button>`; }).join('')}</section>`;
   };
-  F.act.musRange = b => { F.ui.musRange = +b.dataset.r; F.render(true); };
+  F.act.musRange = b => { F.ui.musView = ''; F.ui.musRange = +b.dataset.r; F.render(true); };
   F.act.musTap = b => {
-    const m = b.dataset.m; const rng = F.ui.musRange || 7; const d = F.muscleSets(rng)[m]; const s = status(m, d.perWeek); const [lo, hi] = TARGET[m];
+    const m = b.dataset.m; if (F.ui.musView === 'rec' && F.ui.statTab === 'mus') { F.recoverySheet(m); return; } const rng = F.ui.musRange || 7; const d = F.muscleSets(rng)[m]; const s = status(m, d.perWeek); const [lo, hi] = TARGET[m];
     const ex = Object.entries(d.ex).sort((a, c) => c[1] - a[1]).slice(0, 8);
     F.sheet(`<div class="tiles two"><div class="tile cut"><span class="tl">Serie / tydzień</span><b class="tv">${F.fmtNum(d.perWeek, 1)}</b></div><div class="tile cut"><span class="tl">Zalecany zakres</span><b class="tv">${lo}–${hi}</b></div></div>
       <p class="sheet-p"><span class="stbadge" style="--sc:${ST[s].c}">${ST[s].t}</span> ${rng === 7 ? 'w ostatnich 7 dniach' : 'średnio w ostatnich 4 tygodniach'}. Bezpośrednich serii: <b>${d.direct}</b>.</p>
@@ -222,11 +224,10 @@
     const yt = `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' technika')}`;
     return `${F.exArt(id)}${media}<div class="tech-m"><div><small>Główne</small><div class="mchips">${chips(mu.p, 'p')}</div></div>${mu.s.length ? `<div><small>Pomocnicze</small><div class="mchips">${chips(mu.s, 's')}</div></div>` : ''}</div>
       ${tips.length ? `<h4 class="lbl">Technika</h4><ul class="tips">${tips.map(t => `<li>${E(t)}</li>`).join('')}</ul>` : `<p class="dim small">Brak opisu techniki. Dodaj własny w edycji ćwiczenia.</p>`}
-      ${i && i.i && i.i.length ? `<details class="en"><summary>Instrukcja krok po kroku (angielski)</summary><ol>${i.i.map(t => `<li>${E(t)}</li>`).join('')}</ol></details>` : ''}
       <a class="btn ghost wide" href="${yt}" target="_blank" rel="noopener">${ic('play', 18)} Szukaj filmu z techniką</a>
-      ${i && i.d ? `<p class="dim tiny credit">Zdjęcia i angielskie instrukcje: Free Exercise DB (domena publiczna).</p>` : ''}`;
+      ${i && i.d ? `<p class="dim tiny credit">Zdjęcia: Free Exercise DB (domena publiczna).</p>` : ''}`;
   };
-  F.act.techOpen = b => { const ex = exOf(b.dataset.id); if (!ex) return; F.sheet(F.techHtml(ex.id), { title: E(ex.name), cls: 'tall' }); };
+  F.act.techOpen = b => { const ex = exOf(b.dataset.id); if (!ex) return; F.sheet(F.hintHtml(ex.id) + F.techHtml(ex.id), { title: E(ex.name), cls: 'tall' }); };
 
   /* =====================================================================
      DELOAD + wskazówki progresji

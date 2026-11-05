@@ -31,6 +31,9 @@
     const n = plan.days.length; let di = plan.days.findIndex(d => !cardioOnly(d)); if (di < 0) di = 0;
     const lastS = F.S.sessions.find(s => { if (s.planId !== plan.id) return false; const d = plan.days.find(x => x.id === s.dayId); return d && !cardioOnly(d); });
     if (lastS) { const i = plan.days.findIndex(d => d.id === lastS.dayId); for (let k = 1; k <= n; k++) { const c = (i + k) % n; if (!cardioOnly(plan.days[c])) { di = c; break; } } }
+    // trening pominięty w kalendarzu: kolejka idzie dalej aż do następnego zapisanego treningu
+    const sk = (F.S.settings.cal && F.S.settings.cal.skips) || [], tk = F.dayKey(Date.now()), after = (F.S.sessions.find(s => s.planId === plan.id) || {}).id || '';
+    for (let k = 0; k < n; k++) { if (!sk.some(x => x.dayId === plan.days[di].id && x.after === after && x.key <= tk)) break; for (let j = 1; j <= n; j++) { const c = (di + j) % n; if (!cardioOnly(plan.days[c])) { di = c; break; } } }
     return { plan, day: plan.days[di], di };
   };
   const estMin = day => F.PLN && F.PLN.estMin ? F.PLN.estMin(day.items) : 0;
@@ -41,7 +44,7 @@
     [/^#\/plan\/([^/]+)\/edit$/, m => planEdit(m[1]), 'plans'], [/^#\/exercises$/, () => exercises(), 'plans'], [/^#\/ex\/([^/]+)$/, m => exDetail(m[1]), 'stats'],
     [/^#\/history$/, () => F.views.history(), 'history'], [/^#\/session\/([^/]+)$/, m => F.views.session(m[1]), 'history'],
     [/^#\/stats$/, () => F.views.stats(), 'stats'], [/^#\/tools$/, () => F.views.tools(), 'home'], [/^#\/settings$/, () => F.views.settings(), 'home'],
-    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
+    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'plans'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
   ];
   let curTab = 'home';
   F.render = (keepScroll) => {
@@ -110,7 +113,7 @@
         <a class="qa-i cut" href="#/exercises">${F.gly(10, 26)}<span>Ćwiczenia</span></a>
         <a class="qa-i cut" href="#/stats" data-a="goBody">${F.gly(11, 26)}<span>Waga ciała</span></a>
       </div>
-      <section class="card cut week"><div class="week-top"><div><h3>Ten tydzień</h3><p class="dim">${wk.count} z ${goal} treningów</p></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
+      <section class="card cut week" data-a="goCal" role="button" aria-label="Otwórz kalendarz"><div class="week-top"><div><h3>Ten tydzień ${ic('chevron-right', 18)}</h3><p class="dim">${wk.count} z ${goal} treningów</p></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
       <div class="tiles">
         <div class="tile cut"><span class="tl">${ic('flame', 16)} Seria tygodni</span><b class="tv" data-count="${F.weekStreak()}">0</b><small>cel ${goal}×/tydz.</small></div>
         <div class="tile cut"><span class="tl">${ic('weight', 16)} Tonaż w tygodniu</span><b class="tv" data-count="${F.toDisp(wk.vol) >= 10000 ? F.toDisp(wk.vol) / 1000 : F.toDisp(wk.vol)}" data-dec="${F.toDisp(wk.vol) >= 10000 ? 1 : 0}" data-suf="${F.toDisp(wk.vol) >= 10000 ? ' t' : ' ' + F.unit()}">0</b><small>łącznie ${F.fmtVol(t.vol)}</small></div>
@@ -143,6 +146,7 @@
     return {
       html: `${head('Plany', { sub: 'Twoje programy treningowe', right: `<button class="btn sm primary" data-a="newPlan">${ic('plus', 16)} Nowy</button>` })}
       ${F.S.plans.length ? `<div class="stack">${list}</div>` : empty('clipboard-list', 'Brak planów', 'Stwórz własny plan, zaimportuj go z PDF-a lub zrzutu ekranu albo weź gotowy szablon.')}
+      <a class="importcard cut" href="#/calendar" data-a="goCal"><div>${ic('calendar', 30)}</div><p><b>Kalendarz</b><small>${E(F.calLine())}</small></p>${ic('chevron-right', 20)}</a>
       <a class="importcard cut" href="#/wizard" data-a="newWizard"><div>${ic('sparkles', 30)}</div><p><b>Kreator planu</b><small>Odpowiesz na kilka pytań — ułożę plan dla Ciebie</small></p>${ic('chevron-right', 20)}</a>
       <a class="importcard cut" href="#/import"><div>${ic('scan-text', 30)}</div><p><b>Importuj plan z pliku</b><small>PDF, zrzut ekranu, zdjęcie, tekst, CSV z innej aplikacji</small></p>${ic('chevron-right', 20)}</a>
       <div class="btn-row split"><button class="btn ghost" data-a="templates">${ic('sparkles', 18)} Plany startowe</button><a class="btn ghost" href="#/exercises">${ic('dumbbell', 18)} Ćwiczenia</a></div>`

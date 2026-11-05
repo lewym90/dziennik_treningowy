@@ -18,11 +18,14 @@ Instalowalna aplikacja (PWA) dla ludzi, którzy podnoszą ciężko. Działa offl
 - Plany tworzone przez użytkownika, plany startowe (PPL, Góra/Dół, 5×5, Full Body, Pośladki i nogi).
 - Trening na żywo: podpowiedź celu (progresja), poprzedni wynik, automatyczny stoper przerw (dźwięk, wibracja, ekran nie gaśnie), wykrywanie rekordów z animacją.
 - Wykresy 1RM / ciężaru / objętości, rekordy życiowe, tonaż tygodniowy, podział partii, waga ciała, rangi i osiągnięcia.
+- Kalendarz i kolejka treningów: przenoszenie, przesuwanie i pomijanie dni.
+- Regeneracja mięśni na mapie ciała (szacunek), wnioski po treningu, raporty: tydzień, miesiąc, rok, cele miesięczne.
 - Kalkulatory: talerze, 1RM, rozgrzewka.
 - Nieograniczona historia (IndexedDB), eksport JSON i CSV, kopia i przywracanie, karta treningu do udostępnienia.
 - **Import planów:** PDF (tekst i skany), zrzuty ekranu, zdjęcia (OCR po polsku/angielsku), wklejony tekst, CSV; import historii ze Strong, Hevy, FitNotes. Przed zapisem sprawdzasz i poprawiasz wynik. Na Androidzie można też wysłać zrzut przez menu „Udostępnij".
 
 ## Uwagi
+- Testy obliczeń: `node tests/calc.test.js` (potrzebny Playwright).
 - Moduły OCR i PDF (~11 MB) pobierają się przy pierwszym użyciu importu. Przycisk „Pobierz moduły offline" w ekranie Import robi to z góry.
 - Po zmianie plików zwiększ `VERSION` w `sw.js`, aby użytkownicy dostali aktualizację.
 - Dane są w pamięci przeglądarki. Rób kopie zapasowe (Ustawienia → Dane).

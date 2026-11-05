@@ -71,6 +71,7 @@
   };
 
   V.report = () => {
+    const tab = F.ui.repTab || 'w'; if (tab !== 'w' && F.S.sessions.length) return F.reportPeriod(tab);
     const now = Date.now(), ws = F.startOfWeek(now); const cur = wkStats(ws, ws + WK), prev = wkStats(ws - WK, ws), prev2 = wkStats(ws - 2 * WK, ws - WK);
     const last = prev.n || prev2.n ? { lab: 'Ostatni pełny tydzień', s: prev, p: prev2 } : null;
     if (!F.S.sessions.length) return { html: `${F.head('Raport tygodnia', { back: 1 })}<div class="empty"><h3>Brak danych</h3><p>Po pierwszym treningu pojawi się tu podsumowanie tygodnia i propozycje korekt planu.</p></div>` };
@@ -81,7 +82,7 @@
     const ps = plan ? planSets(plan) : {}, d7 = weekSets(now - WK, now + 1);
     const vol = Object.keys(ps).length ? `<section class="card cut"><h3>${ic('chart-column', 18)} Serie: plan a wykonanie (7 dni)</h3>${Object.entries(ps).map(([m, n]) => { const d = d7[m] || 0; const pct = Math.min(100, Math.round(d / Math.max(n, 1) * 100)); return `<div class="wz-v"><span>${MU[m] || m}</span><div class="bar"><i style="width:${Math.max(pct, 3)}%"></i></div><b class="${d >= n * 0.8 ? '' : 'warn'}">${d}</b><small class="dim">z ${n}</small></div>`; }).join('')}</section>` : '';
     const sug = an ? (an.items.length ? an.items.map(i => `<div class="coach-i sev${i.sev}"><b>${E(i.t)}</b><p class="small">${E(i.d)}</p>${i.act ? `<button class="btn ghost sm" data-a="${i.act.id}" data-args="${i.act.a ? E(JSON.stringify(i.act.a)) : ''}">${E(i.act.l)}</button>` : ''}</div>`).join('') : `<p class="small">${ic('check', 16)} Plan „${E(plan.name)}” działa jak należy. Nie widzę powodu do zmian — kontynuuj, a ciężary zwiększaj zgodnie z podpowiedziami podczas treningu.</p>`) : `<p class="small dim">Korekty pojawią się, gdy zaczniesz trenować według zapisanego planu.</p>`;
-    return { html: `${F.head('Raport tygodnia', { back: 1, sub: 'Jak Ci idzie i co zmienić' })}
+    return { html: `${F.head('Raport', { back: 1, sub: 'Jak Ci idzie i co zmienić' })}${F.repSeg()}
       <section class="card cut"><h3>${ic('calendar', 18)} Ten tydzień</h3>${stat(cur, prev)}<p class="dim small">${cur.n ? `Czas: ${cur.min} min · spalone ok. ${F.fmtNum ? F.fmtNum(cur.kc) : cur.kc} kcal` : 'Jeszcze bez treningu w tym tygodniu.'}</p></section>
       ${last ? `<section class="card cut"><h3>${ic('rotate-ccw', 18)} ${last.lab}</h3>${stat(last.s, last.p)}</section>` : ''}
       ${bwNow && bwOld ? `<section class="card cut"><h3>${ic('scale', 18)} Masa ciała</h3><p class="small">Ostatnie 2 tygodnie: ${F.fwu(bwOld)} → <b>${F.fwu(bwNow)}</b> (${bwNow - bwOld > 0 ? '+' : ''}${F.fwu(Math.abs(bwNow - bwOld)).replace(/^/, bwNow - bwOld < 0 ? '−' : '')}). Pojedyncze ważenia wahają się o 1–2 kg przez wodę i zawartość jelit — patrz na trend z kilku tygodni.</p></section>` : ''}
