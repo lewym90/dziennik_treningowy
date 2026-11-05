@@ -80,7 +80,7 @@
     return { net, lo: net * (1 - unc), hi: net * (1 + unc), gross: (gross + cardGross) * cal, met, perEx, approx: !(p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown), raw, p, hrUsed };
   };
   F.kcalDraft = d => F.kcal({ start: d.start, dur: d.backdate ? 0 : (Date.now() - d.start) / 1000, exercises: d.exercises });
-  const sessKcalCache = new Map();
+  const sessKcalCache = new Map(); F.kcalClear = () => sessKcalCache.clear();
   F.sessKcal = s => { const k = s.id + '|' + (s.dur || 0) + '|' + s.exercises.length + '|' + F.S.settings.sex + F.S.settings.age + F.S.settings.dob + F.S.settings.height + F.S.settings.bf + F.S.settings.hrMax + '|' + (s.hrAvg || 0) + (F.S.settings.kcalCal || []).join(',') + '|' + F.latestBW(s.start) + '|' + s.exercises.reduce((a, e) => a + e.sets.length, 0); let r = sessKcalCache.get(k); if (!r) { r = F.kcal(s); sessKcalCache.set(k, r); if (sessKcalCache.size > 3000) sessKcalCache.clear(); } return r; };
   F.kcalRange = r => `${F.fmtNum(Math.round(r.lo / 5) * 5, 0)}–${F.fmtNum(Math.round(r.hi / 5) * 5, 0)}`;
   F.kcalTotals = (days) => { const since = days ? Date.now() - days * 864e5 : 0; let k = 0; F.S.sessions.forEach(s => { if (s.start >= since) k += F.sessKcal(s).net; }); return k; };

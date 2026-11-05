@@ -23,7 +23,11 @@
     const last = F.S.sessions.find(s => s.planId && F.planOf(s.planId));
     const plan = (last && F.planOf(last.planId)) || F.S.plans.find(p => p.days.length) || F.S.plans[0];
     if (!plan || !plan.days.length) return null;
-    let di = 0; if (last && last.planId === plan.id) { const i = plan.days.findIndex(d => d.id === last.dayId); di = i >= 0 ? (i + 1) % plan.days.length : 0; }
+    // osobne sesje cardio nie biorą udziału w kolejce dni siłowych (i jej nie przesuwają); wybierasz je z listy dni planu
+    const cardioOnly = d => /^Cardio/.test(d.name) || (d.items.length > 0 && d.items.every(i => i.cardio));
+    const n = plan.days.length; let di = plan.days.findIndex(d => !cardioOnly(d)); if (di < 0) di = 0;
+    const lastS = F.S.sessions.find(s => { if (s.planId !== plan.id) return false; const d = plan.days.find(x => x.id === s.dayId); return d && !cardioOnly(d); });
+    if (lastS) { const i = plan.days.findIndex(d => d.id === lastS.dayId); for (let k = 1; k <= n; k++) { const c = (i + k) % n; if (!cardioOnly(plan.days[c])) { di = c; break; } } }
     return { plan, day: plan.days[di], di };
   };
   const estMin = day => F.PLN && F.PLN.estMin ? F.PLN.estMin(day.items) : 0;

@@ -17,7 +17,9 @@
   F.coachAnalyze = plan => {
     const out = []; const now = Date.now(); const strength = plan.days.length;
     const sess = F.S.sessions.filter(s => s.planId === plan.id).sort((a, b) => b.start - a.start);
-    const wk = Math.floor((now - plan.created) / WK) + 1; const mesoW = plan.meta && plan.meta.meso || 0;
+    // cykl liczymy od utworzenia planu, a po odciążeniu od jego końca
+    const st = F.S.settings; const dlStart = Math.max(st.lastDeload || 0, (st.deloadUntil || 0) - WK); const cycle = dlStart > plan.created ? dlStart + WK : plan.created;
+    const wk = Math.max(1, Math.floor((now - cycle) / WK) + 1); const mesoW = plan.meta && plan.meta.meso || 0;
     // adherencja: ostatnie 2 pełne tygodnie
     const ws = F.startOfWeek(now); const c1 = F.S.sessions.filter(s => s.start >= ws - WK && s.start < ws).length, c2 = F.S.sessions.filter(s => s.start >= ws - 2 * WK && s.start < ws - WK).length;
     const planned = plan.days.filter(d => !/^Cardio/.test(d.name)).length || strength;
@@ -50,7 +52,7 @@
 
   /* ---------- akcje korekt ---------- */
   F.act.coachWizard = () => { F.wz = null; F.go('#/wizard'); };
-  F.act.coachDeload = async () => { F.S.settings.deloadUntil = Date.now() + WK; F.saveSettings(); F.toast('Tydzień odciążenia włączony — ciężary obniżone o ok. 10%'); F.render(true); };
+  F.act.coachDeload = async () => { F.S.settings.deloadUntil = Date.now() + WK; F.S.settings.lastDeload = Date.now(); F.saveSettings(); F.toast('Tydzień odciążenia włączony — ciężary obniżone o ok. 10%'); F.render(true); };
   F.act.coachSets = async b => { const a = JSON.parse(b.dataset.args), p = F.planOf(a.p); if (!p) return; const it = p.days[a.di].items[a.ii]; it.sets = Math.max(2, (+it.sets || 3) + a.dl); await F.savePlan(p); F.toast('Zmieniono liczbę serii'); F.render(true); };
   F.act.coachSwap = async b => { const a = JSON.parse(b.dataset.args), p = F.planOf(a.p); if (!p) return; const it = p.days[a.di].items[a.ii]; const cur = F.S.ex.get(it.exId); const ids = await F.pickExercises({ single: true }); if (!ids || !ids[0]) return; if (!F.S.ex.get(ids[0])) return; it.exId = ids[0]; await F.savePlan(p); F.toast('Zamieniono ćwiczenie' + (cur ? ' (' + cur.name + ')' : '')); F.render(true); };
 

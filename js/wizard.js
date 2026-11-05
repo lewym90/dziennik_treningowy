@@ -31,7 +31,7 @@
       scr: Array(7).fill(null), preg: s.sex === 'f' ? null : 'no', doc: false,
       exp: P.EXPS[s.exp] ? s.exp : (P.EXPS[z.exp] ? z.exp : ''), active: hist ? (Date.now() - last < 56 * 864e5) : null,
       goal: P.GOALS[z.goal] ? z.goal : 'hyp', prio: arr(z.prio, x => PRIO[x]) || [], cardioMin: [0, 60, 120, 180].includes(z.cardioMin) ? z.cardioMin : 0, cardioAdd: typeof z.cardioAdd === 'boolean' ? z.cardioAdd : null, cardioPref: CARDIO[z.cardioPref] ? z.cardioPref : 'walk',
-      days: days && days.length ? [...new Set(days)].sort((x, y) => x - y) : [0, 2, 4], time: [0, 30, 45, 60, 75, 90].includes(z.time) ? z.time : 60,
+      days: days && days.length ? [...new Set(days)].sort((x, y) => x - y) : [0, 2, 4], time: [0, 30, 45, 60, 75, 90, 120].includes(z.time) ? z.time : 60,
       equip: equip && equip.length ? equip : [...EQ_ALL], bench: z.bench !== false, rack: z.rack !== false, preset: PRESET[z.preset] ? z.preset : (equip && equip.length ? '' : 'gym'),
       cAct: (arr(z.cAct, x => F.CARDIO.valid(x)) || []).map(x => ({ t: x.t, n: x.n, m: x.m, i: x.i, plan: !!x.plan && !!F.CARDIO.T[x.t][2], place: x.place === 'sep' ? 'sep' : 'after' })), cNow: typeof z.cNow === 'boolean' ? z.cNow : null, cChoice: typeof z.cChoice === 'string' ? z.cChoice : '', cAddType: F.CARDIO.T[z.cAddType] ? z.cAddType : '', scheme: z.scheme === 'pyr' ? 'pyr' : '', cPlaceNew: z.cPlaceNew === 'after' || z.cPlaceNew === 'sep' ? z.cPlaceNew : '',
       inj: arr(z.inj, x => P.INJ[x]) || [], avoid: arr(z.avoid, str) || [], fav: arr(z.fav, str) || [], split: 'auto', sleep: [1, 2, 3].includes(s.sleep) ? s.sleep : 0, bw: p.bwKnown ? p.bw : ''

@@ -107,7 +107,7 @@
     F.sheet(`<p class="sheet-p dim">Aplikacja zapisuje migawkę Twoich danych w pamięci telefonu co kilkanaście godzin i przed każdą aktualizacją. Przywrócenie dołącza brakujące treningi i plany, niczego nie kasuje. To dodatek — prawdziwą kopią jest plik z „Kopia zapasowa”.</p><div class="stack">${row(a, 'snap', 'Najnowsza migawka') + row(b, 'snapPrev', 'Sprzed ostatniej aktualizacji') || '<p class="dim pad center">Brak migawki (pojawi się po pierwszym zapisanym treningu).</p>'}</div>`, { title: 'Zabezpieczenie danych' });
   };
   F.act.snapRestore = async b => { const ok = await F.confirm({ title: 'Przywrócić migawkę?', text: 'Brakujące treningi i plany zostaną dołączone. Nic nie zostanie usunięte.', ok: 'Przywróć' }); if (!ok) return; try { await F.restoreSnap(b.dataset.k); F.closeSheet(true); F.toast('Przywrócono dane', 'hot'); location.reload(); } catch (e) { F.toast('Nie udało się przywrócić', 'err'); } };
-  F.act.sessDone = async () => { const s = SS(); F.ui.sessEdit = null; s.start = s.start; F.S.sessions.sort((a, b) => b.start - a.start); await F.dbPut('sessions', s); F.rebuild(); F.toast('Zapisano zmiany', 'hot'); F.render(true); };
+  F.act.sessDone = async () => { const s = SS(); F.ui.sessEdit = null; s.start = s.start; F.S.sessions.sort((a, b) => b.start - a.start); await F.dbPut('sessions', s); await F.recomputeAllPRs(); F.kcalClear(); F.toast('Zapisano zmiany', 'hot'); F.render(true); };
   F.act.sessMenu = b => {
     const id = b.dataset.id;
     F.sheet(`<div class="menu"><button data-a="sessEdit" data-id="${id}">${ic('pencil', 20)}Edytuj trening</button><button data-a="sessRepeat" data-id="${id}">${ic('repeat', 20)}Powtórz ten trening</button><button data-a="sessShare" data-id="${id}">${ic('share-2', 20)}Udostępnij kartę treningu</button><button class="danger" data-a="sessDel" data-id="${id}">${ic('trash-2', 20)}Usuń trening</button></div>`, { title: 'Trening' });
@@ -241,7 +241,7 @@
         <a class="lrow" href="#/import">${ic('scan-text', 20)}<span><b>Import planów i historii</b><small>PDF, zdjęcia, CSV (Strong, Hevy, FitNotes)</small></span></a>
         <button class="lrow" data-a="persist">${ic('lock', 20)}<span><b>Chroń dane przed czyszczeniem</b><small id="stor">Prośba o trwałe przechowywanie w przeglądarce</small></span></button>
         <button class="lrow danger" data-a="wipe">${ic('trash-2', 20)}<span><b>Usuń wszystkie dane</b><small>Nieodwracalne. Najpierw zrób kopię.</small></span></button></section>
-      <p class="about">FORGE 1.2 · Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
+      <p class="about">FORGE ${F.APPVER} ·Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
       after: () => { if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(e => { const el = F.$('#stor'); if (el) el.textContent = `Zajęte: ${(e.usage / 1048576).toFixed(1)} MB · dotknij, aby zabezpieczyć dane`; }); }
     };
   };

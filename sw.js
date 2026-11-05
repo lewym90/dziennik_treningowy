@@ -1,5 +1,6 @@
 /* FORGE — service worker: działanie offline, odświeżanie w tle, odbiór plików z menu „Udostępnij” */
-const VERSION = 'forge-v1.12.1';
+const VERSION = 'forge-v1.12.2';
+const LIBS = 'forge-libs-1'; // moduły OCR i PDF (ok. 11 MB): osobna pamięć, która przetrwa aktualizacje aplikacji; zmień numer przy podmianie plików w vendor/
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'css/styles.css',
   'js/icons.js', 'js/data.js', 'js/exinfo.js', 'js/exdb.js', 'js/kb.js', 'js/features.js', 'js/kcal.js', 'js/alert.js', 'js/inputs.js', 'js/core.js', 'js/charts.js', 'js/ui.js', 'js/parser.js', 'js/app.js', 'js/views2.js', 'js/workout.js', 'js/importer.js', 'js/planner.js', 'js/cardio.js', 'js/wizard.js', 'js/coach.js', 'js/guide.js', 'js/main.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
@@ -14,7 +15,18 @@ self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('forge-v') && k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil((async () => {
+    const libs = await caches.open(LIBS);
+    for (const k of await caches.keys()) {
+      if (k.startsWith('forge-libs') && k !== LIBS) { await caches.delete(k); continue; }
+      if (!k.startsWith('forge-v') || k === VERSION) continue;
+      // moduły pobrane przez starsze wersje przenosimy, żeby nie pobierać ich drugi raz
+      const old = await caches.open(k);
+      for (const r of await old.keys()) { if (r.url.includes('/vendor/')) { const res = await old.match(r); if (res) await libs.put(r, res); } }
+      await caches.delete(k);
+    }
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', e => {
@@ -40,7 +52,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET' || url.origin !== location.origin || req.headers.has('range')) return;
   const heavy = url.pathname.includes('/vendor/') || url.pathname.includes('/fonts/');
   e.respondWith((async () => {
-    const cache = await caches.open(VERSION);
+    const cache = await caches.open(url.pathname.includes('/vendor/') ? LIBS : VERSION);
     const hit = await cache.match(req, { ignoreSearch: req.mode === 'navigate' });
     if (hit && heavy) return hit;
     const net = fetch(req).then(res => { if (res && res.ok && res.type === 'basic') cache.put(req, res.clone()); return res; });

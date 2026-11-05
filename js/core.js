@@ -74,7 +74,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.12.1';
+  F.APPVER = '1.12.2';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
@@ -303,7 +303,8 @@
     if (mode === 'off') return { w: dlw(top.w), r: top.r, note: 'Bez automatycznej progresji', off: true };
     const st = F.stagnation(exId);
     if (dl) return { w: dlw(top.w), r: lo || top.r, note: 'Tydzień deload: −10% ciężaru' };
-    if (st && st.stuck >= 2) return { w: Math.max(0, roundTo(top.w * 0.9, F.S.settings.step)), r: lo || top.r, note: `Stagnacja (${st.n} tr. bez postępu) — zbij ciężar o 10% i wejdź od nowa`, stag: true };
+    const resetW = Math.max(0, roundTo(top.w * 0.9, F.S.settings.step));
+    if (st && st.stuck >= 2 && resetW < top.w) return { w: resetW, r: lo || top.r, note: `Stagnacja (${st.stuck} ${F.plur(st.stuck, 'trening', 'treningi', 'treningów')} bez postępu) — zbij ciężar o 10% i wejdź od nowa`, stag: true };
     if (mode === 'linear') {
       // liniowa: cały zestaw na dolnej granicy powtórzeń → dodaj ciężar; przy dwóch porażkach pod rząd −10%
       const need = lo || hi || top.r; const topSets = sets.filter(s => s.w === top.w); const ok = topSets.length && topSets.every(s => (s.r || 0) >= need);
@@ -319,7 +320,14 @@
     const ex = F.S.ex.get(exId); if (!ex || ex.type === 'time' || ex.type === 'br') return null;
     const h = F.exHistory(exId); if (h.length < 4) return null;
     const key = h.some(x => x.e1) ? 'e1' : 'reps';
-    let bestBefore = 0, bestIdx = -1; h.forEach((x, i) => { if (x[key] > bestBefore + 0.001) { bestBefore = x[key]; bestIdx = i; } });
+    // wyraźnie lżejszy trening (reset −10%, deload) zaczyna liczenie od nowa: kolejne treningi porównujemy z nim, nie ze starym rekordem — inaczej reset nakręcałby następny reset
+    let bestBefore = 0, bestIdx = -1, peak = 0;
+    h.forEach((x, i) => {
+      const top = Math.max(...x.sets.map(s => s.w || 0));
+      if (peak > 0 && top > 0 && top < peak * 0.95) { bestBefore = x[key]; bestIdx = i; peak = top; return; }
+      if (x[key] > bestBefore + 0.001) { bestBefore = x[key]; bestIdx = i; }
+      if (top > peak) peak = top;
+    });
     const stuck = h.length - 1 - bestIdx; // ile treningów od ostatniej poprawy
     return { n: h.length, stuck, since: h[bestIdx] ? h[bestIdx].ts : 0, best: bestBefore, key };
   };

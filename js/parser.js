@@ -350,7 +350,7 @@
       const prs = [];
       se.exercises.forEach(e => {
         const ex = F.S.ex.get(e.exId); if (!ex) return;
-        e.sets.forEach(s => { s.pr = null; if (!F.isWork(s)) return; const p = F.checkPR(idx, ex, s, se.start); F.addToIdx(idx, ex, s, se.start); if (p.length) { s.pr = p.map(x => x.k); const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fw(s.w)} ${F.unit()} × ${s.r}`; const rec = { exId: e.exId, k: p[0].k, label: p[0].label, text: txt }; const i = prs.findIndex(q => q.exId === e.exId); if (i >= 0) prs[i] = rec; else prs.push(rec); } });
+        e.sets.forEach(s => { s.pr = null; if (!F.isWork(s)) return; const p = F.checkPR(idx, ex, s, se.start); F.addToIdx(idx, ex, s, se.start); if (p.length) { s.pr = p.map(x => x.k); const txt = ex.type === 'time' ? F.fmtDur(s.r) : ex.type === 'br' ? s.r + ' powt.' : `${F.fwt(s.w, ex)} ${F.unit()} × ${s.r}`; const rec = { exId: e.exId, k: p[0].k, label: p[0].label, text: txt }; const i = prs.findIndex(q => q.exId === e.exId); if (i >= 0) prs[i] = rec; else prs.push(rec); } });
       });
       se.prs = prs;
     }
