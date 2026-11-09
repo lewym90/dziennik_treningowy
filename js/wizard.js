@@ -215,8 +215,9 @@
   F.act.wzSwap = b => {
     const z = Z(); const di = +b.dataset.di, ii = +b.dataset.ii; const d = z.res.days[di], i = d.items[ii]; const used = new Set(d.items.map(x => x.exId));
     const alts = P.poolOf(i.slot, z.res.work).filter(id => !used.has(id) || id === i.exId);
-    F.sheet(`<div class="stack">${alts.map(id => `<button class="exrow ${id === i.exId ? 'sel' : ''}" data-a="wzPick" data-di="${di}" data-ii="${ii}" data-id="${id}"><span><b>${E(P.exName(id))}</b><small>${E((F.S.ex.get(id) || {}).equip || '')}</small></span><i>${ic('check', 16)}</i></button>`).join('') || '<p class="dim pad center">Brak alternatyw przy Twoim sprzęcie i ograniczeniach.</p>'}</div>`, { title: 'Zamień ćwiczenie' });
+    F.sheet(`${alts.length ? '<p class="dim small wz-swh">Na tę samą partię, pod Twój sprzęt</p>' : ''}<div class="stack">${alts.map(id => `<button class="exrow ${id === i.exId ? 'sel' : ''}" data-a="wzPick" data-di="${di}" data-ii="${ii}" data-id="${id}"><span><b>${E(P.exName(id))}</b><small>${E((F.S.ex.get(id) || {}).equip || '')}</small></span><i>${ic('check', 16)}</i></button>`).join('') || '<p class="dim pad center">Brak alternatyw przy Twoim sprzęcie i ograniczeniach.</p>'}</div><button class="btn ghost wide wz-any" data-a="wzAny" data-di="${di}" data-ii="${ii}">${ic('search', 18)} Wybierz dowolne z bazy</button>`, { title: 'Zamień ćwiczenie' });
   };
+  F.act.wzAny = async b => { const di = +b.dataset.di, ii = +b.dataset.ii; const cur = F.S.ex.get(Z().res.days[di].items[ii].exId); F.closeSheet(true); const ids = await F.pickExercises({ single: true, muscle: (cur && cur.muscle) || '' }); if (!ids || !ids.length) return; F.act.wzPick({ dataset: { di, ii, id: ids[0] } }); };
   F.act.wzPick = b => { const z = Z(); const di = +b.dataset.di, ii = +b.dataset.ii; z.res.days[di].items[ii].exId = b.dataset.id; z.res.plan.days[di].items[ii].exId = b.dataset.id; F.closeSheet(true); rerender(); };
 
   /* ---------- podgląd ---------- */

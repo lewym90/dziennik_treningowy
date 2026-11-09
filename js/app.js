@@ -275,8 +275,8 @@
   };
 
   /* ---------- wybierak ćwiczeń ---------- */
-  F.pickExercises = ({ single = false } = {}) => new Promise(res => {
-    const sel = new Set(); let q = '', mus = '';
+  F.pickExercises = ({ single = false, muscle = '' } = {}) => new Promise(res => {
+    const sel = new Set(); let q = '', mus = muscle;
     const list = () => {
       const nq = F.norm(q); let arr = [...F.S.ex.values()].filter(e => (!mus || e.muscle === mus) && (!nq || F.norm(e.name + ' ' + (e.alias || '')).includes(nq)));
       const use = {}; F.S.sessions.forEach(x => x.exercises.forEach(e => { use[e.exId] = (use[e.exId] || 0) + 1; }));

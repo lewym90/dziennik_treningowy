@@ -803,3 +803,4 @@ body.kbd .wk-art{height:0;margin:0}
 .ibtn.hnt{position:relative}.ibtn.hnt::after{content:"";position:absolute;right:9px;top:9px;width:9px;height:9px;border-radius:50%;background:var(--a1);box-shadow:0 0 8px var(--a1)}
 .goal{display:block;width:100%;text-align:left;padding:10px 0;border-top:1px solid var(--line)}.goal:first-of-type{border-top:0;padding-top:0}.goal>div:first-child{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:7px}.goal>div:first-child span{color:var(--tx2);white-space:nowrap}.goal .bar{margin:0}.goal-add{margin-top:10px}
 .sum-ch{text-align:left;margin:12px 0}.sum-ch h3{font:700 19px var(--fd);margin-bottom:6px}
+.wz-swh{margin:0 0 10px}.wz-any{margin-top:12px}
