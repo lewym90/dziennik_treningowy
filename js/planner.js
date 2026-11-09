@@ -157,9 +157,11 @@
     const s = SL[slot]; const bad = new Set((w.inj || []).flatMap(k => INJ_MUSCLE[k] || []));
     const c = [...F.S.ex.values()].filter(e => e.muscle === s.m && !inDay.has(e.id) && e.type !== 'time' || (s.m === 'abs' && e.muscle === 'abs' && !inDay.has(e.id)));
     const sc = e => { let v = 0; const db = F.EXDB && F.EXDB[e.id]; if (!e.id.startsWith('fe_')) v += 5; if (db) { if (db.lv === 'beginner') v += 3; else if (db.lv === 'expert') v -= 5; if ((db.pm || []).some(m => bad.has(m))) v -= 100; if (s.role === 'iso' && db.me === 'isolation') v += 2; if (s.role !== 'iso' && db.me === 'compound') v += 2; if (db.ca && db.ca !== 'strength') v -= 10; } else if (s.role === (e.compound ? 'main' : 'iso')) v += 2; return v; };
-    return c.filter(e => okEx(e.id, w)).map(e => [e, sc(e)]).filter(x => x[1] > -50).sort((a, b) => b[1] - a[1]).map(x => x[0].id).slice(0, 6);
+    return c.filter(e => okEx(e.id, w)).map(e => [e, sc(e)]).filter(x => x[1] > -50).sort((a, b) => b[1] - a[1]).map(x => x[0].id).slice(0, 10);
   };
   F.PLN.poolOf = poolOf;
+  // zamienniki w kreatorze: pula slotu, pełna pula bez filtra „dla początkujących” i dobór z bazy na tę samą partię
+  F.PLN.swapPool = (slot, w, inDay) => { const s = SL[slot]; if (!s) return []; const out = [...poolOf(slot, w), ...s.pool.all.filter(id => okEx(id, w))]; [...fallbackPool(slot, w, inDay), ...fallbackPool(slot, { ...w, inj: [] }, inDay)].forEach(id => out.push(id)); return [...new Set(out)].filter(id => F.S.ex.has(id)).slice(0, 12); };
   // szacowany czas dnia planu (min) z gotowych pozycji planu — ten sam model co w generatorze
   F.PLN.estMin = items => {
     const inf = F.ssInfo(items); let sec = 420; const done = new Set(); const seenM = new Set();

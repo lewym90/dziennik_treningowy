@@ -214,7 +214,9 @@
   F.act.wzSave = async () => { const z = Z(); if (!z.res) return; const plan = z.res.plan; await F.savePlan(plan); F.wz = null; F.toast('Zapisano plan: ' + E(plan.name), 'hot'); F.go('#/plan/' + plan.id); };
   F.act.wzSwap = b => {
     const z = Z(); const di = +b.dataset.di, ii = +b.dataset.ii; const d = z.res.days[di], i = d.items[ii]; const used = new Set(d.items.map(x => x.exId));
-    const alts = P.poolOf(i.slot, z.res.work).filter(id => !used.has(id) || id === i.exId);
+    let alts = [i.exId, ...P.swapPool(i.slot, z.res.work, used).filter(id => !used.has(id))];
+    // za mało zamienników: dobieramy z bazy ćwiczenia na tę samą partię, na sprzęt, który masz
+    if (alts.length < 6) { const cur = F.S.ex.get(i.exId) || {}, eq = new Set([...(z.res.work.equip || []), 'Masa ciała']); [...F.S.ex.values()].filter(e => e.muscle === cur.muscle && e.type !== 'time' && eq.has(e.equip) && !used.has(e.id) && !alts.includes(e.id)).sort((a, b) => (a.id.startsWith('fe_') - b.id.startsWith('fe_')) || (b.compound ? 1 : 0) - (a.compound ? 1 : 0) || a.name.localeCompare(b.name, 'pl')).slice(0, 8 - alts.length).forEach(e => alts.push(e.id)); }
     F.sheet(`${alts.length ? '<p class="dim small wz-swh">Na tę samą partię, pod Twój sprzęt</p>' : ''}<div class="stack">${alts.map(id => `<button class="exrow ${id === i.exId ? 'sel' : ''}" data-a="wzPick" data-di="${di}" data-ii="${ii}" data-id="${id}"><span><b>${E(P.exName(id))}</b><small>${E((F.S.ex.get(id) || {}).equip || '')}</small></span><i>${ic('check', 16)}</i></button>`).join('') || '<p class="dim pad center">Brak alternatyw przy Twoim sprzęcie i ograniczeniach.</p>'}</div><button class="btn ghost wide wz-any" data-a="wzAny" data-di="${di}" data-ii="${ii}">${ic('search', 18)} Wybierz dowolne z bazy</button>`, { title: 'Zamień ćwiczenie' });
   };
   F.act.wzAny = async b => { const di = +b.dataset.di, ii = +b.dataset.ii; const cur = F.S.ex.get(Z().res.days[di].items[ii].exId); F.closeSheet(true); const ids = await F.pickExercises({ single: true, muscle: (cur && cur.muscle) || '' }); if (!ids || !ids.length) return; F.act.wzPick({ dataset: { di, ii, id: ids[0] } }); };
