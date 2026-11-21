@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.20.0** („Zapytaj FORGE”), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.22.1** („Zapytaj FORGE”), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -45,7 +45,7 @@ Stan na 21 listopada 2026. Wersja **1.20.0** („Zapytaj FORGE”), opublikowana
 - Grafiki od właściciela: awatar i ikona w nagłówku Dziś `assets/bg/ask.webp`, ilustracja powitalna `assets/bg/ask-hero.webp` (w CORE sw.js).
 - v1.21.0: nagłówek „To nie jest AI — Nie zgaduje. Liczy.” + 8 kafli tematów (puste okno), podpowiedzi przy wpisywaniu, mikrofon (Web Speech API, gdy przeglądarka ma), menu „Co potrafię”. Nowe tematy: porównanie ćwiczeń, plan, rozkład tygodnia i dni tygodnia, „czy potrzebuję odciążenia” (`F.deloadAdvice`, przycisk włączenia), czas treningu, staż/statystyki, spalone kalorie (`F.sessKcal`), najlepszy trening, jak rozbudować partię, profil, data, „mało czasu” (najpierw wielostawowe, ACSM 2009), „nie mam siły”, potwierdzenia. Filtr sprzętu („bez sprzętu”, „w domu”, „hantlami”, „na maszynach”) w zamiennikach i ćwiczeniach na partię. Odporność na literówki (odległość edycji 1), lepsze dopasowanie nazw (kara za niepokryte słowa), waga ciała z datą („ile ważyłem miesiąc temu”), wiedza z danymi użytkownika (serie na partię, powtórzenia z planu, białko z profilu). Naprawione: dopytywanie o ćwiczenie (pending) nie działało, „łydki stojąc” trafiało w zastój, „wyciskanie nogami” w regenerację nóg, „ile robić serii” w regenerację, odmiana partii w podpowiedziach.
 - v1.22.0: czat obejmuje całą aplikację. Żywienie (`F.mealPlan`, `F.FOOD` z coach.js): rozpisany dzień posiłków (3/4/5, bez mięsa, inna propozycja), posiłek po/przed treningiem (białko 0,25 g/kg na posiłek, ISSN 2017), makro, „ile białka zostało” (uczciwie: aplikacja nie zapisuje jedzenia). Cardio (`F.cardioWeek`, cel z planu, WHO). Siła (`F.STRSTD` z features.js): poziomy, trójbój, DOTS, Wilks, podejścia na zawody (91/96,5/100%), procent maksa, najlepszy ciężar na N powtórzeń. Ciało: pomiary (`F.MEASF`), BMI (WHO). Osiągnięcia (`F.achievements`), analiza planu (`F.coachAnalyze`). Treningi z konkretnej daty („3 listopada”, „27.10”, „w zeszły wtorek”), trwający trening (`F.S.draft`), stoper przerwy z czatu (`F.restStart/restAdd/restStop`). Ustawienia, powiadomienia (`F.pushOn` z alert.js), kopia zapasowa, baza ćwiczeń, wszystkie plany, lista porad, informacje o aplikacji i danych. Ostatnia deska: wyszukiwanie w treści „Porad i nauki” (`F.GUIDE`) przed „nie umiem”.
-- Uwaga: ekran Mięśnie (`F.MUS_TARGET` w features.js) ma inne zakresy serii niż kreator i czat (`F.KB.vol` wg celu). Do ujednolicenia za zgodą właściciela.
+- v1.22.1: jeden zakres serii w całej aplikacji — `F.volFor(m)` / `F.volCtx()` / `F.volLabel()` w kb.js (cel i staż z aktualnego planu, `F.KB.vol` + `F.KB.volSmall`). Ekran Mięśnie, czat i raport liczą tak samo (ruch główny 1, pomocnicze 0,5). Stara tabela TARGET z features.js usunięta. Pod nagłówkiem ekranu Mięśnie: „Zakres dla celu: …, zalecany zakres FORGE, oparty na ACSM 2026”.
 - Testy: skrypty `ask.js`/`ask2.js`/`ask3.js` w scratchpadzie (60 pytań z danymi + pusty użytkownik), 0 błędów.
 
 ## Audyt (21.11.2026)
