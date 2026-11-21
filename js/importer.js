@@ -195,7 +195,7 @@
   F.importPlanFile = async data => {
     const exs = data.exercises || []; for (const e of exs) if (!F.S.ex.has(e.id)) await F.saveEx({ ...e, custom: true });
     const p = JSON.parse(JSON.stringify(data.plan)); p.id = F.uid(); p.created = Date.now(); p.days.forEach(d => { d.id = F.uid(); d.items.forEach(i => i.id = F.uid()); });
-    await F.savePlan(p); F.toast('Zaimportowano plan: ' + E(p.name), 'hot'); F.go('#/plan/' + p.id);
+    await F.savePlan(p); F.setCurPlan(p.id); F.toast('Zaimportowano plan: ' + E(p.name), 'hot'); F.go('#/plan/' + p.id);
   };
 
   /* ---------- historia z CSV ---------- */

@@ -211,7 +211,7 @@
   const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav, cAct: w.cAct, cNow: w.cNow, cChoice: w.cChoice, cAddType: w.cAddType, cPlaceNew: w.cPlaceNew, scheme: w.scheme, special: wFull().special }; F.saveSettings(); };
   F.act.wzBack = () => { Z().res = null; rerender(); };
   F.act.wzAgain = () => { const z = Z(); z.variant++; z.res = gen(z.variant); window.scrollTo(0, 0); rerender(); };
-  F.act.wzSave = async () => { const z = Z(); if (!z.res) return; const plan = z.res.plan; await F.savePlan(plan); F.wz = null; F.toast('Zapisano plan: ' + E(plan.name), 'hot'); F.go('#/plan/' + plan.id); };
+  F.act.wzSave = async () => { const z = Z(); if (!z.res) return; const plan = z.res.plan; await F.savePlan(plan); F.setCurPlan(plan.id); F.wz = null; F.toast('Zapisano plan: ' + E(plan.name), 'hot'); F.go('#/plan/' + plan.id); };
   F.act.wzSwap = b => {
     const z = Z(); const di = +b.dataset.di, ii = +b.dataset.ii; const d = z.res.days[di], i = d.items[ii]; const used = new Set(d.items.map(x => x.exId));
     let alts = [i.exId, ...P.swapPool(i.slot, z.res.work, used).filter(id => !used.has(id))];

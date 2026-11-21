@@ -899,3 +899,14 @@ form.ak-bar{flex-wrap:wrap}
 .rest-box[open] summary{margin-bottom:10px}.rest-f{margin:10px 0 0}.rest-f small{display:block;margin-top:5px;line-height:1.35}
 .rest-in{display:flex;align-items:center;gap:8px}.rest-in input{width:90px;text-align:center}.rest-in em{font-style:normal;color:var(--tx2)}.rest-in b{margin-left:auto;font:700 15px var(--fd);color:var(--a2)}
 .rest-box .btn{margin-top:12px}
+/* ekran Plany: aktualny plan */
+.plancur{position:relative;padding:18px;margin:0 0 6px;border-radius:18px;background:radial-gradient(300px 180px at 100% 0,rgba(var(--a1-rgb),.32),transparent 72%),linear-gradient(160deg,#2a2018,#17120e 70%);box-shadow:inset 0 0 0 1.5px rgba(var(--a1-rgb),.6),0 14px 34px -18px rgba(var(--a1-rgb),.8)}
+.pc-k{display:flex;align-items:center;gap:6px;font:600 13px var(--fb);color:var(--a2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.pc-name{display:flex;align-items:flex-start;gap:8px;color:var(--tx)}.pc-name h2{flex:1;min-width:0;margin:0;font:700 clamp(24px,7vw,30px)/1.12 var(--fd);overflow-wrap:anywhere}.pc-name svg{flex:none;margin-top:4px;color:var(--tx2)}
+.pc-m{display:flex;flex-wrap:wrap;gap:4px 12px;margin:8px 0 12px;color:var(--tx2);font-size:14px}.pc-m span:first-child{color:var(--a2);font-weight:600}
+.pc-row{display:flex;align-items:baseline;gap:10px;width:100%;padding:10px 0;border-top:1px solid rgba(255,190,130,.1);text-align:left;font-size:15px;color:var(--tx)}
+.pc-row .dim{flex:none;width:72px;font-size:13px}.pc-row b{flex:1;min-width:0;font-weight:600}.pc-row em{flex:none;font-style:normal;color:var(--a2);font-size:14px;font-weight:600}
+.plancur .forge-btn{margin-top:12px}.plancur .forge-btn span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-note{display:grid;gap:10px;padding:14px 16px;margin:0 0 14px;border-radius:14px;background:rgba(var(--a1-rgb),.08);box-shadow:inset 0 0 0 1px rgba(var(--a1-rgb),.3)}.pc-note p{margin:0;color:var(--tx2);font-size:14px;line-height:1.4}.pc-note .btn{justify-self:start}
+.sum-stats.nut{grid-template-columns:repeat(3,minmax(0,1fr))}.sum-stats.nut>div:first-child{grid-column:1/-1}.sum-stats.nut>div:first-child b{font-size:30px}
+.sum-stats.nut b em{font:600 15px var(--fb);color:var(--tx2);font-style:normal}

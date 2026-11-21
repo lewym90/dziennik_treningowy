@@ -24,7 +24,8 @@
   F.nextWorkout = raw => {
     if (!F.S.plans.length) return null;
     const last = F.S.sessions.find(s => s.planId && F.planOf(s.planId));
-    const plan = (last && F.planOf(last.planId)) || F.S.plans.find(p => p.days.length) || F.S.plans[0];
+    const pick = F.S.settings.curPlan && F.planOf(F.S.settings.curPlan);
+    const plan = (pick && pick.days.length ? pick : null) || (last && F.planOf(last.planId)) || F.S.plans.find(p => p.days.length) || F.S.plans[0];
     if (!plan || !plan.days.length) return null;
     // osobne sesje cardio nie biorą udziału w kolejce dni siłowych (i jej nie przesuwają); wybierasz je z listy dni planu
     const cardioOnly = d => /^Cardio/.test(d.name) || (d.items.length > 0 && d.items.every(i => i.cardio));
@@ -87,11 +88,11 @@
       hero = `<section class="hero cut live"><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} serii zaliczonych</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
     } else if (nx) {
             hero = `<section class="hero cut"><div class="hero-k">Następny trening</div><h2>${E(nx.day.name)}</h2>
-        <p class="hero-m"><span>${ic('calendar', 15)} Dzień ${nx.di + 1} z ${nx.plan.days.length}</span><span>${ic('timer', 15)} ok. ${estMin(nx.day)} min</span><span>${ic('dumbbell', 15)} ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
+        <p class="hero-m"><span>${ic('calendar', 15)} Dzień ${nx.di + 1} z ${nx.plan.days.length}</span><span>${ic('timer', 15)} ${estMin(nx.day)} min</span><span>${ic('dumbbell', 15)} ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
         <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button></section>`;
     } else {
-      hero = `<section class="hero cut"><div class="hero-k">Zacznij od zera</div><h2>Pora wykuć plan</h2><p class="hero-m">Zbuduj własny plan, wgraj ten, którego używasz dotąd (PDF lub zrzut ekranu) albo wystartuj z gotowego szablonu.</p>
-        <div class="btn-row"><a class="btn primary" href="#/import">${ic('scan-text', 18)} Importuj plan</a><a class="btn ghost" href="#/plans">${ic('clipboard-list', 18)} Plany</a></div></section>`;
+      hero = `<section class="hero cut"><div class="hero-k">Zacznij od zera</div><h2>Pora wykuć plan</h2><p class="hero-m">Ułóż plan w kreatorze, weź gotowy plan startowy albo wgraj ten, którego używasz dotąd (PDF lub zrzut ekranu).</p>
+        <div class="btn-row"><a class="btn primary" href="#/wizard" data-a="newWizard">${ic('sparkles', 18)} Kreator planu</a><a class="btn ghost" href="#/plans">${ic('clipboard-list', 18)} Plany</a></div></section>`;
     }
     // rekordy
     const prs = []; F.S.sessions.slice(0, 8).forEach(se => (se.prs || []).forEach(p => prs.push({ ...p, ts: se.start }))); const prShow = prs.slice(0, 6);
@@ -141,36 +142,58 @@
 
   /* ================= PLANY ================= */
   function plans() {
-    const list = F.S.plans.map(p => {
-      const n = p.days.reduce((a, d) => a + d.items.length, 0); const last = F.S.sessions.find(s => s.planId === p.id);
-      return `<a class="plan cut" href="#/plan/${p.id}"><div class="plan-i">${ic('clipboard-list', 22)}</div><div class="plan-b"><h3>${E(p.name)}</h3><p>${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${last ? ` · ostatnio ${F.relDay(last.start).toLowerCase()}` : ''}</p></div>${ic('chevron-right', 20)}</a>`;
-    }).join('');
+    const nx = F.nextWorkout(), cur = nx ? nx.plan : null, d = F.S.draft;
+    const cnt = p => p.days.reduce((a, x) => a + x.items.length, 0), G = F.PLN && F.PLN.GOALS, X = F.PLN && F.PLN.EXPS;
+    const tagOf = p => { const m = p.meta || {}; return [m.goal && G && G[m.goal] ? G[m.goal][0] : '', m.exp && X && X[m.exp] ? X[m.exp][0].toLowerCase() : ''].filter(Boolean).join(' · '); };
+    const card = p => { const n = cnt(p), last = F.S.sessions.find(s => s.planId === p.id);
+      return `<a class="plan cut" href="#/plan/${p.id}"><div class="plan-i">${ic('clipboard-list', 22)}</div><div class="plan-b"><h3>${E(p.name)}</h3><p>${tagOf(p) ? E(tagOf(p)) + ' · ' : ''}${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${last ? ` · ostatnio ${F.relDay(last.start).toLowerCase()}` : ''}</p></div>${ic('chevron-right', 20)}</a>`; };
+    let top = '';
+    if (cur) {
+      const n = cnt(cur), tag = tagOf(cur);
+      const q0 = F.calQueue ? F.calQueue(21)[0] : null, wd = F.calWeekdays ? F.calWeekdays(cur) : [];
+      const when = q0 ? F.calWhen(q0.ts) : '', nd = q0 ? q0.day : nx.day;
+      top = `<section class="plancur cut"><div class="pc-k">${ic('flame', 15)} Aktualny plan</div>
+        <a class="pc-name" href="#/plan/${cur.id}"><h2>${E(cur.name)}</h2>${ic('chevron-right', 22)}</a>
+        <p class="pc-m">${tag ? `<span>${E(tag)}</span>` : ''}<span>${cur.days.length} ${F.plur(cur.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
+        <div class="pc-row"><span class="dim">Następny</span><b>${E(nd.name)}</b>${when ? `<em>${E(when)}</em>` : ''}</div>
+        ${wd.length ? `<button class="pc-row pc-days" data-a="calDays"><span class="dim">Dni</span><b>${wd.map(i => F.WD_SHORT[i]).join(' · ')}</b><em>zmień</em></button>` : ''}
+        ${d ? `<a class="forge-btn" href="#/workout"><span>${ic('play', 20)} Wróć do treningu</span></a>` : `<button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij: ${E(nx.day.name)}</span></button>`}</section>`;
+    }
+    const others = F.S.plans.filter(p => p !== cur);
     return {
       html: `${head('Plany', { sub: 'Twoje programy treningowe', right: `<button class="btn sm primary" data-a="newPlan">${ic('plus', 16)} Nowy</button>` })}
-      ${F.S.plans.length ? `<div class="stack">${list}</div>` : empty('clipboard-list', 'Brak planów', 'Stwórz własny plan, zaimportuj go z PDF-a lub zrzutu ekranu albo weź gotowy szablon.')}
-      <a class="importcard cut" href="#/calendar" data-a="goCal"><div>${ic('calendar', 30)}</div><p><b>Kalendarz</b><small>${E(F.calLine())}</small></p>${ic('chevron-right', 20)}</a>
-      <a class="importcard cut" href="#/wizard" data-a="newWizard"><div>${ic('sparkles', 30)}</div><p><b>Kreator planu</b><small>Odpowiesz na kilka pytań — ułożę plan dla Ciebie</small></p>${ic('chevron-right', 20)}</a>
+      ${F.S.plans.length ? top : empty('clipboard-list', 'Brak planów', 'Ułóż plan w kreatorze, weź gotowy plan startowy albo zaimportuj ten, którego używasz.')}
+      ${others.length ? `<h3 class="sec">${cur ? 'Inne plany' : 'Twoje plany'}</h3><div class="stack">${others.map(card).join('')}</div>` : ''}
+      <h3 class="sec">Nowy plan</h3>
+      <a class="importcard cut" href="#/wizard" data-a="newWizard"><div>${ic('sparkles', 30)}</div><p><b>Kreator planu</b><small>Odpowiesz na kilka pytań — ułożę plan pod Twój cel, staż, sprzęt i czas</small></p>${ic('chevron-right', 20)}</a>
+      <button class="importcard cut" data-a="templates"><div>${ic('clipboard-list', 30)}</div><p><b>Plany startowe</b><small>Pięć gotowych planów: masa, siła, całe ciało, pośladki</small></p>${ic('chevron-right', 20)}</button>
       <a class="importcard cut" href="#/import"><div>${ic('scan-text', 30)}</div><p><b>Importuj plan z pliku</b><small>PDF, zrzut ekranu, zdjęcie, tekst, CSV z innej aplikacji</small></p>${ic('chevron-right', 20)}</a>
-      <div class="btn-row split"><button class="btn ghost" data-a="templates">${ic('sparkles', 18)} Plany startowe</button><a class="btn ghost" href="#/exercises">${ic('dumbbell', 18)} Ćwiczenia</a></div>`
+      <a class="btn ghost wide" href="#/exercises">${ic('dumbbell', 18)} Baza ćwiczeń</a>`
     };
   }
+  F.setCurPlan = id => { F.S.settings.curPlan = id; F.saveSettings(); };
+  F.act.setCur = b => { F.setCurPlan(b.dataset.id); F.closeSheet(true); F.toast('Ustawiono jako aktualny plan', 'hot'); F.render(true); };
   F.act.newPlan = () => { const cp = F.curPlan(); const g = cp && cp.meta && cp.meta.goal; const p = { id: F.uid(), name: 'Nowy plan', created: Date.now(), meta: { goal: g || undefined, exp: cp && cp.meta && cp.meta.exp || undefined, rest: { ...F.restProfile(cp) } }, days: [{ id: F.uid(), name: 'Dzień 1', items: [] }] }; F.ui.edit = { plan: p, isNew: true }; F.go('#/plan/' + p.id + '/edit'); };
+  const tplItems = t => { const m = t[3]; return t[2].map(d => ({ name: d[0], items: d[1].map(([id, sets, r]) => { const role = F.PLN.roleOf(id), ex = F.S.ex.get(id) || {}; const reps = r || (ex.type === 'time' ? '45' : (d[2] === 'hy' ? F.KB.repsHyp : F.KB.reps[m.goal])[role]); return { exId: id, sets, reps: String(reps), rest: F.KB.restOf(m.goal, m.exp, role), role }; }) })); };
+  F.tplItems = tplItems;
   F.act.templates = () => {
-    F.sheet(`<p class="sheet-p dim">Gotowe plany mają stałe serie, powtórzenia i przerwy. Plan dopasowany do Twojego celu, stażu, sprzętu i czasu ułoży kreator.</p><div class="stack">${F.TEMPLATES.map((t, i) => `<button class="tpl cut" data-a="addTpl" data-i="${i}"><b>${E(t[0])}</b><small>${E(t[1])}</small><em>${t[2].length} ${t[2].length === 1 ? 'dzień' : 'dni'} · ${t[2].reduce((a, d) => a + d[1].length, 0)} ćwiczeń</em></button>`).join('')}</div>`, { title: 'Plany startowe' });
+    const G = F.PLN.GOALS, X = F.PLN.EXPS;
+    F.sheet(`<p class="sheet-p dim">Gotowe plany ze stałym układem. Serie, powtórzenia i przerwy dobrane do celu i stażu podanego przy planie. Plan pod Twój sprzęt, czas i ograniczenia ułoży kreator.</p><div class="stack">${F.TEMPLATES.map((t, i) => { const n = t[2].reduce((a, d) => a + d[1].length, 0), m = t[3]; return `<button class="tpl cut" data-a="addTpl" data-i="${i}"><b>${E(t[0])}</b><small>${E(t[1])}</small><em>${G[m.goal][0]} · ${X[m.exp][0].toLowerCase()} · ${m.weekdays.length} ${F.plur(m.weekdays.length, 'trening', 'treningi', 'treningów')} w tygodniu · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</em></button>`; }).join('')}</div>`, { title: 'Plany startowe' });
   };
   F.act.addTpl = async b => {
-    const t = F.TEMPLATES[+b.dataset.i];
-    const plan = { id: F.uid(), name: t[0], created: Date.now(), days: t[2].map(d => ({ id: F.uid(), name: d[0], items: d[1].map(i => ({ id: F.uid(), exId: i[0], sets: i[1], reps: String(i[2]), rest: i[3] })) })) };
-    await F.savePlan(plan); F.closeSheet(true); F.toast('Dodano plan: ' + E(t[0]), 'hot'); F.go('#/plan/' + plan.id);
+    const t = F.TEMPLATES[+b.dataset.i], m = t[3];
+    const plan = { id: F.uid(), name: t[0], created: Date.now(), meta: { goal: m.goal, exp: m.exp, weekdays: [...m.weekdays], tpl: 1, rest: { main: F.KB.restOf(m.goal, m.exp, 'main'), sec: F.KB.restOf(m.goal, m.exp, 'sec'), iso: F.KB.restOf(m.goal, m.exp, 'iso') } }, days: tplItems(t).map(d => ({ id: F.uid(), name: d.name, items: d.items.map(i => ({ id: F.uid(), ...i })) })) };
+    await F.savePlan(plan); F.setCurPlan(plan.id); F.closeSheet(true); F.toast('Dodano plan: ' + E(t[0]), 'hot'); F.go('#/plan/' + plan.id);
   };
 
   function planDetail(id) {
     const p = F.planOf(id); if (!p) return { html: head('Plan', { back: 1 }) + empty('clipboard-list', 'Nie znaleziono planu', 'Ten plan został usunięty.') };
     return {
       html: `${head(E(p.name), { back: 1, sub: `${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')}`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
+      ${(F.nextWorkout() || {}).plan === p ? '' : `<div class="pc-note cut"><p>To nie jest Twój aktualny plan. Następny trening na ekranie Dziś i kalendarz biorą dni z aktualnego planu.</p><button class="btn sm primary" data-a="setCur" data-id="${p.id}">${ic('flame', 16)} Ustaw jako aktualny</button></div>`}
       ${p.days.map((d, di) => `<section class="card cut day"><div class="day-h"><div><span class="dim">Dzień ${di + 1}</span><h3>${E(d.name)}</h3></div><button class="btn sm primary" data-a="startDay" data-p="${p.id}" data-d="${d.id}">${ic('play', 16)} Start</button></div>
         ${d.items.length ? `<ul class="items">${planDetItems(d)}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
-        <p class="dim foot">${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · ok. ${estMin(d)} min</p></section>`).join('')}
+        <p class="dim foot">${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · wyliczony czas: ${estMin(d)} min</p></section>`).join('')}
       <a class="btn ghost wide" href="#/plan/${p.id}/edit">${ic('pencil', 18)} Edytuj plan</a>`
     };
   }
@@ -191,7 +214,8 @@
   F.act.startDay = b => { const p = F.planOf(b.dataset.p); const d = p && p.days.find(x => x.id === b.dataset.d); if (d) F.startWorkout({ plan: p, day: d }); };
   F.act.planMenu = b => {
     const id = b.dataset.id;
-    F.sheet(`<div class="menu"><button data-a="planEditGo" data-id="${id}">${ic('pencil', 20)}Edytuj</button><button data-a="planDup" data-id="${id}">${ic('copy', 20)}Duplikuj</button><button data-a="planText" data-id="${id}">${ic('clipboard-paste', 20)}Kopiuj jako tekst</button><button data-a="planJson" data-id="${id}">${ic('file-json', 20)}Eksportuj do pliku</button><button class="danger" data-a="planDel" data-id="${id}">${ic('trash-2', 20)}Usuń plan</button></div>`, { title: 'Plan' });
+    const isCur = (F.nextWorkout() || {}).plan === F.planOf(id);
+    F.sheet(`<div class="menu">${isCur ? '' : `<button data-a="setCur" data-id="${id}">${ic('flame', 20)}Ustaw jako aktualny</button>`}<button data-a="planEditGo" data-id="${id}">${ic('pencil', 20)}Edytuj</button><button data-a="planDup" data-id="${id}">${ic('copy', 20)}Duplikuj</button><button data-a="planText" data-id="${id}">${ic('clipboard-paste', 20)}Kopiuj jako tekst</button><button data-a="planJson" data-id="${id}">${ic('file-json', 20)}Eksportuj do pliku</button><button class="danger" data-a="planDel" data-id="${id}">${ic('trash-2', 20)}Usuń plan</button></div>`, { title: 'Plan' });
   };
   F.act.planEditGo = b => { F.closeSheet(true); F.go('#/plan/' + b.dataset.id + '/edit'); };
   F.act.planDup = async b => { const p = F.planOf(b.dataset.id); const c = JSON.parse(JSON.stringify(p)); c.id = F.uid(); c.name = p.name + ' (kopia)'; c.created = Date.now(); c.days.forEach(d => { d.id = F.uid(); d.items.forEach(i => i.id = F.uid()); }); await F.savePlan(c); F.closeSheet(true); F.toast('Zduplikowano plan'); F.go('#/plan/' + c.id); };
@@ -285,7 +309,7 @@
   };
   F.act.planSave = async () => {
     const p = E_(); p.meta = p.meta || {}; if (!p.meta.rest) p.meta.rest = { ...F.restProfile(p) }; p.days.forEach(d => F.cleanSS(d.items)); if (!p.name.trim()) p.name = 'Plan bez nazwy'; p.days.forEach(d => { d.items.forEach(i => { if (!i.sets || i.sets < 1) i.sets = 1; }); });
-    await F.savePlan(p); F.ui.edit = null; F.toast('Plan zapisany', 'hot'); F.go('#/plan/' + p.id);
+    const isNew = F.ui.edit && F.ui.edit.isNew; await F.savePlan(p); if (isNew) F.setCurPlan(p.id); F.ui.edit = null; F.toast('Plan zapisany', 'hot'); F.go('#/plan/' + p.id);
   };
 
   /* ---------- wybierak ćwiczeń ---------- */

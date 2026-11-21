@@ -137,32 +137,35 @@ F.SEED = [
 ];
 
 // Plany startowe: [nazwa, opis, [[dzień, [[exId, serie, powt, przerwa(s)]...]]...]]
+/* Plany startowe. Format: [nazwa, opis, dni, meta]; dzień = [nazwa, ćwiczenia, 'hy' = dzień lżejszy]; ćwiczenie = [id, serie, powtórzenia?].
+   Powtórzenia (gdy brak) i przerwy liczone przy dodaniu z F.KB.reps / F.KB.repsHyp / F.KB.restOf według celu i stażu planu.
+   Serie tygodniowo sprawdzone względem F.KB.vol (ruch główny 1, pomocnicze 0,5). */
 F.TEMPLATES = [
-  ['Push / Pull / Legs', 'Podział na pchanie, ciągnięcie i nogi: 3 dni w tygodniu albo 6 (wtedy każda partia 2 razy).', [
-    ['Push', [['bench', 4, '6-8', 150], ['ohp', 3, '8-10', 120], ['db_inc', 3, '8-12', 90], ['lateral', 4, '12-15', 60], ['tri_push', 3, '10-12', 75], ['skull', 3, '10-12', 75]]],
-    ['Pull', [['deadlift', 3, '5', 180], ['pullup', 4, '6-10', 120], ['row_bb', 3, '8-10', 120], ['facepull', 3, '12-15', 60], ['curl_bb', 3, '8-10', 75], ['curl_ham', 3, '10-12', 60]]],
-    ['Legs', [['squat', 4, '6-8', 180], ['rdl', 3, '8-10', 120], ['leg_press', 3, '10-12', 120], ['leg_curl', 3, '10-12', 75], ['calf_st', 4, '12-15', 60], ['cab_crunch', 3, '12-15', 60]]]
-  ]],
-  ['Góra / Dół (4 dni)', 'Każda partia 2 razy w tygodniu: dzień ciężki (mało powtórzeń) i dzień z większą liczbą powtórzeń.', [
-    ['Góra A — siła', [['bench', 5, '5', 180], ['row_bb', 4, '6-8', 150], ['ohp', 3, '6-8', 120], ['lat_pull', 3, '8-10', 90], ['curl_ez', 3, '8-10', 75], ['tri_push', 3, '8-10', 75]]],
-    ['Dół A — siła', [['squat', 5, '5', 210], ['rdl', 3, '6-8', 150], ['leg_press', 3, '10', 120], ['leg_curl', 3, '10-12', 75], ['calf_st', 4, '10-12', 60]]],
-    ['Góra B — objętość', [['db_inc', 4, '8-12', 90], ['row_cable', 4, '10-12', 90], ['db_ohp', 3, '10-12', 90], ['pullup', 3, '8-12', 90], ['lateral', 4, '12-20', 45], ['curl_inc', 3, '10-12', 60], ['tri_over', 3, '10-12', 60]]],
-    ['Dół B — objętość', [['deadlift', 3, '5', 210], ['bulgar', 3, '8-10', 120], ['hack', 3, '10-12', 120], ['hip_thrust', 3, '10-12', 90], ['leg_ext', 3, '12-15', 60], ['calf_se', 4, '12-15', 45]]]
-  ]],
-  ['Siła 5×5 (A/B)', 'Trzy boje po 5 serii × 5 powtórzeń, ciężar dokładany co trening. Nastawiony na siłę.', [
-    ['Trening A', [['squat', 5, '5', 180], ['bench', 5, '5', 180], ['row_bb', 5, '5', 150]]],
-    ['Trening B', [['squat', 5, '5', 180], ['ohp', 5, '5', 150], ['deadlift', 1, '5', 240]]]
-  ]],
-  ['Full Body 3×', 'Trzy treningi całego ciała w tygodniu, po 4–5 ćwiczeń — prosty układ na początek.', [
-    ['Full Body A', [['squat', 3, '8', 150], ['bench', 3, '8', 120], ['row_cable', 3, '10', 90], ['plank', 3, '45', 60]]],
-    ['Full Body B', [['deadlift', 3, '5', 180], ['db_ohp', 3, '10', 90], ['lat_pull', 3, '10', 90], ['leg_raise', 3, '12', 60]]],
-    ['Full Body C', [['leg_press', 3, '10', 120], ['db_bench', 3, '10', 90], ['row_db', 3, '10', 90], ['curl_db', 2, '12', 60], ['tri_push', 2, '12', 60]]]
-  ]],
-  ['Pośladki i nogi', 'Nacisk na pośladki i tył uda; górna część ciała w mniejszej objętości.', [
-    ['Pośladki A', [['hip_thrust', 4, '8-10', 120], ['rdl', 3, '8-10', 120], ['bulgar', 3, '10', 90], ['glute_kick', 3, '12-15', 60], ['abduct', 3, '15-20', 45]]],
-    ['Nogi + góra', [['squat', 4, '8', 150], ['leg_curl', 3, '10-12', 75], ['lat_pull', 3, '10-12', 90], ['db_ohp', 3, '10-12', 75], ['plank', 3, '45', 45]]],
-    ['Pośladki B', [['sumo', 3, '6-8', 150], ['hip_thrust', 3, '10-12', 90], ['step_up', 3, '10', 75], ['glute_br', 3, '15', 45], ['calf_st', 3, '15', 45]]]
-  ]]
+  ['Push / Pull / Nogi', 'Pchanie, ciągnięcie i nogi: każda partia raz w tygodniu, 10–14 serii na dużą partię. Przy tej samej liczbie serii częstotliwość nie zmienia przyrostu mięśni (Schoenfeld 2019). Trening trwa 60–75 min.', [
+    ['Push — klatka, barki, triceps', [['bench', 4], ['db_inc', 3], ['fly_cable', 3], ['ohp', 3], ['lateral', 3], ['tri_push', 3], ['tri_over', 2]]],
+    ['Pull — plecy, biceps', [['pullup', 4], ['row_bb', 3], ['row_cable', 3], ['curl_bb', 3], ['curl_ham', 3], ['cab_crunch', 2], ['leg_raise', 2]]],
+    ['Nogi', [['squat', 4], ['leg_press', 4], ['leg_ext', 2], ['rdl', 4], ['leg_curl_s', 3], ['hip_thrust', 2], ['calf_st', 3]]]
+  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 2, 4] }],
+  ['Góra / Dół', 'Każda partia 2 razy w tygodniu: dzień cięższy (mniej powtórzeń) i dzień lżejszy (więcej powtórzeń). 10–16 serii tygodniowo na dużą partię. Trening trwa 60–70 min.', [
+    ['Góra A — cięższa', [['bench', 4], ['row_bb', 3], ['ohp', 3], ['lat_pull', 3], ['curl_ez', 3], ['tri_push', 3]]],
+    ['Dół A — cięższy', [['squat', 4], ['rdl', 3], ['leg_press', 3], ['leg_curl_s', 3], ['calf_st', 3], ['cab_crunch', 3]]],
+    ['Góra B — lżejsza', [['db_inc', 3], ['pullup', 3], ['fly_cable', 3], ['row_cable', 3], ['lateral', 3], ['curl_inc', 3], ['tri_over', 3]], 'hy'],
+    ['Dół B — lżejszy', [['hack', 3], ['hip_thrust', 3], ['bulgar', 3], ['leg_curl', 2], ['leg_ext', 3], ['calf_se', 3], ['leg_raise', 3]], 'hy']
+  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 1, 3, 4] }],
+  ['Siła A/B (3×5)', 'Przysiad w każdym treningu, pozostałe boje na zmianę. Treningi A i B naprzemiennie, 3 razy w tygodniu: A-B-A, w następnym tygodniu B-A-B. Gdy zrobisz wszystkie serie po 5 powtórzeń, następnym razem dołóż ciężar.', [
+    ['Trening A', [['squat', 3, '5'], ['bench', 3, '5'], ['row_bb', 3, '5'], ['rdl', 2, '6-8'], ['cab_crunch', 2]]],
+    ['Trening B', [['squat', 3, '5'], ['ohp', 3, '5'], ['deadlift', 1, '5'], ['db_bench', 2, '6-8'], ['curl_bb', 2], ['plank', 2]]]
+  ], { goal: 'str', exp: 'beg', weekdays: [0, 2, 4] }],
+  ['Całe ciało 3×', 'Trzy treningi całego ciała w tygodniu, każda duża partia 3 razy. Proste ćwiczenia na wolnych ciężarach i maszynach. Trening trwa 50–60 min.', [
+    ['Całe ciało A', [['squat', 3], ['bench', 4], ['lat_pull', 3], ['leg_curl_s', 3], ['tri_push', 2], ['plank', 2]]],
+    ['Całe ciało B', [['rdl', 3], ['db_ohp', 3], ['row_cable', 3], ['leg_press', 4], ['curl_db', 2], ['pushup', 3]]],
+    ['Całe ciało C', [['goblet', 3], ['db_bench', 3], ['row_db', 3], ['leg_curl', 3], ['curl_db', 2], ['cab_crunch', 2]]]
+  ], { goal: 'hyp', exp: 'beg', weekdays: [0, 2, 4] }],
+  ['Pośladki i nogi', 'Nacisk na pośladki i tył uda — pośladki dostają więcej serii niż zakres FORGE dla tej partii. Góra ciała w mniejszej objętości: klatka 6 serii tygodniowo, a minimum według przeglądu Iversena i in. (2021) to 4.', [
+    ['Pośladki A', [['hip_thrust', 4], ['rdl', 3], ['bulgar', 3], ['abduct', 3], ['db_bench', 3], ['lat_pull', 3]]],
+    ['Nogi i góra', [['squat', 4], ['leg_curl_s', 3], ['glute_kick', 3], ['db_ohp', 3], ['row_cable', 3], ['cab_crunch', 2]]],
+    ['Pośladki B', [['sumo', 3], ['hip_thrust', 3], ['step_up', 3], ['db_inc', 3], ['row_db', 3], ['calf_st', 2], ['plank', 2]]]
+  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 2, 4] }]
 ];
 
 F.QUOTES = [

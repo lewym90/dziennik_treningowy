@@ -10,6 +10,8 @@
   const fromKey = k => new Date(Math.floor(k / 10000), Math.floor(k / 100) % 100 - 1, k % 100).getTime();
   const cardioOnly = d => /^Cardio/.test(d.name) || (d.items.length > 0 && d.items.every(i => i.cardio));
   const weekdays = plan => { const c = cfg(); if (c.wd && c.wd.length) return c.wd; const m = plan && plan.meta && plan.meta.weekdays; if (m && m.length) return m; return DEF[Math.min(7, Math.max(1, F.S.settings.weeklyGoal || 3))]; };
+  F.calWeekdays = weekdays; F.WD_SHORT = WD;
+  F.calWhen = ts => { const t = F.startOfDay(Date.now()), k = Math.round((F.startOfDay(ts) - t) / 864e5); return k <= 0 ? 'dziś' : k === 1 ? 'jutro' : k < 7 ? WL[wdOf(ts)] : new Date(ts).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' }); };
   const shift = (ts, pauses) => { let n = 0; pauses.forEach(p => { if (F.dayKey(add(ts, n)) >= p) n++; }); return add(ts, n); };
 
   // kolejka: kolejne dni planu rozłożone na najbliższe dni treningowe
@@ -37,7 +39,7 @@
   const rel = ts => { const d = Math.round((F.startOfDay(ts) - F.startOfDay(Date.now())) / 864e5); return d === 0 ? 'dziś' : d === 1 ? 'jutro' : WL[wdOf(ts)]; };
   F.calLine = () => { const q = F.calQueue(21).slice(0, 2); if (!q.length) return 'Rozkład treningów na najbliższe tygodnie'; const t = q.map(x => `${rel(x.ts)}: ${x.day.name}`).join(' · '); return t.charAt(0).toUpperCase() + t.slice(1); };
   const est = d => F.PLN && F.PLN.estMin ? F.PLN.estMin(d.items) : 0;
-  const info = d => `${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${est(d) ? ` · ok. ${est(d)} min` : ''}`;
+  const info = d => `${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${est(d) ? ` · ${est(d)} min` : ''}`;
 
   V.calendar = () => {
     const nx = F.nextWorkout(); const head = F.head('Kalendarz', { back: 1, sub: nx ? E(nx.plan.name) : 'Rozkład treningów' });
