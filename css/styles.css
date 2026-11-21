@@ -867,3 +867,25 @@ body:has(#dock.on) form.ak-bar{bottom:calc(var(--tab) + var(--sb) + 70px)}body:h
 .ak-hero h2{font:800 22px/1.1 var(--fd);margin:0 0 6px}
 .ak-hero p{margin:0;font-size:13.5px;line-height:1.4;color:var(--tx2)}
 .ak-hero.out{opacity:0;transform:translateY(-6px)}
+/* czat: nagłówek „To nie jest AI”, kafle tematów, podpowiedzi, mikrofon */
+.ak-hero{min-height:200px}
+.ak-hero>div{max-width:72%}
+.ak-tag{display:inline-flex;align-items:center;gap:5px;font:800 11.5px/1 var(--fb);letter-spacing:.06em;text-transform:uppercase;color:var(--a2);background:rgba(var(--a1-rgb),.14);box-shadow:inset 0 0 0 1px rgba(var(--a1-rgb),.45);padding:6px 9px;border-radius:99px;margin-bottom:10px}
+.ak-hero h2{font-size:26px;line-height:1.05}
+.ak-hero-s{margin-top:8px!important;color:var(--tx)!important;font-weight:700;font-size:13.5px}
+.ak-caps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 18px;animation:akIn .5s .1s both}
+.ak-cap{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 9px;border-radius:14px;text-align:left;color:var(--tx);background:linear-gradient(160deg,rgba(38,32,27,.8),rgba(19,16,14,.86));box-shadow:inset 0 0 0 1px rgba(255,190,130,.09);min-width:0;transition:.15s}
+.ak-cap svg{color:var(--a2);margin-bottom:3px}.ak-cap b{font:700 13.5px var(--fd)}.ak-cap small{font-size:11px;line-height:1.25;color:var(--tx3)}
+.ak-cap:active{transform:scale(.96);box-shadow:inset 0 0 0 1px rgba(var(--a1-rgb),.6)}
+@media(max-width:380px){.ak-caps{grid-template-columns:repeat(2,1fr)}}
+form.ak-bar{flex-wrap:wrap}
+.ak-in-w{flex:1;position:relative;display:flex;min-width:0}
+.ak-in-w input{padding-right:48px!important}
+.ak-mic{position:absolute;right:5px;top:5px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--tx2);transition:.15s}
+.ak-mic.on{color:var(--on-a);background:var(--a1);box-shadow:0 0 0 0 rgba(var(--a1-rgb),.6);animation:akPulse 1.2s infinite}
+.ak-sug{display:none;flex:1 1 100%;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 8px}.ak-sug::-webkit-scrollbar{display:none}
+.ak-sug.on{display:flex}.ak-sug .chip{height:32px;font-size:13px;flex:none}
+.ak-cmp{margin:6px 0 4px}.ak-cmp-h{display:flex;align-items:center;gap:8px;font-size:14.5px;margin:0 0 -2px}
+@keyframes akPulse{0%{box-shadow:0 0 0 0 rgba(var(--a1-rgb),.6)}70%{box-shadow:0 0 0 12px rgba(var(--a1-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--a1-rgb),0)}}
+.ibtn.ask{padding:0;overflow:hidden;background:#0a0807;box-shadow:inset 0 0 0 1px rgba(var(--a1-rgb),.35),0 0 18px -6px rgba(var(--a1-rgb),.7)}
+.ibtn.ask img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.12)}
