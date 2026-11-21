@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.27.0** (ekran serii, nowe funkcje 2–4, 6, 7, 9–12, 21, 22), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.28.0** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
