@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.25.0** (ekran Plany, plany startowe), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.25.1** (ekran Plany, plany startowe), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -77,7 +77,7 @@ Stan na 21 listopada 2026. Wersja **1.25.0** (ekran Plany, plany startowe), opub
 ## v1.25.0 — ekran Plany, plany startowe, Żywienie (21.11.2026)
 - Ekran Plany: na górze karta „Aktualny plan” (cel · staż, dni i ćwiczenia, następny trening z dniem, dni tygodnia z „zmień” → `calDays`, przycisk „Rozpocznij”). Niżej „Inne plany”, potem „Nowy plan”: Kreator → Plany startowe → Import, na dole „Baza ćwiczeń”. Kafel Kalendarz usunięty (kalendarz jest na ekranie Dziś).
 - Aktualny plan: `settings.curPlan` (ustawiany przy starcie treningu z planu, zapisie z kreatora, dodaniu planu startowego, imporcie, zapisie nowego planu, „Ustaw jako aktualny” w menu planu i w szczegółach planu). `F.nextWorkout` bierze go jako pierwszy, potem plan z ostatniego treningu. `coach.js activePlan` korzysta z `F.nextWorkout`. Eksport z calendar.js: `F.calWeekdays`, `F.WD_SHORT`, `F.calWhen`.
-- Nazwa planu z kreatora krótsza: „Masa — Push / Pull / Nogi” (cel i staż w podtytule z `meta`).
+- Nazwa planu z kreatora krótsza: „Masa — Push / Pull / Nogi” (cel i staż w podtytule z `meta`). v1.25.1: stare długie nazwy z kreatora skracane przy starcie (core.js, tylko plany z `meta.goal`); w karcie aktualnego planu bez strzałki, nazwa dnia bez przedrostka „Pn — ”, przycisk „Rozpocznij trening”.
 - Plany startowe przepisane (`F.TEMPLATES` w data.js, format `[nazwa, opis, dni, meta]`): Push / Pull / Nogi (masa, średniozaaw.), Góra / Dół (masa, średniozaaw., dni cięższe i lżejsze `hy`), Siła A/B 3×5 (siła, początk., A/B naprzemiennie 3×/tydz.), Całe ciało 3× (masa, początk.), Pośladki i nogi (masa, średniozaaw., góra ciała min. 6 serii klatki). Powtórzenia i przerwy przy dodaniu z `F.KB.reps/repsHyp/restOf`, plan dostaje `meta {goal, exp, weekdays, rest}`. Serie tygodniowo dużych partii w zakresie `F.KB.vol` (skrypt `tpl3.js` + `tplspec.js` w scratchpadzie); barki i łydki lekko powyżej przez serie pośrednie, pośladki w planie pośladkowym celowo powyżej (opisane).
 - Żywienie: kafel „Cel dzienny” na całą szerokość (`.sum-stats.nut`), bez „≈” i „ok.”; gdy brak treningów z 4 tygodni — napis zamiast „0 kcal”. Usunięte „ok.” przy wyliczonym czasie treningu (Dziś, plan, kalendarz, czat).
 

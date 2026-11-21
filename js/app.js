@@ -153,11 +153,11 @@
       const q0 = F.calQueue ? F.calQueue(21)[0] : null, wd = F.calWeekdays ? F.calWeekdays(cur) : [];
       const when = q0 ? F.calWhen(q0.ts) : '', nd = q0 ? q0.day : nx.day;
       top = `<section class="plancur cut"><div class="pc-k">${ic('flame', 15)} Aktualny plan</div>
-        <a class="pc-name" href="#/plan/${cur.id}"><h2>${E(cur.name)}</h2>${ic('chevron-right', 22)}</a>
+        <a class="pc-name" href="#/plan/${cur.id}"><h2>${E(cur.name)}</h2></a>
         <p class="pc-m">${tag ? `<span>${E(tag)}</span>` : ''}<span>${cur.days.length} ${F.plur(cur.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
-        <div class="pc-row"><span class="dim">Następny</span><b>${E(nd.name)}</b>${when ? `<em>${E(when)}</em>` : ''}</div>
+        <div class="pc-row"><span class="dim">Następny</span><b>${E(nd.name.replace(/^(Pn|Wt|Śr|Cz|Pt|So|Nd) — /, ''))}</b>${when ? `<em>${E(when)}</em>` : ''}</div>
         ${wd.length ? `<button class="pc-row pc-days" data-a="calDays"><span class="dim">Dni</span><b>${wd.map(i => F.WD_SHORT[i]).join(' · ')}</b><em>zmień</em></button>` : ''}
-        ${d ? `<a class="forge-btn" href="#/workout"><span>${ic('play', 20)} Wróć do treningu</span></a>` : `<button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij: ${E(nx.day.name)}</span></button>`}</section>`;
+        ${d ? `<a class="forge-btn" href="#/workout"><span>${ic('play', 20)} Wróć do treningu</span></a>` : `<button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button>`}</section>`;
     }
     const others = F.S.plans.filter(p => p !== cur);
     return {

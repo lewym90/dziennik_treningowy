@@ -67,6 +67,9 @@
     // zabezpieczenie danych: gdy są dane, a ostatnia migawka ma >12 h (lub zmieniła się wersja aplikacji), zapisz kopię w tej samej bazie
     try { await F.autoSnap(ex, plans, sessions, bw, meas, set); } catch (e) { console.warn('snap', e); }
     F.S.plans = plans.sort((a, b) => (a.order || 0) - (b.order || 0) || a.created - b.created);
+    // v1.25.1: stare długie nazwy z kreatora („Masa mięśniowa · 3 dni · Push / Pull / Nogi”) → „Masa — Push / Pull / Nogi” (cel i staż są pod nazwą)
+    { const SH = { 'Masa mięśniowa': 'Masa', 'Siła': 'Siła', 'Rzeźba / redukcja': 'Rzeźba', 'Wytrzymałość': 'Wytrzymałość', 'Zdrowie i sprawność': 'Zdrowie' };
+      F.S.plans.forEach(p => { const m = /^(Masa mięśniowa|Siła|Rzeźba \/ redukcja|Wytrzymałość|Zdrowie i sprawność) · \d+ (dzień|dni) · (.+)$/.exec(p.name || ''); if (m && p.meta && p.meta.goal) { p.name = `${SH[m[1]]} — ${m[3]}`; F.dbPut('plans', p).catch(() => { }); } }); }
     F.S.sessions = sessions.sort((a, b) => b.start - a.start);
     F.S.bw = bw.sort((a, b) => a.date - b.date);
     F.S.measures = (meas || []).sort((a, b) => a.date - b.date);
@@ -74,7 +77,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.25.0';
+  F.APPVER = '1.25.1';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
