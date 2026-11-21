@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.28.0** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.28.1** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -75,7 +75,7 @@ Stan na 21 listopada 2026. Wersja **1.28.0** (tryb trenera, raport PDF, bibliote
 - Porada „Przerwy” ma akapit o profilu przerw.
 
 ## v1.28.0 — trójbój, biblioteka planów, raport PDF, tryb trenera (21.11.2026)
-- Pkt 8 (tylko informacje, bez układania szczytowania — Travis 2020: brak dowodów na konkretne protokoły): karta „Zawody” w Narzędziach (`meetHtml`, `settings.meet`): odliczanie, wskazówka na dany etap (ankiety Travis 2021, przegląd Winwood 2026), linki do Planera podejść i artykułu `#/guide/meet` („Przed zawodami w trójboju”, bez grafiki — `meet` NIE jest w HAS). Punkty IPF GL (`F.ipfGL`, współczynniki IPF 2020, sprawdzone na przykładach) obok DOTS/Wilks. Źródła w kb.js: travis2020, travis2021, burke2023, winwood2026, ipfgl; fakt `taper`.
+- Pkt 8 (tylko informacje, bez układania szczytowania — Travis 2020: brak dowodów na konkretne protokoły): karta „Zawody” w Narzędziach (`meetHtml`, `settings.meet`): odliczanie, wskazówka na dany etap (ankiety Travis 2021, przegląd Winwood 2026), linki do Planera podejść i artykułu `#/guide/meet` („Przed zawodami w trójboju”, grafika `assets/guide/meet.webp` od v1.28.1). Punkty IPF GL (`F.ipfGL`, współczynniki IPF 2020, sprawdzone na przykładach) obok DOTS/Wilks. Źródła w kb.js: travis2020, travis2021, burke2023, winwood2026, ipfgl; fakt `taper`.
 - Pkt 19: 4 nowe plany startowe (Siła: Góra / Dół; Dom: hantle i drążek; Bez sprzętu; Zdrowie 60+), `cat` w meta, arkusz pogrupowany: Siłownia / Dom i bez sprzętu / Zdrowie. Razem 9.
 - Pkt 23: `js/pdf.js` — raport PDF (Przegląd → „Raport PDF” oraz Historia → eksport): okres 4 tyg./3 mies./12 mies./całość; strony: podsumowanie (logo, kafelki, tonaż i liczba treningów tygodniowo), siła i rekordy (4 wykresy maksów, tabela 15 rekordów), mięśnie i ciało (serie tygodniowo vs zakres FORGE, masa ciała, pomiary), lista treningów. jsPDF 4.2.1 + fonty Barlow (podzbiór z polskimi znakami) w `lib/`, ładowane dopiero przy generowaniu. Wykresy na canvas, `K = 3,4 px/mm`.
 - Pkt 18: `js/trainer.js` — tryb trenera bez serwera: menu planu → „Wyślij podopiecznemu” (link `#/get/<deflate-raw base64url>` + kod QR z `lib/qrcode.min.js`; zawiera własne ćwiczenia). Podopieczny: podgląd planu, „Dodaj ten plan” (ustawia jako aktualny, `meta.from`). Wyniki dla trenera: Historia → eksport → „Wyniki dla trenera” (plik JSON z imieniem, `settings.clientId`). Trener: Ustawienia → Trening → „Tryb trenera” → w Planach sekcja „Podopieczni” (`#/clients`, kv `clients`, scalanie po id sesji; `#/client/<id>` z seriami grupowanymi „3 × 5 · 127,5 kg”, samopoczuciem i bólem). Przewodnik nie pokazuje się, gdy aplikacja jest otwarta z linku planu.
