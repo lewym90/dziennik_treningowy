@@ -1,0 +1,32 @@
+# FORGE — plan rozwoju (decyzje właściciela, 21.11.2026)
+
+Zasady: wszystko po polsku, schludnie i intuicyjnie (każdy ma wiedzieć, gdzie kliknąć), tylko sprawdzone źródła, bez AI, offline. Grafiki: właściciel generuje z angielskich promptów (jeden prompt na grafikę, osobny blok). Biznesplan i sprzedaż — odłożone; najpierw rozbudowa aplikacji.
+
+| Nr | Funkcja | Decyzja |
+|---|---|---|
+| 1 | Seria jednym dotknięciem (szybkie zapisywanie serii) | Najpierw pokazać makietę |
+| 2 | Bloki treningowe 4–6 tyg. z odciążeniem, podpowiedź z zapasem powtórzeń (RIR) | Zgoda |
+| 3 | „Mam mało czasu” — skracanie dzisiejszego treningu (30/45/60 min) | Zgoda |
+| 4 | Profile siłowni (Siłownia/Dom/Hotel) + przycisk „Zajęte” z zamiennikiem | Zgoda |
+| 5 | Animacje techniki | Do przemyślenia — nie może być tak, że część ćwiczeń ma animacje, a część nie |
+| 6 | Głosowe zapisywanie serii | Zgoda |
+| 7 | Przycisk „Boli” w trakcie treningu | Zgoda |
+| 8 | Moduł trójboisty | Zgoda tylko jeśli ma oparcie w danych i badaniach; nic, co mogłoby komuś zaszkodzić na zawodach |
+| 9 | Cel z prognozą | Zgoda |
+| 10 | Podsumowanie miesiąca i roku (karty do udostępnienia) | Zgoda |
+| 11 | Porównanie sylwetki ze zdjęć | Zgoda; wyraźna informacja, że zdjęcia nie wychodzą poza telefon, są prywatne i bezpieczne; zdjęcia objęte kopią zapasową na telefonie |
+| 12 | Samopoczucie przed treningiem (sen, energia) | Zgoda |
+| 13 | Aplikacja natywna | Jeszcze nie |
+| 14 | Health Connect / Apple Zdrowie | Jeszcze nie |
+| 15 | Zegarek | Jeszcze nie |
+| 16 | Widżety i stoper na ekranie blokady | Jeszcze nie |
+| 17 | Partner treningowy i wyzwania | Nie |
+| 18 | Tryb trenera | Zgoda |
+| 19 | Biblioteka programów | Zgoda |
+| 20 | Synchronizacja i kopia w chmurze | Raczej nie, właściciel przemyśli |
+| 21 | Szybki start | Zgoda, ale bez wykluczania opcji: zakładki typu „Szybki start / Zaawansowany” |
+| 22 | Szybszy start aplikacji (baza ćwiczeń w tle) | Zgoda |
+| 23 | Raport PDF | Zgoda; profesjonalny, zaawansowany, idealny wygląd: logo, grafiki, ładne wykresy |
+| 24 | Wersja angielska i ukraińska | Zgoda, ale na samym końcu, gdy aplikacja będzie w pełni gotowa |
+
+Dodatkowo: przebudowa nawigacji — aplikacja ma być schludna i intuicyjna, bez opcji pochowanych po menu. To pierwszy krok, przed nowymi funkcjami.
