@@ -41,9 +41,11 @@
   const est = d => F.PLN && F.PLN.estMin ? F.PLN.estMin(d.items) : 0;
   const info = d => `${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${est(d) ? ` · ${est(d)} min` : ''}`;
 
-  V.calendar = () => {
-    const nx = F.nextWorkout(); const head = F.head('Kalendarz', { back: 1, sub: nx ? E(nx.plan.name) : 'Rozkład treningów' });
-    if (!nx) return { html: `${head}${F.empty('calendar', 'Brak planu', 'Dodaj plan, a tutaj zobaczysz rozkład treningów.')}<a class="btn primary wide" href="#/plans">${ic('clipboard-list', 18)} Plany</a>` };
+  // kalendarz jest częścią Historii (przełącznik Lista | Kalendarz); stara trasa #/calendar przekierowuje
+  V.calendar = () => { F.ui.histView = 'cal'; return F.views.history(); };
+  F.calBody = () => {
+    const nx = F.nextWorkout(); const head = '';
+    if (!nx) return { html: `${F.empty('calendar', 'Brak planu', 'Dodaj plan, a tutaj zobaczysz rozkład treningów.')}<a class="btn primary wide" href="#/plans">${ic('clipboard-list', 18)} Plany</a>` };
     const off = F.ui.calM || 0, b = new Date(), first = new Date(b.getFullYear(), b.getMonth() + off, 1), y = first.getFullYear(), m = first.getMonth();
     const q = F.calQueue(Math.max(75, (off + 2) * 31)), plan = {}; q.forEach(x => { plan[x.key] = x; });
     const done = new Set(F.S.sessions.map(s => F.dayKey(s.start))), tk = F.dayKey(Date.now()), skip = new Set(cfg().skips.map(x => x.key));
@@ -64,7 +66,7 @@
   const refresh = () => { F.saveSettings(); F.closeSheet(true); F.render(true); };
   const title = (t, s) => `<h3 class="cal-st">${E(t)}</h3><p class="dim cal-ss">${E(s)}</p>`;
   F.act.calNav = b => { F.ui.calM = (F.ui.calM || 0) + +b.dataset.d; F.render(true); };
-  F.act.goCal = () => { F.ui.calM = 0; F.go('#/calendar'); };
+  F.act.goCal = () => { F.ui.calM = 0; F.ui.histView = 'cal'; if (location.hash === '#/history') F.render(true); else F.go('#/history'); };
   F.act.calDay = b => {
     const k = +b.dataset.k, ts = fromKey(k), sess = F.S.sessions.find(s => F.dayKey(s.start) === k); if (sess) { F.go('#/session/' + sess.id); return; }
     const sk = cfg().skips.find(x => x.key === k);

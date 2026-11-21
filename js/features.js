@@ -77,13 +77,12 @@
   const sexKey = () => F.S.settings.sex === 'f' ? 'f' : F.S.settings.sex === 'm' ? 'm' : '';
   F.statsStrength = () => {
     const sex = sexKey(), bw = F.latestBW();
-    const setup = `<section class="card cut"><h3>${ic('user', 18)} Twoje dane</h3>${F.profileHtml()}
-      <div class="bw-form"><label class="fld"><span>Masa ciała (${F.unit()})</span><input id="st-bw" inputmode="decimal" placeholder="${bw ? F.fw(bw) : '80'}"></label><button class="btn primary" data-a="stBw">${ic('plus', 18)} Zapisz</button></div>${bw ? `<p class="dim small">Aktualnie: <b>${F.fwu(bw)}</b></p>` : ''}</section>`;
-    if (!sex || !bw) return setup + `<p class="dim center pad">Wybierz płeć i wpisz masę ciała, a pokażę poziom siły w głównych bojach oraz DOTS i Wilks.</p>`;
+    const setup = '';
+    if (!sex || !bw) return `<div class="empty"><h3>Brakuje danych</h3><p>Do poziomu siły, DOTS i Wilksa potrzebuję płci i masy ciała.</p><div class="btn-row">${!sex ? `<a class="btn primary" href="#/settings">Uzupełnij profil</a>` : ''}${!bw ? `<button class="btn ${sex ? 'primary' : 'ghost'}" data-a="bwSheet">Wpisz wagę</button>` : ''}</div></div>`;
     const rows = Object.keys(STD).map(id => {
       const th = STD[id][sex], e1 = F.bestE1(id); const ratio = e1 / bw; let lv = 0; th.forEach(t => { if (ratio >= t) lv++; });
       const next = lv < 5 ? th[lv] * bw : 0; const prevT = lv > 0 ? th[lv - 1] : 0; const pct = lv >= 5 ? 100 : Math.max(0, Math.min(100, ((ratio - prevT) / (th[lv] - prevT)) * 100));
-      return `<a class="card cut std" href="#/ex/${id}"><div class="std-h"><div><h3>${STD[id].n}</h3><small class="dim">${e1 ? `1RM ≈ ${F.fwu(e1)} · ${F.fmtNum(ratio, 2)}× masy ciała` : 'Brak zapisanych serii (do 10 powtórzeń)'}</small></div><span class="lvl l${lv}">${LV[lv]}</span></div>
+      return `<a class="card cut std" href="#/ex/${id}"><div class="std-h"><div><h3>${STD[id].n}</h3><small class="dim">${e1 ? `1RM wyliczony: ${F.fwu(e1)} · ${F.fmtNum(ratio, 2)}× masy ciała` : 'Brak zapisanych serii (do 10 powtórzeń)'}</small></div><span class="lvl l${lv}">${LV[lv]}</span></div>
         <div class="lvbar">${th.map((t, i) => `<i class="${lv > i ? 'on' : ''}"></i>`).join('')}</div>
         <div class="lvrow">${th.map(t => `<small>${F.fmtNum(F.toDisp(t * bw), 0)}</small>`).join('')}</div>
         ${e1 && lv < 5 ? `<p class="dim small">Do poziomu <b>${LV[lv + 1]}</b>: jeszcze ${F.fwu(Math.max(0, next - e1))}.</p>` : e1 ? '<p class="dim small">Najwyższy poziom. Szacunek.</p>' : ''}</a>`;

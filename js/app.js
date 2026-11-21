@@ -47,7 +47,7 @@
     [/^#\/plan\/([^/]+)\/edit$/, m => planEdit(m[1]), 'plans'], [/^#\/exercises$/, () => exercises(), 'plans'], [/^#\/ex\/([^/]+)$/, m => exDetail(m[1]), 'stats'],
     [/^#\/history$/, () => F.views.history(), 'history'], [/^#\/session\/([^/]+)$/, m => F.views.session(m[1]), 'history'],
     [/^#\/stats$/, () => F.views.stats(), 'stats'], [/^#\/tools$/, () => F.views.tools(), 'home'], [/^#\/settings$/, () => F.views.settings(), 'home'],
-    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'plans'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
+    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'history'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
   ];
   let curTab = 'home';
   F.render = (keepScroll) => {
@@ -108,15 +108,12 @@
       ${F.pendHtml ? F.pendHtml() : ""}
       ${banners}
       <div class="qa">
-        <a class="qa-i cut" href="#/wizard" data-a="newWizard">${F.gly(4, 26)}<span>Kreator planu</span></a>
-        <a class="qa-i cut" href="#/report">${F.gly(5, 26)}<span>Raport tygodnia</span></a><a class="qa-i cut" href="#/nutrition">${F.gly(6, 26)}<span>Żywienie</span></a>
+        <a class="qa-i cut" href="#/nutrition">${F.gly(6, 26)}<span>Żywienie</span></a>
         <a class="qa-i cut" href="#/guide">${F.gly(7, 26)}<span>Porady i nauka</span></a>
-        <a class="qa-i cut" href="#/import">${F.gly(8, 26)}<span>Import planu</span></a>
-        <a class="qa-i cut" href="#/tools">${F.gly(9, 26)}<span>Kalkulatory</span></a>
-        <a class="qa-i cut" href="#/exercises">${F.gly(10, 26)}<span>Ćwiczenia</span></a>
-        <a class="qa-i cut" href="#/stats" data-a="goBody">${F.gly(11, 26)}<span>Waga ciała</span></a>
+        <a class="qa-i cut" href="#/tools">${F.gly(9, 26)}<span>Narzędzia</span></a>
+        <button class="qa-i cut" data-a="bwSheet">${F.gly(11, 26)}<span>Wpisz wagę</span></button>
       </div>
-      <section class="card cut week" data-a="goCal" role="button" aria-label="Otwórz kalendarz"><div class="week-top"><div><h3>Ten tydzień ${ic('chevron-right', 18)}</h3><p class="dim">${wk.count} z ${goal} treningów</p></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
+      <section class="card cut week" data-a="goCal" role="button" aria-label="Otwórz kalendarz"><div class="week-top"><div><h3>Ten tydzień</h3><p class="dim">${wk.count} z ${goal} treningów</p><span class="wk-cal">${ic('calendar', 15)} Kalendarz ${ic('chevron-right', 15)}</span></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
       <div class="tiles">
         <div class="tile cut"><span class="tl">${ic('flame', 16)} Seria tygodni</span><b class="tv" data-count="${F.weekStreak()}">0</b><small>cel ${goal}×/tydz.</small></div>
         <div class="tile cut"><span class="tl">${ic('weight', 16)} Tonaż w tygodniu</span><b class="tv" data-count="${F.toDisp(wk.vol) >= 10000 ? F.toDisp(wk.vol) / 1000 : F.toDisp(wk.vol)}" data-dec="${F.toDisp(wk.vol) >= 10000 ? 1 : 0}" data-suf="${F.toDisp(wk.vol) >= 10000 ? ' t' : ' ' + F.unit()}">0</b><small>łącznie ${F.fmtVol(t.vol)}</small></div>
@@ -162,7 +159,7 @@
     const others = F.S.plans.filter(p => p !== cur);
     return {
       html: `${head('Plany', { sub: 'Twoje programy treningowe', right: `<button class="btn sm primary" data-a="newPlan">${ic('plus', 16)} Nowy</button>` })}
-      ${F.S.plans.length ? top : empty('clipboard-list', 'Brak planów', 'Ułóż plan w kreatorze, weź gotowy plan startowy albo zaimportuj ten, którego używasz.')}
+      ${F.S.plans.length ? (F.hint ? F.hint('plans') : '') : ''}${F.S.plans.length ? top : empty('clipboard-list', 'Brak planów', 'Ułóż plan w kreatorze, weź gotowy plan startowy albo zaimportuj ten, którego używasz.')}
       ${others.length ? `<h3 class="sec">${cur ? 'Inne plany' : 'Twoje plany'}</h3><div class="stack">${others.map(card).join('')}</div>` : ''}
       <h3 class="sec">Nowy plan</h3>
       <a class="importcard cut" href="#/wizard" data-a="newWizard"><div>${ic('sparkles', 30)}</div><p><b>Kreator planu</b><small>Odpowiesz na kilka pytań — ułożę plan pod Twój cel, staż, sprzęt i czas</small></p>${ic('chevron-right', 20)}</a>

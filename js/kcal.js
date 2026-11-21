@@ -19,7 +19,7 @@
   F.ageNow = ts => {
     const s = F.S.settings; const t = ts ? new Date(ts) : new Date();
     if (s.dob && /^\d{4}-\d{2}-\d{2}$/.test(s.dob)) { const [y, m, d] = s.dob.split('-').map(Number); let a = t.getFullYear() - y; if (t.getMonth() + 1 < m || (t.getMonth() + 1 === m && t.getDate() < d)) a--; return a >= 10 && a <= 100 ? a : 0; }
-    return s.age ? Math.round(s.age + (Date.now() - (s.ageAt || Date.now())) / YEAR) : 0;
+    return s.age ? s.age + Math.trunc((t.getTime() - (s.ageAt || Date.now())) / YEAR) : 0;
   };
   // podstawowa przemiana materii, Mifflin–St Jeor (kcal/dobę)
   F.bmr = p => p.bf ? 370 + 21.6 * p.bw * (1 - p.bf / 100) /* Katch–McArdle: dokładniejszy, gdy znasz % tkanki tłuszczowej */ : 10 * p.bw + 6.25 * p.height - 5 * p.age + (p.sex === 'f' ? -161 : 5);
@@ -101,21 +101,21 @@
     const opt = (o, v) => Object.entries(o).map(([k, x]) => `<option value="${k}" ${String(v) === k ? 'selected' : ''}>${x}</option>`).join('');
     const hasAdv = s.bf || s.hrRest || s.hrMax;
     return `<div class="prof"><div class="seg tiny sx"><button class="${s.sex === 'm' ? 'on' : ''}" data-a="setSex" data-v="m">Mężczyzna</button><button class="${s.sex === 'f' ? 'on' : ''}" data-a="setSex" data-v="f">Kobieta</button></div>
-      <div class="two"><label class="fld"><span>Wzrost (cm)</span><input data-b="prof" data-k="height" inputmode="numeric" value="${s.height || ''}" placeholder="178"></label><label class="fld"><span>Data urodzenia</span><input type="date" data-b="prof" data-k="dob" value="${s.dob || ''}" max="${F.dateInput(Date.now())}">${!s.dob && s.age ? `<small class="dim">Teraz: ${F.ageNow()} lat — wpisz datę, a wiek będzie liczył się sam.</small>` : ''}</label></div>
+      <div class="two"><label class="fld"><span>Wzrost (cm)</span><input data-b="prof" data-k="height" inputmode="numeric" value="${s.height || ''}" placeholder="178"></label><label class="fld"><span>Wiek (lata)</span><input data-b="prof" data-k="age" inputmode="numeric" value="${F.ageNow() || ''}" placeholder="35"><small class="dim">Co roku sam dodam rok.</small></label></div>
       <label class="fld"><span>Aktywność w ciągu dnia (poza treningiem)</span><select data-b="prof" data-k="activity"><option value="">— wybierz —</option>${opt({ 1: 'Siedząca praca, mało ruchu', 2: 'Lekka — trochę chodzenia', 3: 'Umiarkowana — dużo na nogach', 4: 'Wysoka — praca fizyczna' }, s.activity)}</select></label>
       <label class="fld"><span>Doświadczenie w treningu siłowym</span><select data-b="prof" data-k="exp"><option value="">— wybierz —</option>${opt({ beg: 'Początkujący (do ok. 1 roku)', mid: 'Średniozaawansowany (1–3 lata)', adv: 'Zaawansowany (3+ lata regularnie)' }, s.exp)}</select></label>
       <details class="adv" ${hasAdv ? 'open' : ''}><summary class="dim small">Dodatkowe dane (opcjonalne, zwiększają dokładność)</summary>
         <div class="two"><label class="fld"><span>Tkanka tłuszczowa (%)</span><input data-b="prof" data-k="bf" inputmode="decimal" value="${s.bf || ''}" placeholder="np. 18"></label><label class="fld"><span>Tętno spoczynkowe</span><input data-b="prof" data-k="hrRest" inputmode="numeric" value="${s.hrRest || ''}" placeholder="np. 60"></label></div>
         <label class="fld"><span>Tętno maksymalne</span><input data-b="prof" data-k="hrMax" inputmode="numeric" value="${s.hrMax || ''}" placeholder="${p.hrMaxKnown ? '' : 'zostaw puste — wyliczę: ' + p.hrMax}"></label>
         <p class="dim small">Znasz % tłuszczu? Użyję dokładniejszego wzoru na przemianę materii. Po treningu możesz wpisać średnie tętno z zegarka — kalorie będą trochę trafniejsze.</p></details>
-      ${td ? `<p class="small">Zapotrzebowanie dobowe <b>bez treningu: ≈ ${F.fmtNum(Math.round(td / 10) * 10, 0)} kcal</b>${p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown ? '' : ' <span class="dim">(uzupełnij dane, aby wynik był dokładny)</span>'}. Wyliczone wzorem Mifflina–St Jeora.</p>` : ''}
+      ${td ? `<p class="small">Zapotrzebowanie dobowe <b>bez treningu: ${F.fmtNum(Math.round(td / 10) * 10, 0)} kcal</b>${p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown ? '' : ' <span class="dim">(uzupełnij dane, aby wynik był dokładny)</span>'}. Wyliczone wzorem Mifflina–St Jeora.</p>` : ''}
       <p class="dim small">Dane zostają tylko na tym urządzeniu.</p></div>`;
   };
   F.bind.prof = el => {
     const s = F.S.settings, k = el.dataset.k, v = num(el.value);
     if (k === 'height') s.height = v >= 100 && v <= 250 ? Math.round(v) : 0;
     else if (k === 'dob') { s.dob = /^\d{4}-\d{2}-\d{2}$/.test(el.value) && new Date(el.value) < new Date() ? el.value : ''; }
-    else if (k === 'age') { s.age = v >= 10 && v <= 100 ? Math.round(v) : 0; s.ageAt = Date.now(); }
+    else if (k === 'age') { const a = v >= 10 && v <= 100 ? Math.round(v) : 0; if (a !== F.ageNow()) { s.age = a; s.ageAt = Date.now(); s.dob = ''; } }
     else if (k === 'bf') s.bf = v >= 4 && v <= 60 ? Math.round(v * 10) / 10 : 0;
     else if (k === 'hrRest') s.hrRest = v >= 30 && v <= 120 ? Math.round(v) : 0;
     else if (k === 'hrMax') s.hrMax = v >= 120 && v <= 230 ? Math.round(v) : 0;
@@ -125,8 +125,8 @@
   };
 
   /* ---------- kafelek kalorii (reużywalny) ---------- */
-  F.kcalCard = (r, sessId) => `<section class="card cut kcal"><div class="kc-h"><span class="kc-i">${ic('flame', 22)}</span><div><small>Spalone kalorie (netto)</small><b>≈ ${F.fmtNum(Math.round(r.net / 5) * 5, 0)} <em>kcal</em></b></div></div>
-    <p class="dim small">Zakres ${F.kcalRange(r)} kcal · ponad spoczynek, na podstawie ciężarów, powtórzeń, czasu i Twoich danych.${r.approx ? ' <a href="#/stats" data-a="goProfile"><u>Uzupełnij wiek, wzrost i wagę</u></a>, aby zawęzić.' : ''}</p>
+  F.kcalCard = (r, sessId) => `<section class="card cut kcal"><div class="kc-h"><span class="kc-i">${ic('flame', 22)}</span><div><small>Spalone kalorie (netto)</small><b>${F.fmtNum(Math.round(r.net / 5) * 5, 0)} <em>kcal</em></b></div></div>
+    <p class="dim small">Zakres ${F.kcalRange(r)} kcal · ponad spoczynek, na podstawie ciężarów, powtórzeń, czasu i Twoich danych.${r.approx ? ' <a href="#/settings"><u>Uzupełnij wiek i wzrost w Ustawieniach</u></a>, aby zawęzić.' : ''}</p>
     ${sessId ? `<button class="linkbtn" data-a="sessHr" data-id="${sessId}">${r.hrUsed ? 'Zmień średnie tętno' : 'Dodaj średnie tętno z treningu'}</button> <button class="linkbtn" data-a="kcalCal" data-id="${sessId}">Mam kalorie z zegarka — skalibruj</button>${(F.S.settings.kcalCal || []).length ? ` <button class="linkbtn dim" data-a="kcalCalReset">Wyzeruj kalibrację</button>` : ''}` : ''}</section>`;
   F.act.sessHr = async b => {
     const s = F.S.sessions.find(x => x.id === b.dataset.id); if (!s) return;

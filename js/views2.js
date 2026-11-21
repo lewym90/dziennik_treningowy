@@ -8,15 +8,17 @@
   const stype = { n: '', w: 'rozgrzewka', d: 'drop set', f: 'do upadku' };
 
   /* ================= HISTORIA ================= */
+  F.act.histView = b => { F.ui.histView = b.dataset.v; F.ui.calM = 0; F.render(true); };
   V.history = () => {
-    const t = F.totals();
+    const t = F.totals(), cal = F.ui.histView === 'cal';
     return {
       html: `${F.head('Historia', { sub: `${t.count} ${t.count === 1 ? 'trening' : 'treningów'} zapisanych na zawsze`, right: `<button class="ibtn" data-a="exportSheet" aria-label="Eksport">${ic('download', 22)}</button>` })}
-      ${t.count ? `<div class="tiles three"><div class="tile cut"><span class="tl">Treningi</span><b class="tv" data-count="${t.count}">0</b></div><div class="tile cut"><span class="tl">Tonaż</span><b class="tv sm">${F.fmtVol(t.vol)}</b></div><div class="tile cut"><span class="tl">Czas</span><b class="tv sm">${F.fmtDurHuman(t.dur)}</b></div></div>
+      ${t.count ? (F.hint ? F.hint('history') : '') : ''}<div class="seg hseg"><button class="${cal ? '' : 'on'}" data-a="histView" data-v="list">${ic('list-checks', 16)} Lista</button><button class="${cal ? 'on' : ''}" data-a="histView" data-v="cal">${ic('calendar', 16)} Kalendarz</button></div>
+      ${cal ? F.calBody().html : `${t.count ? `<div class="tiles three"><div class="tile cut"><span class="tl">Treningi</span><b class="tv" data-count="${t.count}">0</b></div><div class="tile cut"><span class="tl">Tonaż</span><b class="tv sm">${F.fmtVol(t.vol)}</b></div><div class="tile cut"><span class="tl">Czas</span><b class="tv sm">${F.fmtDurHuman(t.dur)}</b></div></div>
       <section class="card cut"><h3>Aktywność · 18 tygodni</h3>${F.chart.heat(18)}</section>
       <div class="search">${ic('search', 18)}<input data-b="hq" placeholder="Szukaj po nazwie lub ćwiczeniu…" value="${E(F.ui.histQ)}" autocomplete="off"></div>` : ''}
       <div id="h-list">${histList(F.ui.histQ)}</div>
-      <button class="btn ghost wide" data-a="backdate">${ic('calendar', 18)} Dodaj trening z przeszłości</button>`
+      <button class="btn ghost wide" data-a="backdate">${ic('calendar', 18)} Dodaj trening z przeszłości</button>`}`
     };
   };
   function histList(q) {
@@ -78,7 +80,7 @@
         if (!edit && !x.done) return ''; if (x.t !== 'w') n++;
         const e1 = ex && !isT && !isB && x.w && x.r ? F.e1rm(F.effLoad(ex, x, s.start), x.r) : 0;
         if (edit) return `<div class="ser edit"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><div class="se-in">${isT || isB ? '' : `<input inputmode="decimal" data-b="se" data-ei="${ei}" data-si="${si}" data-f="w" value="${F.fw((x.w || 0) / F.wm(e.exId)).replace(',', '.')}"><em>${F.wm(e.exId) === 2 ? '2× ' : ''}${F.unit()}</em>`}<input inputmode="decimal" data-b="se" data-ei="${ei}" data-si="${si}" data-f="r" value="${x.r || 0}"><em>${isT ? 's' : 'powt.'}</em></div><button class="ibtn" data-a="seDel" data-ei="${ei}" data-si="${si}" aria-label="Usuń serię">${ic('x', 16)}</button></div>`;
-        return `<div class="ser ${x.t === 'w' ? 'warm' : ''}"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><b>${setTxt(ex, x)}</b>${x.t && x.t !== 'n' ? `<em class="tag">${stype[x.t]}</em>` : ''}${x.rpe ? `<em class="tag">RPE ${x.rpe}</em>` : ''}${x.pr && x.pr.length ? `<span class="prb sm">${ic('trophy', 12)} PR</span>` : ''}<span class="e1">${e1 ? '1RM ≈ ' + F.fw(e1) : ''}</span></div>`;
+        return `<div class="ser ${x.t === 'w' ? 'warm' : ''}"><span class="sn t-${x.t || 'n'}">${x.t === 'w' ? 'R' : x.t === 'd' ? 'D' : x.t === 'f' ? 'F' : n}</span><b>${setTxt(ex, x)}</b>${x.t && x.t !== 'n' ? `<em class="tag">${stype[x.t]}</em>` : ''}${x.rpe ? `<em class="tag">RPE ${x.rpe}</em>` : ''}${x.pr && x.pr.length ? `<span class="prb sm">${ic('trophy', 12)} PR</span>` : ''}<span class="e1">${e1 ? '1RM ' + F.fw(e1) : ''}</span></div>`;
       }).join('');
       if (!rows.trim() && !edit) return '';
       return `<section class="card cut xblk"><div class="xb-h"><a href="#/ex/${E(e.exId)}">${sinf[ei] ? `<span class="ss-tag">${sinf[ei].tag}</span>` : F.mDot(ex && ex.muscle)}<h3>${E(ex ? ex.name : 'Usunięte ćwiczenie')}</h3></a>${edit ? '' : kcOf(e.exId)}${prMap.has(e.exId) ? `<span class="prb">${ic('trophy', 14)}</span>` : ''}</div>${rows}${edit ? `<button class="btn ghost sm" data-a="seAdd" data-ei="${ei}">${ic('plus', 15)} Dodaj serię</button>` : ''}${e.note ? `<p class="note">${ic('notebook-pen', 14)} ${E(e.note)}</p>` : ''}</section>`;
@@ -120,11 +122,11 @@
   /* ================= POSTĘPY ================= */
   V.stats = () => {
     const tab = F.ui.statTab; const t = F.totals();
-    const tabs = [['over', 'Przegląd'], ['mus', 'Mięśnie'], ['str', 'Siła'], ['prs', 'Rekordy'], ['body', 'Ciało']];
+    const tabs = [['over', 'Przegląd'], ['mus', 'Mięśnie'], ['str', 'Siła'], ['body', 'Ciało']];
     let body = '';
     if (!t.count && tab !== 'body' && tab !== 'str') body = F.empty('chart-line', 'Brak danych do analizy', 'Zrób pierwszy trening. Wykresy, rekordy i rangi ruszą od razu.');
-    else if (tab === 'over') body = statsOver(t); else if (tab === 'mus') body = F.statsMuscles(); else if (tab === 'str') body = F.statsStrength(); else if (tab === 'prs') body = statsPR(); else body = F.statsBody();
-    return { html: `${F.head('Postępy', { sub: 'Liczby nie kłamią' })}<div class="seg big five">${tabs.map(x => `<button class="${x[0] === tab ? 'on' : ''}" data-a="statTab" data-t="${x[0]}">${x[1]}</button>`).join('')}</div>${body}`, after: root => F.chart.bindTips(root) };
+    else if (tab === 'over') body = statsOver(t); else if (tab === 'mus') body = F.statsMuscles(); else if (tab === 'str' || tab === 'prs') body = F.statsStrength() + (t.count ? statsPR() : ''); else body = F.statsBody();
+    return { html: `${F.head('Postępy', { sub: 'Liczby nie kłamią' })}${t.count ? (F.hint ? F.hint('stats') : '') : ''}<div class="seg big four">${tabs.map(x => `<button class="${x[0] === tab ? 'on' : ''}" data-a="statTab" data-t="${x[0]}">${x[1]}</button>`).join('')}</div>${body}`, after: root => F.chart.bindTips(root) };
   };
   F.act.statTab = b => { F.ui.statTab = b.dataset.t; F.render(true); };
   function statsOver(t) {
@@ -132,7 +134,12 @@
     const mus = Object.entries(mv).sort((a, b) => b[1] - a[1]).map(([m, v]) => ({ label: F.MUSCLES[m], value: v, color: F.MUSCLE_COLORS[m], text: v + ' serii' }));
     const cnt = {}; F.S.sessions.forEach(s => s.exercises.forEach(e => { if (e.sets.some(x => x.done)) cnt[e.exId] = (cnt[e.exId] || 0) + 1; }));
     const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 6);
-    return `<div class="tiles"><div class="tile cut"><span class="tl">Tonaż łącznie</span><b class="tv sm">${F.fmtVol(t.vol)}</b></div><div class="tile cut"><span class="tl">Serie</span><b class="tv" data-count="${t.sets}">0</b></div><div class="tile cut"><span class="tl">Powtórzenia</span><b class="tv" data-count="${t.reps}">0</b></div><div class="tile cut"><span class="tl">Czas pod sztangą</span><b class="tv sm">${F.fmtDurHuman(t.dur)}</b></div></div>
+    const w2 = F.weekCounts(2), cw = w2[1] || { count: 0, vol: 0 }, pw = w2[0] || { count: 0, vol: 0 };
+    const dl = (c, p, f) => { if (!p) return ''; const d = c - p; return d ? `<small class="${d > 0 ? 'up' : 'dn'}">${d > 0 ? '+' : '−'}${f(Math.abs(d))}</small>` : '<small class="dim">bez zmian</small>'; };
+    const repCard = `<a class="card cut repc" href="#/report"><div class="repc-h"><h3>${ic('file-text', 18)} Ten tydzień</h3><span>Pełny raport ${ic('chevron-right', 16)}</span></div><div class="repc-g"><div><small>Treningi</small><b>${cw.count}</b>${dl(cw.count, pw.count, x => x)}</div><div><small>Tonaż</small><b>${F.fmtVol(cw.vol)}</b>${dl(cw.vol, pw.vol, F.fmtVol)}</div><div><small>Rekordy</small><b>${F.S.sessions.filter(x => x.start >= cw.start).reduce((a, x) => a + (x.prs || []).length, 0)}</b></div></div><p class="dim small">Porównanie z poprzednim tygodniem.</p></a>`;
+    const achHtml = `<h3 class="sec">Osiągnięcia <small class="dim">${ach.filter(a => a.done).length}/${ach.length}</small></h3>
+    <div class="badges">${ach.map((a, i) => `<div class="badge cut ${a.done ? 'done' : ''}"><img src="assets/ach/${i}.webp" width="84" height="84" alt="" loading="lazy"><b>${E(a.name)}</b><small>${E(a.desc)}</small>${a.done ? '' : `<div class="bar sm"><i style="width:${(a.cur / a.goal * 100).toFixed(0)}%"></i></div>`}</div>`).join('')}</div>`;
+    return `${repCard}${F.goalsHtml()}<div class="tiles"><div class="tile cut"><span class="tl">Tonaż łącznie</span><b class="tv sm">${F.fmtVol(t.vol)}</b></div><div class="tile cut"><span class="tl">Serie</span><b class="tv" data-count="${t.sets}">0</b></div><div class="tile cut"><span class="tl">Powtórzenia</span><b class="tv" data-count="${t.reps}">0</b></div><div class="tile cut"><span class="tl">Czas pod sztangą</span><b class="tv sm">${F.fmtDurHuman(t.dur)}</b></div></div>
     <div class="tiles two"><div class="tile cut"><span class="tl">${ic('flame', 15)} Kalorie — 7 dni</span><b class="tv sm">${F.fmtNum(Math.round(F.kcalTotals(7) / 5) * 5, 0)} kcal</b></div><div class="tile cut"><span class="tl">${ic('flame', 15)} Kalorie — razem</span><b class="tv sm">${F.fmtNum(Math.round(F.kcalTotals(0)), 0)} kcal</b></div></div>
     <section class="card cut"><h3>Spalone kalorie tygodniowo <small class="dim">netto</small></h3>${F.chart.bars(F.kcalWeeks(12).map((w, i, a) => ({ label: F.fmtDateShort(w.start).split(' ')[0] + '.' + String(new Date(w.start).getMonth() + 1).padStart(2, '0'), value: w.kcal, tip: `Tydzień od ${F.fmtDate(w.start)}: ${F.fmtNum(Math.round(w.kcal), 0)} kcal`, hl: i === a.length - 1 })), { labelEvery: 3 })}</section>
     <section class="card cut"><h3>Tonaż tygodniowy</h3>${F.chart.bars(wk.map((w, i) => ({ label: F.fmtDateShort(w.start).split(' ')[0] + '.' + String(new Date(w.start).getMonth() + 1).padStart(2, '0'), value: w.vol, tip: `Tydzień od ${F.fmtDate(w.start)}: ${F.fmtVol(w.vol)}`, hl: i === wk.length - 1 })), { labelEvery: 3 })}</section>
@@ -140,9 +147,7 @@
     <section class="card cut"><h3>Podział partii <small class="dim">ostatnie 30 dni</small></h3>${mus.length ? F.chart.hbars(mus) : '<p class="dim">Brak treningów w ostatnich 30 dniach.</p>'}</section>
     ${F.progressHtml()}
     <section class="card cut rank"><div class="rank-top">${F.rankImg(rk.i, 72)}<div class="grow"><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Do rangi ${rk.next}: ${F.fmtNum(rk.toNext, 0)} XP` : 'Maksymalna ranga.'} Punkty zdobywasz za tonaż, serie, treningi i rekordy.</p></section>
-    ${F.goalsHtml()}
-    <h3 class="sec">Osiągnięcia <small class="dim">${ach.filter(a => a.done).length}/${ach.length}</small></h3>
-    <div class="badges">${ach.map((a, i) => `<div class="badge cut ${a.done ? 'done' : ''}"><img src="assets/ach/${i}.webp" width="84" height="84" alt="" loading="lazy"><b>${E(a.name)}</b><small>${E(a.desc)}</small>${a.done ? '' : `<div class="bar sm"><i style="width:${(a.cur / a.goal * 100).toFixed(0)}%"></i></div>`}</div>`).join('')}</div>
+    ${achHtml}
     ${top.length ? `<h3 class="sec">Najczęściej trenowane</h3><div class="exlist">${top.map(([id, c]) => { const ex = exOf(id); return ex ? `<a class="exrow" href="#/ex/${E(id)}">${F.mDot(ex.muscle)}<span><b>${E(ex.name)}</b><small>${c} treningów</small></span>${ic('chevron-right', 16)}</a>` : ''; }).join('')}</div>` : ''}`;
   }
   function statsPR() {
@@ -150,8 +155,8 @@
     const big = id => (F.PR[id] ? F.PR[id].w : 0); const sq = big('squat'), bn = big('bench'), dl = big('deadlift');
     const total = sq + bn + dl;
     const top = total ? `<section class="card cut total"><h3>Suma trójboju</h3><div class="big-n">${F.fw(total)} <small>${F.unit()}</small></div><div class="trio"><div><small>Przysiad</small><b>${sq ? F.fw(sq) : '–'}</b></div><div><small>Wyciskanie</small><b>${bn ? F.fw(bn) : '–'}</b></div><div><small>Martwy</small><b>${dl ? F.fw(dl) : '–'}</b></div></div></section>` : '';
-    return `${top}<h3 class="sec">Tablica rekordów <small class="dim">${items.length}</small></h3><div class="exlist">${items.map(({ id, ex, p }) => {
-      let main = '', sub = ''; if (ex.type === 'time') { main = F.fmtDur(p.dur); } else if (ex.type === 'br') { main = p.reps + ' powt.'; } else { const r = p.byW[Math.round(p.w * 100)] || 0; main = `${F.fwt(p.w, ex)} ${F.unit()} × ${r}`; sub = p.e1 ? `1RM ≈ ${F.fw(p.e1)}` : ''; }
+    return `<h3 class="sec">Tablica rekordów <small class="dim">${items.length}</small></h3><div class="exlist">${items.map(({ id, ex, p }) => {
+      let main = '', sub = ''; if (ex.type === 'time') { main = F.fmtDur(p.dur); } else if (ex.type === 'br') { main = p.reps + ' powt.'; } else { const r = p.byW[Math.round(p.w * 100)] || 0; main = `${F.fwt(p.w, ex)} ${F.unit()} × ${r}`; sub = p.e1 ? `1RM wyliczony: ${F.fw(p.e1)}` : ''; }
       const last = Math.max(...Object.values(p.ts || { 0: 0 }));
       return `<a class="exrow pr" href="#/ex/${E(id)}">${F.mDot(ex.muscle)}<span><b>${E(ex.name)}</b><small>${sub ? sub + ' · ' : ''}${F.fmtDate(last)}</small></span><em>${main}</em></a>`;
     }).join('')}</div>`;
@@ -162,12 +167,12 @@
     const delta = last && first && bw.length > 1 ? last.kg - first.kg : 0;
     return `<div class="tiles two"><div class="tile cut"><span class="tl">${ic('scale', 15)} Aktualna waga</span><b class="tv sm">${last ? F.fwu(last.kg) : '–'}</b></div><div class="tile cut"><span class="tl">Zmiana od początku</span><b class="tv sm ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${bw.length > 1 ? (delta > 0 ? '+' : '') + F.fw(delta) + ' ' + F.unit() : '–'}</b></div></div>
     <section class="card cut"><h3>Wpis wagi</h3><div class="bw-form"><label class="fld"><span>Waga (${F.unit()})</span><input id="bw-v" inputmode="decimal" placeholder="${last ? F.fw(last.kg) : '80,0'}"></label><label class="fld"><span>Data</span><input id="bw-d" type="date" value="${F.dateInput(Date.now())}"></label><button class="btn primary" data-a="bwAdd">${ic('plus', 18)} Dodaj</button></div><p class="dim small">Waga ciała przelicza obciążenie w podciąganiu, dipach i pompkach.</p></section>
-    <section class="card cut"><h3>${ic('user', 18)} Twoje dane</h3>${F.profileHtml()}</section>
     <section class="card cut"><h3>Trend wagi</h3>${F.chart.line(pts, { w: 340, h: 200 })}</section>
     ${bw.length ? `<h3 class="sec">Wpisy</h3><div class="hlist">${[...bw].reverse().slice(0, 30).map(b => `<div class="hrow"><span class="hd">${F.fmtDate(b.date)}</span><span class="hs"><b>${F.fwu(b.kg)}</b></span><button class="ibtn" data-a="bwDel" data-id="${b.id}" aria-label="Usuń">${ic('x', 16)}</button></div>`).join('')}</div>` : ''}`;
   }
   F.statsWeight = statsBody;
-  F.act.bwAdd = async () => { const v = parseFloat(F.$('#bw-v').value.replace(',', '.')); if (!v || v < 20 || v > 400) { F.toast('Podaj poprawną wagę'); return; } const d = F.$('#bw-d').value.split('-').map(Number); await F.addBW(F.fromDisp(v), new Date(d[0], d[1] - 1, d[2], 8).getTime()); F.rebuild(); F.toast('Zapisano wagę', 'hot'); F.render(true); };
+  F.act.bwAdd = async () => { const v = parseFloat(F.$('#bw-v').value.replace(',', '.')); if (!v || v < 20 || v > 400) { F.toast('Podaj poprawną wagę'); return; } const d = F.$('#bw-d').value.split('-').map(Number); await F.addBW(F.fromDisp(v), new Date(d[0], d[1] - 1, d[2], 8).getTime()); F.rebuild(); if (document.querySelector('.sheet #bw-v')) F.closeSheet(true); F.toast('Zapisano wagę', 'hot'); F.render(true); };
+  F.act.bwSheet = () => { const last = F.S.bw[F.S.bw.length - 1]; F.sheet(`<div class="bw-form"><label class="fld"><span>Waga (${F.unit()})</span><input id="bw-v" inputmode="decimal" placeholder="${last ? F.fw(last.kg) : '80,0'}"></label><label class="fld"><span>Data</span><input id="bw-d" type="date" value="${F.dateInput(Date.now())}"></label><button class="btn primary wide" data-a="bwAdd">${window.icon('check', 18)} Zapisz</button></div>${last ? `<p class="dim small">Ostatni wpis: ${F.fw(last.kg)} ${F.unit()} · ${F.relDay(last.date).toLowerCase()}. Wykres wagi znajdziesz w Postępach → Ciało.</p>` : ''}`, { title: 'Wpisz wagę' }); setTimeout(() => { const i = document.getElementById('bw-v'); if (i) i.focus(); }, 250); };
   F.act.bwDel = async b => { await F.delBW(b.dataset.id); F.rebuild(); F.render(true); };
 
   /* ================= NARZĘDZIA ================= */
@@ -224,24 +229,26 @@
     const accents = [['ember', 'Żar', '#ff4b1f', '#ff9a1f'], ['crimson', 'Karmin', '#ff2a55', '#ff6a3d'], ['gold', 'Złoto', '#e0a100', '#ffd34d'], ['ice', 'Lód', '#3db8ff', '#7a5cff']];
     return {
       html: `${F.head('Ustawienia', { back: 1 })}
-      <section class="card cut"><label class="fld"><span>Twoje imię (na ekranie startowym)</span><input data-b="set" data-k="name" value="${E(s.name)}" maxlength="24" placeholder="np. Kasia"></label><div class="rank-mini">${F.rankImg(rk.i, 36)} Ranga <b>${rk.name}</b> · ${F.fmtNum(rk.xp, 0)} XP</div></section>
-      <h3 class="sec">Profil</h3><section class="card cut">${F.profileHtml()}<p class="dim small">Wagę wpiszesz w Postępy → Ciało.</p></section>
-      <h3 class="sec">Trening</h3><section class="card cut list">
+      <h3 class="sec">Profil</h3><p class="sec-d">Na tej podstawie liczę kalorie, poziom siły i dobieram plan.</p>
+      <section class="card cut"><label class="fld"><span>Imię (na ekranie startowym)</span><input data-b="set" data-k="name" value="${E(s.name)}" maxlength="24" placeholder="np. Kasia"></label>${F.profileHtml()}<p class="dim small">Masę ciała wpisujesz przyciskiem „Wpisz wagę” na ekranie Dziś.</p></section>
+      <h3 class="sec">Trening</h3><p class="sec-d">Jednostki, ciężary i zachowanie w trakcie treningu.</p><section class="card cut list">
         <div class="stp"><span><b>Jednostki</b></span><div class="seg tiny"><button class="${s.unit === 'kg' ? 'on' : ''}" data-a="setUnit" data-u="kg">kg</button><button class="${s.unit === 'lb' ? 'on' : ''}" data-a="setUnit" data-u="lb">lb</button></div></div>
         ${step('weeklyGoal', 'Cel tygodniowy', s.weeklyGoal, 'tr.', 1, 7, 1)}
         <div class="stp"><span><b>Krok ciężaru</b></span><div class="seg tiny">${[1, 1.25, 2.5, 5].map(v => `<button class="${s.step === v ? 'on' : ''}" data-a="setStepW" data-v="${v}">${String(v).replace('.', ',')}</button>`).join('')}</div></div>
-        ${sw('autoRest', 'Automatyczna przerwa', 'Stoper rusza po zaliczeniu serii')}${sw('autoProg', 'Automatyczna progresja', 'Ciężar i powtórzenia z planu uzupełniane na podstawie ostatniego treningu')}${sw('sound', 'Dźwięk stopera')}
+        ${sw('autoRest', 'Automatyczna przerwa', 'Stoper rusza po zaliczeniu serii')}${sw('autoProg', 'Automatyczna progresja', 'Ciężar i powtórzenia z planu uzupełniane na podstawie ostatniego treningu')}${sw('wake', 'Nie wygaszaj ekranu w treningu')}
+        <div class="stp stk"><span><b>Talerze na Twojej siłowni</b><small>Do kalkulatora talerzy</small></span></div><div class="chips">${[25, 20, 15, 10, 5, 2.5, 1.25, .5].map(p => `<button class="chip ${s.plates.includes(p) ? 'on' : ''}" data-a="setPlate" data-p="${p}">${String(p).replace('.', ',')}</button>`).join('')}</div></section>
+      <h3 class="sec">Dźwięk i powiadomienia</h3><p class="sec-d">Sygnał końca przerwy, wibracje i powiadomienia.</p><section class="card cut list">
+        ${sw('sound', 'Dźwięk stopera')}
         <div class="stp stk"><span><b>Głośność sygnału</b><small>Głośniejszy przebija się przez muzykę w słuchawkach</small></span><div class="seg tiny">${[['n', 'Normalna'], ['l', 'Głośna'], ['m', 'Maks.']].map(v => `<button class="${(s.vol || 'l') === v[0] ? 'on' : ''}" data-a="setVol" data-v="${v[0]}">${v[1]}</button>`).join('')}</div></div>
-        <div class="stp stk"><span><b>Ostrzeżenie przed końcem przerwy</b><small>Sygnał i wibracja, żeby zdążyć się przygotować</small></span><div class="seg tiny">${[[0, 'Wył.'], [10, '10 s'], [30, '30 s'], [60, '60 s']].map(v => `<button class="${(s.restWarn ?? 30) === v[0] ? 'on' : ''}" data-a="setWarn" data-v="${v[0]}">${v[1]}</button>`).join('')}</div></div>${sw('notifRest', 'Powiadomienie po przerwie', 'Gdy aplikacja jest schowana (może się spóźnić na zablokowanym telefonie)')}${sw('vibrate', 'Wibracje')}${sw('wake', 'Nie wygaszaj ekranu w treningu')}</section>
-      <h3 class="sec">Przerwa przy zablokowanym telefonie</h3>${F.pushHtml()}${F.iosHtml()}<h3 class="sec">Sprzęt</h3><section class="card cut"><p class="dim small">Talerze dostępne na Twojej siłowni (kalkulator talerzy):</p><div class="chips">${[25, 20, 15, 10, 5, 2.5, 1.25, .5].map(p => `<button class="chip ${s.plates.includes(p) ? 'on' : ''}" data-a="setPlate" data-p="${p}">${String(p).replace('.', ',')}</button>`).join('')}</div></section>
-      <h3 class="sec">Wygląd</h3><section class="card cut"><div class="accents">${accents.map(a => `<button class="acc ${s.accent === a[0] ? 'on' : ''}" data-a="setAccent" data-v="${a[0]}" style="--x1:${a[2]};--x2:${a[3]}"><i></i><span>${a[1]}</span></button>`).join('')}</div></section>
-      <h3 class="sec">Dane</h3><section class="card cut list">
+        <div class="stp stk"><span><b>Ostrzeżenie przed końcem przerwy</b><small>Sygnał i wibracja, żeby zdążyć się przygotować</small></span><div class="seg tiny">${[[0, 'Wył.'], [10, '10 s'], [30, '30 s'], [60, '60 s']].map(v => `<button class="${(s.restWarn ?? 30) === v[0] ? 'on' : ''}" data-a="setWarn" data-v="${v[0]}">${v[1]}</button>`).join('')}</div></div>${sw('notifRest', 'Powiadomienie po przerwie', 'Gdy aplikacja jest schowana (może się spóźnić na zablokowanym telefonie)')}${sw('vibrate', 'Wibracje')}</section>
+      ${F.pushHtml()}${F.iosHtml()}
+      <h3 class="sec">Wygląd</h3><p class="sec-d">Kolor akcentu aplikacji.</p><section class="card cut"><div class="accents">${accents.map(a => `<button class="acc ${s.accent === a[0] ? 'on' : ''}" data-a="setAccent" data-v="${a[0]}" style="--x1:${a[2]};--x2:${a[3]}"><i></i><span>${a[1]}</span></button>`).join('')}</div></section>
+      <h3 class="sec">Dane i kopia</h3><p class="sec-d">Wszystko jest tylko w tym telefonie. Rób kopię, żeby niczego nie stracić.</p><section class="card cut list">
         <button class="lrow" data-a="doBackupBtn">${ic('download', 20)}<span><b>Kopia zapasowa (JSON, ze zdjęciami)</b><small>${s.lastBackup ? 'Ostatnia: ' + F.fmtDate(s.lastBackup) : 'Jeszcze nie robiona'}</small></span></button>
         <button class="lrow" data-a="doBackupLite">${ic('file-json', 20)}<span><b>Kopia bez zdjęć (lżejsza)</b><small>Historia, plany, pomiary — bez zdjęć sylwetki</small></span></button>
         <button class="lrow" data-a="expCsv">${ic('file-spreadsheet', 20)}<span><b>Eksport historii (CSV)</b><small>${t.count} treningów, ${t.sets} serii</small></span></button>
         <button class="lrow" data-a="snapOpen">${ic('rotate-ccw', 20)}<span><b>Automatyczne zabezpieczenie</b><small>Aplikacja sama zapisuje kopię treningów w telefonie — dotknij, aby zobaczyć lub przywrócić</small></span></button>
         <button class="lrow" data-a="expRestore">${ic('upload', 20)}<span><b>Przywróć z kopii</b><small>Plik JSON z FORGE</small></span></button>
-        <a class="lrow" href="#/import">${ic('scan-text', 20)}<span><b>Import planów i historii</b><small>PDF, zdjęcia, CSV (Strong, Hevy, FitNotes)</small></span></a>
         <button class="lrow" data-a="persist">${ic('lock', 20)}<span><b>Chroń dane przed czyszczeniem</b><small id="stor">Prośba o trwałe przechowywanie w przeglądarce</small></span></button>
         <button class="lrow danger" data-a="wipe">${ic('trash-2', 20)}<span><b>Usuń wszystkie dane</b><small>Nieodwracalne. Najpierw zrób kopię.</small></span></button></section>
       <p class="about">FORGE ${F.APPVER} ·Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,

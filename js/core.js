@@ -77,7 +77,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.25.2';
+  F.APPVER = '1.26.0';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
@@ -300,7 +300,7 @@
     // % 1RM z planu
     if (opts.pct > 0) {
       const p = F.PR[exId]; const base = p && p.e1;
-      if (base) { const w = Math.max(0, roundTo(base * opts.pct / 100, F.S.settings.step)); return { w, r: lo || top.r, note: `${opts.pct}% 1RM (≈ ${F.fw(base)} ${F.unit()})`, pct: true }; }
+      if (base) { const w = Math.max(0, roundTo(base * opts.pct / 100, F.S.settings.step)); return { w, r: lo || top.r, note: `${opts.pct}% 1RM = ${F.fw(base)} ${F.unit()}`, pct: true }; }
     }
     if (mode === 'off') return { w: top.w, r: top.r, note: 'Bez automatycznej progresji', off: true };
     const st = F.stagnation(exId);

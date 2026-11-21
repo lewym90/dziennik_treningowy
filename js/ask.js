@@ -155,7 +155,7 @@
   H.e1rm = c => {
     if (!c.ex) return needEx(c, 'e1rm', 'Dla którego ćwiczenia policzyć maks?'); const ex = c.ex, b = F.bestE1(ex.id); if (!b) return { html: `<p>Nie mam serii do 10 powtórzeń z ciężarem w ćwiczeniu <b>${E(ex.name)}</b>, więc nie wyliczę maksa.</p>` };
     const rec = S().filter(s => s.start > Date.now() - 42 * DAY).map(s => bestSet(ex.id, s)).filter(Boolean).reduce((a, x) => Math.max(a, x.e1), 0);
-    return { html: `${tiles([{ l: 'Maks z całej historii', v: kg(b), hot: 1 }, { l: 'Maks z 6 tygodni', v: rec ? kg(rec) : '–' }])}<p>Na tej podstawie ciężar roboczy: ${[[.85, 5], [.75, 8], [.7, 10], [.65, 12]].map(([p, r]) => `<b>${r}</b> powt. ≈ ${kg(Math.round(b * p / (F.S.settings.step || 2.5)) * (F.S.settings.step || 2.5))}`).join(', ')}.</p><p class="ak-s">Wyliczone wzorem Epleya.</p>`, acts: [exLink(ex)], chips: [`Postęp — ${ex.name}`, `Rekord — ${ex.name}`] };
+    return { html: `${tiles([{ l: 'Maks z całej historii', v: kg(b), hot: 1 }, { l: 'Maks z 6 tygodni', v: rec ? kg(rec) : '–' }])}<p>Na tej podstawie ciężar roboczy: ${[[.85, 5], [.75, 8], [.7, 10], [.65, 12]].map(([p, r]) => `<b>${r}</b> powt. — ${kg(Math.round(b * p / (F.S.settings.step || 2.5)) * (F.S.settings.step || 2.5))}`).join(', ')}.</p><p class="ak-s">Wyliczone wzorem Epleya.</p>`, acts: [exLink(ex)], chips: [`Postęp — ${ex.name}`, `Rekord — ${ex.name}`] };
   };
 
   H.calc1rm = c => {
@@ -563,20 +563,22 @@
   // ---- pomoc do aplikacji ----
   const HOW = [
     [/(dodac|ulozyc|stworzyc|zrobic|nowy) plan|kreator/, 'Plan ułożysz w <b>Plany → Kreator planu</b> (pytania o cel, sprzęt i czas) albo dodasz własny: <b>Plany → Nowy plan</b>.', [{ l: 'Kreator planu', i: 'sparkles', href: '#/wizard' }, { l: 'Plany', i: 'clipboard-list', href: '#/plans' }]],
-    [/zmienic przerw|ustawic przerw|dlugosc przerw/, 'Przerwę przy ćwiczeniu zmienisz w edytorze planu (pole „Przerwa s”). Domyślną przerwę ustawisz w <b>Ustawienia → Trening</b>. W trakcie treningu stoper ma przyciski −15 / +15 s.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
-    [/kopi\w* zapasow|backup|przywroc|eksport/, 'Kopię zapasową zrobisz w <b>Ustawienia → Dane → Kopia zapasowa</b>. Zapisz plik w bezpiecznym miejscu, np. w chmurze — przywrócisz go tam samo.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
-    [/import|wczytac plan|pdf|zrzut/, 'Plan z PDF-a, zdjęcia albo zrzutu ekranu wczytasz w <b>Plany → Import</b>. Historię przeniesiesz ze Strong, Hevy i FitNotes w tym samym miejscu.', [{ l: 'Import', i: 'download', href: '#/import' }]],
-    [/powiadomien|serwer/, 'Powiadomienia o końcu przerwy przy zablokowanym telefonie włączysz w <b>Ustawienia → Powiadomienia z serwera</b> (adres i kod połączenia).', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
+    [/zmienic przerw|ustawic przerw|dlugosc przerw/, 'Przerwy ustawiasz w planie: <b>Plany → plan → Edytuj → Przerwy w tym planie</b> (osobno dla ciężkich wielostawowych, pozostałych wielostawowych i izolowanych). Przy jednym ćwiczeniu zmienisz ją w pozycji planu albo w treningu w menu ⋯ → Czas przerwy.', [{ l: 'Plany', i: 'clipboard-list', href: '#/plans' }]],
+    [/kopi\w* zapasow|backup|przywroc|eksport/, 'Kopię zapasową zrobisz w <b>Ustawienia → Dane i kopia → Kopia zapasowa</b>. Zapisz plik w bezpiecznym miejscu, np. w chmurze — przywrócisz go tam samo.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
+    [/import|wczytac plan|pdf|zrzut/, 'Plan z PDF-a, zdjęcia albo zrzutu ekranu wczytasz w <b>Plany → Importuj plan z pliku</b>. Historię przeniesiesz ze Strong, Hevy i FitNotes w tym samym miejscu.', [{ l: 'Import', i: 'download', href: '#/import' }]],
+    [/powiadomien|serwer/, 'Powiadomienia o końcu przerwy przy zablokowanym telefonie włączysz w <b>Ustawienia → Dźwięk i powiadomienia</b>.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
     [/zainstal|ekran (glowny|poczatkowy)/, 'iPhone: Safari → Udostępnij → „Do ekranu początkowego”. Android: Chrome → ⋮ → „Zainstaluj aplikację”. Potem otwieraj FORGE z ikony.', []],
-    [/(dodac|nowe|wlasne) cwiczeni/, 'Własne ćwiczenie dodasz w <b>Plany → Ćwiczenia</b> albo w oknie wyboru ćwiczenia przyciskiem „Nowe”.', [{ l: 'Ćwiczenia', i: 'dumbbell', href: '#/exercises' }]],
-    [/przeniesc trening|przesunac trening|pominac trening|kalendarz/, 'W <b>Kalendarzu</b> stuknij dzień z treningiem: możesz go przenieść, przesunąć cały plan o dzień albo pominąć. Stuknięcie w wolny dzień pozwala przenieść tam najbliższy trening.', [{ l: 'Kalendarz', i: 'calendar', href: '#/calendar' }]],
+    [/(dodac|nowe|wlasne) cwiczeni/, 'Własne ćwiczenie dodasz w <b>Plany → Baza ćwiczeń</b> albo w oknie wyboru ćwiczenia przyciskiem „Nowe”.', [{ l: 'Ćwiczenia', i: 'dumbbell', href: '#/exercises' }]],
+    [/przeniesc trening|przesunac trening|pominac trening|kalendarz/, 'W <b>Historia → Kalendarz</b> stuknij dzień z treningiem: możesz go przenieść, przesunąć cały plan o dzień albo pominąć. Stuknięcie w wolny dzień pozwala przenieść tam najbliższy trening.', [{ l: 'Kalendarz', i: 'calendar', href: '#/calendar' }]],
+    [/profil|wiek|wzrost|plec|aktywnosc/, 'Płeć, wiek, wzrost, aktywność i staż wpisujesz w <b>Ustawienia → Profil</b>. Wiek sam rośnie co rok.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
+    [/raport/, 'Raport tygodnia i miesiąca jest w <b>Postępy → Przegląd → Ten tydzień → Pełny raport</b>.', [{ l: 'Raport', i: 'file-text', href: '#/report' }]],
     [/jednostk|funty|\blb\b/, 'Kilogramy albo funty przełączysz w <b>Ustawienia → Trening → Jednostki</b>.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
     [/kolor|motyw|wyglad/, 'Kolor aplikacji zmienisz w <b>Ustawienia → Wygląd</b>.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
-    [/pomiar|obwod|zdjeci\w* sylwet|wage|wagi ciala/, 'Wagę, obwody i zdjęcia sylwetki dodasz w <b>Postępy → Ciało</b>.', [{ l: 'Ciało', i: 'ruler', href: '#/stats', a: 'askBody' }]],
+    [/pomiar|obwod|zdjeci\w* sylwet|wage|wagi ciala/, 'Wagę wpiszesz szybko przyciskiem <b>Wpisz wagę</b> na ekranie Dziś. Wykres wagi, obwody i zdjęcia sylwetki są w <b>Postępy → Ciało</b>.', [{ l: 'Ciało', i: 'ruler', href: '#/stats', a: 'askBody' }]],
     [/superseri/, 'Superserię zrobisz w edytorze planu: ikona łańcucha łączy ćwiczenie z następnym. W treningu oba ćwiczenia są na jednej karcie.', [{ l: 'Plany', i: 'clipboard-list', href: '#/plans' }]],
     [/progresj\w* dziala|skad ciezar|automatyczn\w* progres/, 'Automatyczna progresja: gdy we wszystkich seriach dojdziesz do górnej granicy powtórzeń z zachowanym zapasem, aplikacja podpowie większy ciężar. Gdy wynik stoi 3 treningi, podpowie lżejszy ciężar i budowanie od nowa.', []],
-    [/glosnosc|dzwiek|sygnal/, 'Głośność sygnału i ostrzeżenie przed końcem przerwy ustawisz w <b>Ustawienia → Trening</b>.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
-    [/cel(e|u|ow)? (miesieczn|dodac)|dodac cel/, 'Cele miesięczne dodasz w <b>Postępy → Przegląd → Cele</b>: liczba treningów, tonaż albo ciężar w ćwiczeniu.', [{ l: 'Cele', i: 'target', href: '#/stats', a: 'askOver' }]]
+    [/glosnosc|dzwiek|sygnal/, 'Głośność sygnału i ostrzeżenie przed końcem przerwy ustawisz w <b>Ustawienia → Dźwięk i powiadomienia</b>.', [{ l: 'Ustawienia', i: 'settings', href: '#/settings' }]],
+    [/cel(e|u|ow)? (miesieczn|dodac)|dodac cel/, 'Cele miesięczne dodasz w <b>Postępy → Przegląd</b> (sekcja Cele): liczba treningów, tonaż albo ciężar w ćwiczeniu.', [{ l: 'Cele', i: 'target', href: '#/stats', a: 'askOver' }]]
   ];
   H.how = c => { const n = N(c.q); const h = HOW.find(([re]) => re.test(n)); if (!h) return null; return { html: `<p>${h[1]}</p>`, acts: h[2], chips: ['Co umiesz?', 'Co mam dziś?'] }; };
 
@@ -758,5 +760,5 @@
   F.act.askRegen = () => { F.ui.statTab = 'mus'; F.ui.musView = 'rec'; };
   F.act.askBody = () => { F.ui.statTab = 'body'; };
   F.act.askOver = () => { F.ui.statTab = 'over'; };
-  F.act.askPrs = () => { F.ui.statTab = 'prs'; };
+  F.act.askPrs = () => { F.ui.statTab = 'str'; };
 })();

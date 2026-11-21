@@ -60,7 +60,7 @@
       return `<section class="card cut"><h3>${ic('user', 18)} O Tobie</h3>
       <p class="dim small">Te dane pomagają dobrać objętość, intensywność i policzyć kalorie. Zapisują się w profilu.</p>
       <div class="seg tiny sx"><button class="${s.sex === 'm' ? 'on' : ''}" data-a="wzSex" data-v="m">Mężczyzna</button><button class="${s.sex === 'f' ? 'on' : ''}" data-a="wzSex" data-v="f">Kobieta</button></div>
-      <div class="two"><label class="fld"><span>Data urodzenia</span><input type="date" data-b="prof" data-k="dob" value="${s.dob || ''}" max="${F.dateInput(Date.now())}">${!s.dob && s.age ? `<small class="dim">Wiek: ${F.ageNow()} lat</small>` : ''}</label>
+      <div class="two"><label class="fld"><span>Wiek (lata)</span><input data-b="prof" data-k="age" inputmode="numeric" value="${F.ageNow() || ''}" placeholder="35"></label>
         <label class="fld"><span>Wzrost (cm)</span><input data-b="prof" data-k="height" inputmode="numeric" value="${s.height || ''}" placeholder="178"></label></div>
       <div class="two"><label class="fld"><span>Masa ciała (${u})</span><input data-b="wzBw" inputmode="decimal" value="${w.bw === '' ? '' : F.fw(w.bw)}" placeholder="80"></label>
         <label class="fld"><span>% tłuszczu (opc.)</span><input data-b="prof" data-k="bf" inputmode="decimal" value="${s.bf || ''}" placeholder="np. 18"></label></div>
@@ -195,7 +195,7 @@
     const R = (m, sel) => [m, sel];
     switch (z.step) {
       case 'health': if (w.scr.some(x => x === null)) return R('Odpowiedz na wszystkie pytania', '.wz-yn.miss'); if (w.preg === null) return R('Odpowiedz na pytanie o ciążę', '.wz-yn.miss'); if ((w.preg === 'preg' || w.preg === 'post') && !w.doc) return R('Potrzebna zgoda lekarza lub położnej', '.wz-warn'); return null;
-      case 'about': if (!s.sex) return R('Wybierz płeć', '.seg'); if (!F.ageNow()) return R('Podaj datę urodzenia', '[data-k=dob]'); if (!s.height) return R('Podaj wzrost', '[data-k=height]'); if (!(w.bw > 20)) return R('Podaj masę ciała', '[data-b=wzBw]'); if (F.ageNow() < 14) return R('Aplikacja jest przeznaczona dla osób od 14 lat; młodsze osoby powinny trenować pod opieką trenera', '[data-k=dob]'); if (!w.sleep) return R('Wybierz, ile średnio śpisz', '#wz-sleep'); return null;
+      case 'about': if (!s.sex) return R('Wybierz płeć', '.seg'); if (!F.ageNow()) return R('Podaj wiek', '[data-k=age]'); if (!s.height) return R('Podaj wzrost', '[data-k=height]'); if (!(w.bw > 20)) return R('Podaj masę ciała', '[data-b=wzBw]'); if (F.ageNow() < 14) return R('Aplikacja jest przeznaczona dla osób od 14 lat; młodsze osoby powinny trenować pod opieką trenera', '[data-k=dob]'); if (!w.sleep) return R('Wybierz, ile średnio śpisz', '#wz-sleep'); return null;
       case 'exp': if (!w.exp) return R('Wybierz poziom doświadczenia', '.wz-opts'); if (w.active === null) return R('Odpowiedz, czy trenujesz regularnie', '#wz-active'); return null;
       case 'cardio': if (w.cNow === null) return R('Odpowiedz, czy teraz robisz cardio', '#wz-cnow'); if (w.cNow && !w.cAct.length) return R('Dodaj aktywność albo wybierz „Nie robię”', '#wz-cacts'); if (w.cNow && w.cAct.some(a => !F.CARDIO.valid(a))) return R('Uzupełnij dane aktywności (razy w tygodniu i minuty)', '.cact'); { const ad = F.cardioAdvice(wFull()); if (ad.status === 'low' && !w.cChoice) return R('Wybierz, co robimy z cardio', '.cadv'); } return null;
       case 'sched': if (!w.days.length) return R('Wybierz co najmniej jeden dzień', '#wz-days'); return null;

@@ -160,7 +160,7 @@
   F.act.nutAgain = () => { F.ui.nutSeed = (F.ui.nutSeed || 0) + 1; F.render(true); };
   V.nutrition = () => {
     const np = nutPlan(); const s = F.S.settings, nu = s.nut || {}; const head = F.head('Żywienie', { back: 1, sub: 'Kalorie i przykładowy dzień' });
-    if (np.missing) return { html: `${head}<div class="empty"><h3>Uzupełnij dane</h3><p>Do wyliczenia potrzebuję płci, daty urodzenia, wzrostu, masy ciała i poziomu aktywności w ciągu dnia. Wpiszesz je w profilu lub w kreatorze planu.</p><a class="btn primary" href="#/settings">Otwórz profil</a></div>` };
+    if (np.missing) return { html: `${head}<div class="empty"><h3>Uzupełnij dane</h3><p>Do wyliczenia potrzebuję płci, wieku, wzrostu, masy ciała i poziomu aktywności w ciągu dnia. Masę ciała wpiszesz przyciskiem „Wpisz wagę”, resztę w Ustawieniach → Profil.</p><div class="btn-row"><a class="btn primary" href="#/settings">Otwórz profil</a><button class="btn ghost" data-a="bwSheet">Wpisz wagę</button></div></div>` };
     const ed = `<label class="sw"><span><b>Mam lub miałem(am) zaburzenia odżywiania</b><small>wtedy nie pokażę liczb</small></span><input type="checkbox" data-a="nutSet" data-k="ed" data-v="${nu.ed ? '0' : '1'}" ${nu.ed ? 'checked' : ''}><i></i></label>`;
     if (np.block) return { html: `${head}<section class="card cut"><p class="small">${E(np.block)}</p>${nu.ed ? ed : ''}</section>` };
     const n = nu.meals || 4, veg = !!nu.veg, seed = F.ui.nutSeed || 0; const meals = mealPlan(np, n, veg, seed);

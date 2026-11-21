@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.25.2** (ekran Plany, plany startowe, audyt), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.26.0** (nowa nawigacja), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,18 @@ Stan na 21 listopada 2026. Wersja **1.25.2** (ekran Plany, plany startowe, audyt
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.26.0 — nowa nawigacja (21.11.2026)
+Decyzje właściciela: `plan-rozwoju.md` (repo) / `claude/forge-plan-rozwoju.md` (projekt). Zasada: upraszczać, każda funkcja w jednym miejscu.
+- Dziś: 4 kafle (Żywienie, Porady i nauka, Narzędzia, Wpisz wagę — okienko `F.act.bwSheet`), przy „Ten tydzień” znacznik „Kalendarz ›”. Kreator, import, ćwiczenia → Plany; raport → Postępy.
+- Historia: przełącznik Lista | Kalendarz (`F.ui.histView`, `F.calBody()` w calendar.js). Trasa `#/calendar` pokazuje Historię z kalendarzem; `goCal` też.
+- Postępy: 4 zakładki Przegląd / Mięśnie / Siła / Ciało. Rekordy dołączone do Siły (`statsPR` pod poziomami siły). Na górze Przeglądu karta „Ten tydzień” (porównanie z poprzednim, link do raportu), potem cele, wykresy, ranga, osiągnięcia.
+- Profil tylko w Ustawieniach (usunięte „Twoje dane” z Ciała i Siły; przy braku danych przyciski „Uzupełnij profil” / „Wpisz wagę”). Wiek jako liczba (`age` + `ageAt`), co rok +1 (`F.ageNow` — naprawione zaokrąglanie, wcześniej dodawał rok po pół roku); data urodzenia nadal działa, jeśli była wpisana. Kreator też pyta o wiek.
+- Ustawienia w 5 sekcjach z opisem: Profil, Trening, Dźwięk i powiadomienia, Wygląd, Dane i kopia. Import usunięty z Ustawień.
+- Menu ćwiczenia w treningu: Zamień, Czas przerwy na górze; „Przesuń wyżej/niżej” w jednym rzędzie; usuń na dole.
+- Spójne nazwy (Narzędzia, Baza ćwiczeń), teksty pomocy w czacie zaktualizowane do nowych miejsc. Usunięte „≈” (1RM, kalorie, zapotrzebowanie).
+- `js/tour.js`: przewodnik 3 ekrany tylko dla nowych (bez planów i treningów, `settings.tourSeen`), po nim → Plany. Jednorazowe podpowiedzi (`F.hint`, `settings.hints`) na Planach, w Historii i Postępach.
+- Punkt 1 (seria jednym dotknięciem): makieta v2 wysłana (duża grafika sprzęt/mięśnie + kafelki serii + dolny panel serii/przerwy), czeka na akceptację.
 
 ## v1.25.0 — ekran Plany, plany startowe, Żywienie (21.11.2026)
 - Ekran Plany: na górze karta „Aktualny plan” (cel · staż, dni i ćwiczenia, następny trening z dniem, dni tygodnia z „zmień” → `calDays`, przycisk „Rozpocznij”). Niżej „Inne plany”, potem „Nowy plan”: Kreator → Plany startowe → Import, na dole „Baza ćwiczeń”. Kafel Kalendarz usunięty (kalendarz jest na ekranie Dziś).
