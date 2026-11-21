@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.25.1** (ekran Plany, plany startowe), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.25.2** (ekran Plany, plany startowe, audyt), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -80,6 +80,10 @@ Stan na 21 listopada 2026. Wersja **1.25.1** (ekran Plany, plany startowe), opub
 - Nazwa planu z kreatora krótsza: „Masa — Push / Pull / Nogi” (cel i staż w podtytule z `meta`). v1.25.1: stare długie nazwy z kreatora skracane przy starcie (core.js, tylko plany z `meta.goal`); w karcie aktualnego planu bez strzałki, nazwa dnia bez przedrostka „Pn — ”, przycisk „Rozpocznij trening”.
 - Plany startowe przepisane (`F.TEMPLATES` w data.js, format `[nazwa, opis, dni, meta]`): Push / Pull / Nogi (masa, średniozaaw.), Góra / Dół (masa, średniozaaw., dni cięższe i lżejsze `hy`), Siła A/B 3×5 (siła, początk., A/B naprzemiennie 3×/tydz.), Całe ciało 3× (masa, początk.), Pośladki i nogi (masa, średniozaaw., góra ciała min. 6 serii klatki). Powtórzenia i przerwy przy dodaniu z `F.KB.reps/repsHyp/restOf`, plan dostaje `meta {goal, exp, weekdays, rest}`. Serie tygodniowo dużych partii w zakresie `F.KB.vol` (skrypt `tpl3.js` + `tplspec.js` w scratchpadzie); barki i łydki lekko powyżej przez serie pośrednie, pośladki w planie pośladkowym celowo powyżej (opisane).
 - Żywienie: kafel „Cel dzienny” na całą szerokość (`.sum-stats.nut`), bez „≈” i „ok.”; gdy brak treningów z 4 tygodni — napis zamiast „0 kcal”. Usunięte „ok.” przy wyliczonym czasie treningu (Dziś, plan, kalendarz, czat).
+
+## Audyt v1.25.2 (21.11.2026)
+- Sprawdzone: CORE sw.js (201 plików, wszystkie istnieją), 21 tras na pustym i pełnym koncie na 320/375 px (0 błędów JS, brak „undefined/NaN”), przyciski z ikoną mają aria-label, crawl 647 kliknięć. Poprawione: długie tytuły w Poradach na 320 px, usunięte nieużywane `defaultRest`.
+- Rynek (21.11.2026): Fitatu 1,2 mln aktywnych miesięcznie, Premium+AI 135,99 zł/rok (promocja); Hevy Pro 23,99 USD/rok, darmowa wersja 4 plany; Strong Pro 29,99 USD/rok; Fitbod 95,99 USD/rok bez darmowej wersji; Strive (Gdańsk) darmowy dziennik offline, PL/EN. Top przychód PL Q4 2025: Fitatu, Diet & Training by Ann, Strava. Propozycje rozwoju przedstawione właścicielowi — czekają na decyzje.
 
 ## Audyt (21.11.2026)
 - Automatyczny przegląd: 22 ekrany, 556 kliknięć, 0 błędów JS, wszystkie przyciski mają obsługę. 45 akcji niszczących (usuwanie, kopie, import) nie było klikanych automatem.
