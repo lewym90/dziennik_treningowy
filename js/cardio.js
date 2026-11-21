@@ -20,8 +20,8 @@
 
   const bandOf = w => { const b = (BANDS[w.goal] || BANDS.health).slice(); if (w.cautious || w.special) b[1] = Math.min(b[1], 225); return b; };
   const REASON = {
-    hyp: 'Dla przyrostu masy wystarcza minimum WHO; więcej cardio nie jest potrzebne, a przy bieganiu może minimalnie osłabiać przyrost mięśni (dowody są ograniczone) — dlatego proponuję rower lub marsz.',
-    str: 'Dla siły wystarcza minimum WHO; więcej cardio nie jest potrzebne, a przy bieganiu może minimalnie osłabiać przyrost mięśni (dowody są ograniczone) — dlatego proponuję rower lub marsz.',
+    hyp: 'Dla przyrostu masy wystarcza minimum WHO. Metaanaliza z 2022 r. (43 badania) nie wykazała, by cardio osłabiało przyrost masy mięśniowej i siły — niezależnie od tego, czy to rower, czy bieg — więc wybierz to, co lubisz.',
+    str: 'Dla siły wystarcza minimum WHO. Cardio nie osłabiało przyrostu siły maksymalnej, ale osłabiało siłę eksplozywną, gdy było w tej samej sesji co trening siłowy — rób je w inny dzień albo co najmniej 3 godziny później.',
     sculpt: 'Cardio nie jest konieczne do redukcji (decyduje bilans kalorii), ale zwiększa wydatek energetyczny i pomaga utrzymać deficyt, więc celuję w wyższą część zakresu WHO.',
     health: 'Dla zdrowia i sprawności cardio jest ważną częścią tygodnia, więc celuję w pełny zakres zaleceń WHO.',
     endur: 'Przy celu wytrzymałościowym cardio to ważna część planu, więc celuję w wyższą część zakresu WHO.'

@@ -7,7 +7,7 @@
 
   const dayPart = () => { const h = new Date().getHours(); return h < 10 ? 'Poranny trening' : h < 15 ? 'Trening południowy' : h < 20 ? 'Popołudniowy trening' : 'Wieczorny trening'; };
   const parseRepsLo = r => { const m = String(r || '').match(/\d+/); return m ? +m[0] : 0; };
-  const exRest = (e, ex) => e.rest || (ex && ex.compound ? F.S.settings.defaultRest : Math.max(30, Math.round(F.S.settings.defaultRest * 0.6 / 15) * 15));
+  const exRest = (e, ex) => e.rest || F.autoRest(ex);
 
   /* ---------- superserie / obwody: ciągłe grupy ćwiczeń o tym samym ss ---------- */
   F.ssInfo = arr => { const out = arr.map(() => null); let i = 0, g = 0; while (i < arr.length) { const id = arr[i].ss; let j = i; if (id) while (j + 1 < arr.length && arr[j + 1].ss === id) j++; if (id && j > i) { const L = String.fromCharCode(65 + (g++ % 26)); for (let k = i; k <= j; k++) out[k] = { tag: L + (k - i + 1), pos: k - i, size: j - i + 1, start: i, end: j, L }; } i = j + 1; } return out; };

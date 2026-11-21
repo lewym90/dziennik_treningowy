@@ -91,9 +91,9 @@
     const l3 = ['squat', 'bench', 'deadlift'].map(id => F.bestE1(id)); const have3 = l3.every(x => x > 0); const tot = l3.reduce((a, b) => a + b, 0);
     const dots = have3 ? F.dots(tot, bw, sex) : 0, wil = have3 ? F.wilks(tot, bw, sex) : 0;
     const tri = have3 ? `<section class="card cut total"><h3>Trójbój — suma maksimów</h3><div class="big-n">${F.fw(tot)} <small>${F.unit()}</small></div><div class="trio"><div><small>Przysiad</small><b>${F.fw(l3[0])}</b></div><div><small>Wyciskanie</small><b>${F.fw(l3[1])}</b></div><div><small>Martwy</small><b>${F.fw(l3[2])}</b></div></div>
-      <div class="tiles two"><div class="tile cut"><span class="tl">DOTS</span><b class="tv">${F.fmtNum(dots, 1)}</b><small>${dotsLabel(dots)}</small></div><div class="tile cut"><span class="tl">Wilks</span><b class="tv">${F.fmtNum(wil, 1)}</b><small>wzór 2020</small></div></div>
-      <p class="dim small">Liczone z szacowanych 1RM (serie do 10 powtórzeń) i masy ciała ${F.fwu(bw)}. Planer podejść zawodów znajdziesz w <a href="#/tools"><u>Narzędziach</u></a>.</p></section>` : `<p class="dim small center">Żeby policzyć DOTS i Wilks, zapisz przysiad, wyciskanie leżąc i martwy ciąg (id ćwiczeń: Przysiad ze sztangą, Wyciskanie sztangi leżąc, Martwy ciąg).</p>`;
-    return tri + `<h3 class="sec">Poziomy siły</h3>` + rows + setup + `<p class="dim small">Normy to wielokrotności masy ciała stosowane w trójboju siłowym. Pokazują, gdzie jesteś względem innych trenujących.</p>`;
+      <div class="tiles two"><div class="tile cut"><span class="tl">DOTS</span><b class="tv">${F.fmtNum(dots, 1)}</b><small>wzór DOTS</small></div><div class="tile cut"><span class="tl">Wilks</span><b class="tv">${F.fmtNum(wil, 1)}</b><small>wzór 2020</small></div></div>
+      <p class="dim small">Liczone z wyliczonych 1RM (serie do 10 powtórzeń) i masy ciała ${F.fwu(bw)}. Planer podejść zawodów znajdziesz w <a href="#/tools"><u>Narzędziach</u></a>.</p></section>` : `<p class="dim small center">Żeby policzyć DOTS i Wilks, zapisz przysiad, wyciskanie leżąc i martwy ciąg (id ćwiczeń: Przysiad ze sztangą, Wyciskanie sztangi leżąc, Martwy ciąg).</p>`;
+    return tri + `<h3 class="sec">Poziomy siły</h3>` + rows + setup + `<p class="dim small">Progi poziomów to wielokrotności masy ciała przyjęte w FORGE do śledzenia postępu — nie pochodzą z badania naukowego. Do porównań siły między osobami o różnej masie ciała służą wzory DOTS i Wilks używane w trójboju.</p>`;
   };
   F.act.setSex = b => { F.S.settings.sex = b.dataset.v; F.saveSettings(); F.render(true); };
   F.act.stBw = async () => { const v = num(F.$('#st-bw').value); if (!v || F.fromDisp(v) < 20 || F.fromDisp(v) > 400) { F.toast('Podaj poprawną wagę'); return; } await F.addBW(F.fromDisp(v), Date.now()); F.rebuild(); F.toast('Zapisano wagę', 'hot'); F.render(true); };
@@ -107,7 +107,7 @@
     const rows = lifts.map(([id, n]) => {
       return `<div class="comp"><label class="fld"><span>${n} — plan na 3. podejście (${F.unit()})</span><input data-b="tcomp" data-id="${id}" inputmode="decimal" value="${E(String(C[id] ?? ''))}" placeholder="np. 180"></label><div class="att" id="att-${id}">${attHtml(id)}</div></div>`;
     }).join('');
-    return `<p class="dim small">Wpisz ciężar, który chcesz zrobić w 3. podejściu. Otwarcie ≈ 91%, drugie ≈ 96,5% (zaokrąglone do 2,5). Domyślnie wpisałem Twoje szacowane 1RM.</p>${rows}<div id="comp-sum">${compSum()}</div>`;
+    return `<p class="dim small">Wpisz ciężar, który chcesz zrobić w 3. podejściu. Otwarcie 91%, drugie 96,5% (zaokrąglone do 2,5). Domyślnie wpisałem Twoje wyliczone 1RM.</p>${rows}<div id="comp-sum">${compSum()}</div>`;
   };
   const attHtml = id => { const t = F.fromDisp(num((F.ui.tools.comp || {})[id])); if (!t) return '<small class="dim">Wpisz ciężar</small>'; return [.91, .965, 1].map(p => roundC(t * p)).map((w, i) => `<div><small>${i + 1}. podejście</small><b>${F.fw(w)}</b><em>${[91, 96.5, 100][i]}%</em></div>`).join(''); };
   const compSum = () => {

@@ -55,13 +55,13 @@
     const exs = allEx.map(x => { if (x.ex.muscle === 'cardio' && x.ex.type === 'time' && x.sets.some(s => s.int)) { let k = 0, g = 0; x.sets.filter(s => s.int).forEach(s => { const h = (s.r || 0) / 3600; k += (MET[s.int] - 1) * p.bw * h * rf0 * 1.05; g += MET[s.int] * p.bw * h; }); cardNet += k; cardGross += g; cardPer.push({ exId: x.e.exId, kcal: k }); return { ...x, sets: x.sets.filter(s => !s.int) }; } return x; }).filter(x => x.sets.length);
     if (!exs.length) { const cal0 = cardNet ? calFactor() : 1; const n0 = cardNet * cal0; const u0 = (p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown ? .17 : .27) + .05; return { net: n0, lo: n0 * (1 - u0), hi: n0 * (1 + u0), gross: cardGross * cal0, met: 0, perEx: cardPer.map(c => ({ exId: c.exId, kcal: c.kcal * cal0 })), approx: !(p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown), raw: cardNet, p }; }
     let W = 0, est = 0; const parts = exs.map(x => {
-      let w = 0; x.sets.forEach(s => { w += setWork(x.ex, s, p.bw); est += (x.ex.type === 'time' ? (s.r || 30) : 40) + (x.e.rest || (x.ex.compound ? F.S.settings.defaultRest : 75)); });
+      let w = 0; x.sets.forEach(s => { w += setWork(x.ex, s, p.bw); est += (x.ex.type === 'time' ? (s.r || 30) : 40) + (x.e.rest || F.autoRest(x.ex)); });
       W += w; return { exId: x.e.exId, w, n: x.sets.length };
     });
     const dur = sess.dur > 0 ? sess.dur : est;
     const dEff = Math.min(dur, Math.max(est * 1.6, 1200)); const h = dEff / 3600;
     const P = W / dEff; // moc średnia (W)
-    const met = clamp(3 + 8 * P / p.bw, 3, 8.5);
+    const met = clamp(3.5 + 8 * P / p.bw, 3.5, 6); // zakres MET treningu oporowego z Kompendium Aktywności Fizycznych 2024 (3,5–6,0)
     const rmr = F.bmr(p) / 24 / p.bw; // kcal na kg na godzinę
     const rf = clamp(rmr, .75, 1.1);
     let net = (met - 1) * p.bw * h * rf * 1.05; const gross = net + rmr * p.bw * h;

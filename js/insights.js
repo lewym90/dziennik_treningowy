@@ -43,7 +43,7 @@
       <div class="banner hot"><div>${ic('target', 20)}</div><p>${tip}</p></div>
       <h3 class="sec">Gotowość partii</h3><section class="card cut">${sorted.map(m => `<button class="rg" data-a="musTap" data-m="${m}"><span>${F.mDot(m)}${F.MUSCLES[m]}</span><em>${r[m].rem > 0 ? `ok. ${Math.max(1, Math.round(r[m].rem))} h` : 'gotowe'}</em></button>`).join('')}</section>`;
   };
-  F.recoverySheet = m => { const x = F.recovery()[m]; F.sheet(`<div class="tiles two"><div class="tile cut"><span class="tl">Stan</span><b class="tv sm">${STT[x.st]}</b></div><div class="tile cut"><span class="tl">Do gotowości</span><b class="tv sm">${x.rem > 0 ? `ok. ${Math.max(1, Math.round(x.rem))} h` : 'teraz'}</b></div></div><p class="sheet-p">${x.rem > 0 ? `Ostatni trening tej partii to około ${F.fmtNum(x.sets, 1)} serii, a to ${Math.round(x.need)} h regeneracji.` : 'W ostatnich dniach ta partia nie miała dużego obciążenia albo zdążyła odpocząć.'}</p>`, { title: E(F.MUSCLES[m]) }); };
+  F.recoverySheet = m => { const x = F.recovery()[m]; F.sheet(`<div class="tiles two"><div class="tile cut"><span class="tl">Stan</span><b class="tv sm">${STT[x.st]}</b></div><div class="tile cut"><span class="tl">Do gotowości</span><b class="tv sm">${x.rem > 0 ? `ok. ${Math.max(1, Math.round(x.rem))} h` : 'teraz'}</b></div></div><p class="sheet-p">${x.rem > 0 ? `Ostatni trening tej partii: ${F.fmtNum(x.sets, 1)} serii. Model regeneracji FORGE przyjmuje dla takiej objętości ${Math.round(x.need)} h (duże partie 24–72 h, małe 18–48 h — im więcej serii, tym dłużej). Serie do upadku spowalniają powrót sprawności — różnica utrzymywała się do 24–48 h po treningu (Morán-Navarro i in., 2017).` : 'W ostatnich dniach ta partia nie miała dużego obciążenia albo zdążyła odpocząć.'}</p>`, { title: E(F.MUSCLES[m]) }); };
   F.act.musRec = () => { F.ui.musView = 'rec'; F.render(true); };
 
   /* ---------- wnioski ---------- */
@@ -84,7 +84,7 @@
     const r = []; if (p.n) r.push([`Tonaż ${sign(pct(c.vol, p.vol))}%`, (() => { const up = Object.keys(c.mus).map(m => [m, c.mus[m] - (p.mus[m] || 0)]).sort((a, b) => b[1] - a[1])[0]; return up && up[1] > 0 ? `Najmocniej urosło: ${F.MUSCLES[up[0]].toLowerCase()}, ${sign(up[1])} serii.` : ''; })()]);
     if (planned) r.push([`Frekwencja ${Math.round(c.n / planned * 100)}%`, `${c.n} z ${planned} zaplanowanych treningów.`]);
     const l = Object.keys(c.lifts).filter(id => p.lifts[id]).map(id => [id, c.lifts[id] - p.lifts[id]]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 3);
-    if (l.length) r.push(['Szacowany maks', l.map(([id, d]) => `${F.exName(id)}: ${sign(+F.fw(Math.abs(d)).replace(',', '.') * Math.sign(d)).replace('.', ',')} ${F.unit()}`).join(', ') + '.']);
+    if (l.length) r.push(['Wyliczony maks', l.map(([id, d]) => `${F.exName(id)}: ${sign(+F.fw(Math.abs(d)).replace(',', '.') * Math.sign(d)).replace('.', ',')} ${F.unit()}`).join(', ') + '.']);
     return r.length ? `<section class="card cut"><h3>${lab}</h3>${r.map(x => `<div class="ins"><b>${E(x[0])}</b>${x[1] ? `<p>${E(x[1])}</p>` : ''}</div>`).join('')}</section>` : '';
   };
   F.repSeg = () => { const t = F.ui.repTab || 'w'; return `<div class="seg">${[['w', 'Tydzień'], ['m', 'Miesiąc'], ['y', 'Rok']].map(x => `<button class="${x[0] === t ? 'on' : ''}" data-a="repTab" data-t="${x[0]}">${x[1]}</button>`).join('')}</div>`; };

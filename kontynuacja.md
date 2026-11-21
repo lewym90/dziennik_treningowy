@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.22.1** („Zapytaj FORGE”), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.23.0** (rozbudowana baza wiedzy), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -47,6 +47,23 @@ Stan na 21 listopada 2026. Wersja **1.22.1** („Zapytaj FORGE”), opublikowana
 - v1.22.0: czat obejmuje całą aplikację. Żywienie (`F.mealPlan`, `F.FOOD` z coach.js): rozpisany dzień posiłków (3/4/5, bez mięsa, inna propozycja), posiłek po/przed treningiem (białko 0,25 g/kg na posiłek, ISSN 2017), makro, „ile białka zostało” (uczciwie: aplikacja nie zapisuje jedzenia). Cardio (`F.cardioWeek`, cel z planu, WHO). Siła (`F.STRSTD` z features.js): poziomy, trójbój, DOTS, Wilks, podejścia na zawody (91/96,5/100%), procent maksa, najlepszy ciężar na N powtórzeń. Ciało: pomiary (`F.MEASF`), BMI (WHO). Osiągnięcia (`F.achievements`), analiza planu (`F.coachAnalyze`). Treningi z konkretnej daty („3 listopada”, „27.10”, „w zeszły wtorek”), trwający trening (`F.S.draft`), stoper przerwy z czatu (`F.restStart/restAdd/restStop`). Ustawienia, powiadomienia (`F.pushOn` z alert.js), kopia zapasowa, baza ćwiczeń, wszystkie plany, lista porad, informacje o aplikacji i danych. Ostatnia deska: wyszukiwanie w treści „Porad i nauki” (`F.GUIDE`) przed „nie umiem”.
 - v1.22.1: jeden zakres serii w całej aplikacji — `F.volFor(m)` / `F.volCtx()` / `F.volLabel()` w kb.js (cel i staż z aktualnego planu, `F.KB.vol` + `F.KB.volSmall`). Ekran Mięśnie, czat i raport liczą tak samo (ruch główny 1, pomocnicze 0,5). Stara tabela TARGET z features.js usunięta. Pod nagłówkiem ekranu Mięśnie: „Zakres dla celu: …, zalecany zakres FORGE, oparty na ACSM 2026”.
 - Testy: skrypty `ask.js`/`ask2.js`/`ask3.js` w scratchpadzie (60 pytań z danymi + pusty użytkownik), 0 błędów.
+
+## v1.23.0 — rozbudowana i sprawdzona baza wiedzy (21.11.2026)
+- Każde nowe źródło sprawdzone w PubMed (autorzy, rok, czasopismo, tom, strony, DOI) i treść w streszczeniu lub pełnym tekście (Europe PMC). Narzędzie: skrypty `lit/q.py`, `lit/ft.py` w scratchpadzie (PubMed E-utilities, Europe PMC full text).
+- Poprawione dane starych źródeł: ACSM 2026 (pierwszy autor Currier BS), Bell 2023 (Sports Med Open 9:87, autorzy), Lundberg 2022 (52(10):2391–2403), Ramos-Campo 2024 (38(7):1330–1340).
+- 33 nowe źródła (razem 56): Pelland 2026 (Sports Med — opublikowana wersja), Schoenfeld 2017, Ralston 2017, Schoenfeld 2019 (częstotliwość), Grgic 2018 (częstotliwość/siła), Refalo 2023, Robinson 2024, Schoenfeld 2015 (tempo), Nunes 2021, Moesgaard 2022, Haugen 2023, Coleman 2024, Rogerson 2024, Behm 2016, Fradkin 2010, Iversen 2021, Fragala 2019, Roberts 2020, Morton 2018, Kerksick 2017, Kreider 2017, Guest 2021, Helms 2014, Garthe 2011, Murphy & Koehler 2022, Iraki 2019, Wilson 2012, Schumann 2022, Sawka 2007, Herrmann 2024 (Kompendium MET), Duchette 2024, Morán-Navarro 2017.
+- 28 nowych faktów w `F.KB.facts` (razem 50). Czat łączy kilka faktów w jednej odpowiedzi (klucz `a+b` w `KN`). Kreatyna, kofeina, nawodnienie, tempo, rozciąganie, rozgrzewka, periodyzacja, maszyny vs wolne ciężary, kobiety, osoby starsze, ciąża, tempo redukcji, nadwyżka na masę, regeneracja.
+- Porady i nauka: 5 nowych artykułów (`warmup`, `time`, `goals`, `supp`, `groups`; razem 19) + aktualizacja istniejących (objętość, powtórzenia/upadek/tempo, progresja/periodyzacja, regeneracja/odciążenie, białko, cardio, mity). Grafiki: stare artykuły `assets/guide/0–13.webp`, nowe — `assets/guide/<id>.webp` (dopisać id do `HAS` w guide.js); do tego czasu ikona.
+- Zmiany w logice:
+  - Żywienie: redukcja = deficyt 15%, ale maks. 500 kcal (Murphy 2022); białko w redukcji 2,0 g/kg (z % tłuszczu: 2,3 g/kg beztłuszczowej masy); masa = nadwyżka 10% (Iraki 2019, wcześniej 8% bez źródła).
+  - Spalanie treningu: MET 3,5–6,0 (Kompendium 2024; wcześniej 3–8,5).
+  - Cardio: teksty zgodne z Schumann 2022 (brak osłabienia masy i siły maks.; rozdziel ≥3 h przy sile eksplozywnej); usunięta rada „rower zamiast biegu”.
+  - Przerwa dla ćwiczeń spoza planu: według celu i stażu (`F.autoRest`), dopóki użytkownik sam nie zmieni „Domyślnej przerwy” (`settings.restSet`).
+  - Kreator: wyrównanie serii między dużymi partiami przy limicie czasu; minimum 4 serie tygodniowo na dużą partię (Iversen 2021).
+  - Siła: progi poziomów opisane uczciwie jako progi FORGE (nie z badań); usunięte etykiety DOTS („poziom krajowy” itp.).
+  - Gotowe plany: opisy bez haseł marketingowych + informacja, że plan dopasowany ułoży kreator.
+  - Regeneracja: opis modelu FORGE (24–72 h / 18–48 h) + Morán-Navarro 2017.
+  - Usunięte niepotwierdzone zdania (np. „wahają się o 1–2 kg”, test mowy w ciąży, przykłady równowagi spoza WHO, „szacowany” → „wyliczony”).
 
 ## Audyt (21.11.2026)
 - Automatyczny przegląd: 22 ekrany, 556 kliknięć, 0 błędów JS, wszystkie przyciski mają obsługę. 45 akcji niszczących (usuwanie, kopie, import) nie było klikanych automatem.

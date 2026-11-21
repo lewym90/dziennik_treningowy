@@ -40,7 +40,7 @@
       const best = hist.slice(0, 4).map(s => Math.max(...workSets(s, it.exId).map(x => e1(ex, x, s.start)))).reverse();
       const stag = hist.length >= 4 && best[3] <= best[0] * 1.005 && best[2] <= best[0] * 1.02 && best[1] <= best[0] * 1.02;
       if (tooHard && (+it.sets || 0) > 2) out.push({ k: 'hard', sev: 2, t: `${ex.name}: wygląda na zbyt ciężkie.`, d: below ? `W dwóch ostatnich treningach większość serii była poniżej ${lo} powtórzeń.` : 'Średnie RPE w ostatnich seriach to ' + round(rpAvg, 1) + '.', act: { id: 'coachSets', l: 'Zmniejsz o 1 serię', a: { p: plan.id, di, ii, dl: -1 } } });
-      else if (stag) out.push({ k: 'stag', sev: 1, t: `${ex.name}: brak postępu od 4 treningów.`, d: 'Najlepszy szacowany ciężar maksymalny nie rośnie. Sprawdź sen i jedzenie, a jeśli to nic nie zmienia — zamień ćwiczenie na wariant (inny kąt, inny sprzęt).', act: { id: 'coachSwap', l: 'Zamień ćwiczenie', a: { p: plan.id, di, ii } } });
+      else if (stag) out.push({ k: 'stag', sev: 1, t: `${ex.name}: brak postępu od 4 treningów.`, d: 'Najlepszy wyliczony ciężar maksymalny (1RM) nie rośnie. Sprawdź sen i jedzenie, a jeśli to nic nie zmienia — zamień ćwiczenie na wariant (inny kąt, inny sprzęt).', act: { id: 'coachSwap', l: 'Zamień ćwiczenie', a: { p: plan.id, di, ii } } });
     }));
     // objętość: realizowana vs zaplanowana (ostatnie 7 dni)
     const ps = planSets(plan), ds = weekSets(now - WK, now + 1); const low = [];
@@ -85,7 +85,7 @@
     return { html: `${F.head('Raport', { back: 1, sub: 'Jak Ci idzie i co zmienić' })}${F.repSeg()}
       <section class="card cut"><h3>${ic('calendar', 18)} Ten tydzień</h3>${stat(cur, prev)}<p class="dim small">${cur.n ? `Czas: ${cur.min} min · spalone ok. ${F.fmtNum ? F.fmtNum(cur.kc) : cur.kc} kcal` : 'Jeszcze bez treningu w tym tygodniu.'}</p></section>
       ${last ? `<section class="card cut"><h3>${ic('rotate-ccw', 18)} ${last.lab}</h3>${stat(last.s, last.p)}</section>` : ''}
-      ${bwNow && bwOld ? `<section class="card cut"><h3>${ic('scale', 18)} Masa ciała</h3><p class="small">Ostatnie 2 tygodnie: ${F.fwu(bwOld)} → <b>${F.fwu(bwNow)}</b> (${bwNow - bwOld > 0 ? '+' : ''}${F.fwu(Math.abs(bwNow - bwOld)).replace(/^/, bwNow - bwOld < 0 ? '−' : '')}). Pojedyncze ważenia wahają się o 1–2 kg przez wodę i zawartość jelit — patrz na trend z kilku tygodni.</p></section>` : ''}
+      ${bwNow && bwOld ? `<section class="card cut"><h3>${ic('scale', 18)} Masa ciała</h3><p class="small">Ostatnie 2 tygodnie: ${F.fwu(bwOld)} → <b>${F.fwu(bwNow)}</b> (${bwNow - bwOld > 0 ? '+' : ''}${F.fwu(Math.abs(bwNow - bwOld)).replace(/^/, bwNow - bwOld < 0 ? '−' : '')}). Pojedyncze ważenia wahają się z dnia na dzień (woda, zawartość jelit) — patrz na trend z kilku tygodni.</p></section>` : ''}
       ${vol}
       ${cardioCard(plan, ws, now)}
       <section class="card cut"><h3>${ic('sparkles', 18)} Co zmienić${plan ? ' w planie „' + E(plan.name) + '”' : ''}</h3>${an && an.meso ? `<p class="dim small">Tydzień ${an.week} planu${an.week < an.meso ? ' z ' + an.meso + ' (ostatni to odciążenie)' : an.week === an.meso ? ' z ' + an.meso + ' (czas na odciążenie)' : ''}.</p>` : ''}${sug}</section>
@@ -123,14 +123,14 @@
     const mode = nu.mode || ((s.wiz && s.wiz.goal === 'sculpt') ? 'cut' : (s.wiz && s.wiz.goal === 'hyp' && bmi < 27 ? 'bulk' : 'keep'));
     const preg = (s.wiz && s.wiz.special === 'preg');
     let k = total, note = '';
-    if (mode === 'cut' && !preg) { k = total * 0.85; note = 'Deficyt ok. 15% — umiarkowane tempo, które lepiej chroni mięśnie.'; }
-    else if (mode === 'bulk' && !preg) { if (bmi >= 27) { k = total; note = 'Przy BMI od 27 nie zalecam nadwyżki — lepiej budować siłę i mięśnie przy zbilansowanej diecie.'; } else { k = total * 1.08; note = 'Niewielka nadwyżka ok. 8% — mniej tłuszczu w przyroście.'; } }
+    if (mode === 'cut' && !preg) { const def = Math.min(total * 0.15, 500); k = total - def; note = `Deficyt ${Math.round(def / 10) * 10} kcal (15%, nie więcej niż 500 kcal) — tempo ok. 0,5–1% masy ciała tygodniowo, które lepiej chroni mięśnie.`; }
+    else if (mode === 'bulk' && !preg) { if (bmi >= 27) { k = total; note = 'Przy BMI od 27 nie zalecam nadwyżki — lepiej budować siłę i mięśnie przy zbilansowanej diecie.'; } else { k = total * 1.10; note = 'Nadwyżka 10% (dolna granica zaleceń 10–20%) — celuj w przyrost ok. 0,25–0,5% masy ciała tygodniowo.'; } }
     else note = 'Utrzymanie masy ciała.';
     const floor = Math.max(F.bmr(p), p.sex === 'f' ? 1200 : 1500); if (k < floor) { k = floor; note += ' Podniosłem do bezpiecznego minimum.'; }
     k = Math.round(k / 10) * 10;
     // masa referencyjna dla białka: przy BMI ≥ 30 licz od masy należnej (BMI 25)
     const ref = bmi >= 30 ? 25 * Math.pow(p.height / 100, 2) : p.bw;
-    const pLo = round(ref * 1.4), pHi = round(ref * 2.0); const prot = Math.round(ref * (mode === 'cut' ? 1.9 : 1.7)); const fat = Math.round(k * 0.27 / 9); const carb = Math.max(0, Math.round((k - prot * 4 - fat * 9) / 4));
+    const pLo = round(ref * 1.4), pHi = round(ref * 2.0); const prot = Math.round(mode === 'cut' ? (p.bf ? 2.3 * p.bw * (1 - p.bf / 100) : 2.0 * ref) : 1.7 * ref); const fat = Math.round(k * 0.27 / 9); const carb = Math.max(0, Math.round((k - prot * 4 - fat * 9) / 4));
     return { k, tdee: Math.round(total), train: Math.round(train), mode, note, prot, pLo, pHi, fat, carb, bmi, refMass: Math.round(ref), floor: Math.round(floor), p };
   };
   F.nutPlan = nutPlan;
@@ -172,7 +172,7 @@
         <div class="sum-stats"><div><small>Cel dzienny</small><b>${F.fmtNum ? F.fmtNum(np.k) : np.k} kcal</b></div><div><small>Białko</small><b>${np.prot} g</b></div><div><small>Tłuszcz</small><b>${np.fat} g</b></div><div><small>Węglowodany</small><b>${np.carb} g</b></div></div>
         <p class="small">${E(np.note)}</p>
         <p class="dim small">Zapotrzebowanie bez treningu ≈ ${np.tdee - np.train} kcal + średnio ${np.train} kcal dziennie z treningów (ostatnie 4 tygodnie). Po 2–3 tygodniach porównaj z trendem masy ciała i skoryguj o 100–200 kcal, bo każdy organizm zużywa energię nieco inaczej.</p>
-        <p class="dim small">Białko: dla większości osób ćwiczących wystarcza 1,4–2,0 g na kg masy ciała (zalecenie ISSN)${np.bmi >= 30 ? `; przy BMI ≥ 30 liczę od masy należnej (${np.refMass} kg)` : ''}, czyli ${np.pLo}–${np.pHi} g dziennie, rozłożone na kilka posiłków po ok. 0,25 g/kg. Tłuszcz ≈ 27% kalorii, resztę wypełniają węglowodany.</p></section>
+        <p class="dim small">Białko: dla większości osób ćwiczących wystarcza 1,4–2,0 g na kg masy ciała (zalecenie ISSN)${np.bmi >= 30 ? `; przy BMI ≥ 30 liczę od masy należnej (${np.refMass} kg)` : ''}, czyli ${np.pLo}–${np.pHi} g dziennie, rozłożone na kilka posiłków po ok. 0,25 g/kg${np.mode === 'cut' ? '. W redukcji podnoszę białko (ISSN: 2,3–3,1 g na kg beztłuszczowej masy ciała przy deficycie)' : ''}. Tłuszcz 27% kalorii, resztę wypełniają węglowodany.</p></section>
       <section class="card cut"><h3>${ic('layers', 18)} Przykładowy dzień</h3>
         <div class="chips">${[3, 4, 5].map(x => chip(n === x, 'meals', x, x + (x === 5 ? ' posiłków' : ' posiłki'), 1)).join('')}${chip(veg, 'veg', veg ? '0' : '1', 'Bez mięsa i ryb')}</div>
         ${meals.map(m => `<div class="meal"><div class="wz-dh"><h4>${m.name}</h4><small class="dim">${Math.round(m.tot.k)} kcal · B ${Math.round(m.tot.p)} g</small></div>${m.rows.map(r => `<div class="meal-r"><span>${E(r.name)}</span><b>${r.id === 'egg' ? r.unit + ' szt.' : r.g + ' g'}</b></div>`).join('')}</div>`).join('')}

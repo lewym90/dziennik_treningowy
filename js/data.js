@@ -138,27 +138,27 @@ F.SEED = [
 
 // Plany startowe: [nazwa, opis, [[dzień, [[exId, serie, powt, przerwa(s)]...]]...]]
 F.TEMPLATES = [
-  ['Push / Pull / Legs', 'Klasyk na 3–6 dni. Sprawdza się u każdego, kto chce ciężko i regularnie.', [
+  ['Push / Pull / Legs', 'Podział na pchanie, ciągnięcie i nogi: 3 dni w tygodniu albo 6 (wtedy każda partia 2 razy).', [
     ['Push', [['bench', 4, '6-8', 150], ['ohp', 3, '8-10', 120], ['db_inc', 3, '8-12', 90], ['lateral', 4, '12-15', 60], ['tri_push', 3, '10-12', 75], ['skull', 3, '10-12', 75]]],
     ['Pull', [['deadlift', 3, '5', 180], ['pullup', 4, '6-10', 120], ['row_bb', 3, '8-10', 120], ['facepull', 3, '12-15', 60], ['curl_bb', 3, '8-10', 75], ['curl_ham', 3, '10-12', 60]]],
     ['Legs', [['squat', 4, '6-8', 180], ['rdl', 3, '8-10', 120], ['leg_press', 3, '10-12', 120], ['leg_curl', 3, '10-12', 75], ['calf_st', 4, '12-15', 60], ['cab_crunch', 3, '12-15', 60]]]
   ]],
-  ['Góra / Dół (4 dni)', 'Dwa razy w tygodniu każda partia. Dużo siły, dużo objętości.', [
+  ['Góra / Dół (4 dni)', 'Każda partia 2 razy w tygodniu: dzień ciężki (mało powtórzeń) i dzień z większą liczbą powtórzeń.', [
     ['Góra A — siła', [['bench', 5, '5', 180], ['row_bb', 4, '6-8', 150], ['ohp', 3, '6-8', 120], ['lat_pull', 3, '8-10', 90], ['curl_ez', 3, '8-10', 75], ['tri_push', 3, '8-10', 75]]],
     ['Dół A — siła', [['squat', 5, '5', 210], ['rdl', 3, '6-8', 150], ['leg_press', 3, '10', 120], ['leg_curl', 3, '10-12', 75], ['calf_st', 4, '10-12', 60]]],
     ['Góra B — objętość', [['db_inc', 4, '8-12', 90], ['row_cable', 4, '10-12', 90], ['db_ohp', 3, '10-12', 90], ['pullup', 3, '8-12', 90], ['lateral', 4, '12-20', 45], ['curl_inc', 3, '10-12', 60], ['tri_over', 3, '10-12', 60]]],
     ['Dół B — objętość', [['deadlift', 3, '5', 210], ['bulgar', 3, '8-10', 120], ['hack', 3, '10-12', 120], ['hip_thrust', 3, '10-12', 90], ['leg_ext', 3, '12-15', 60], ['calf_se', 4, '12-15', 45]]]
   ]],
-  ['Siła 5×5 (A/B)', 'Prosty, brutalny, skuteczny. Dokładaj ciężar co trening.', [
+  ['Siła 5×5 (A/B)', 'Trzy boje po 5 serii × 5 powtórzeń, ciężar dokładany co trening. Nastawiony na siłę.', [
     ['Trening A', [['squat', 5, '5', 180], ['bench', 5, '5', 180], ['row_bb', 5, '5', 150]]],
     ['Trening B', [['squat', 5, '5', 180], ['ohp', 5, '5', 150], ['deadlift', 1, '5', 240]]]
   ]],
-  ['Full Body 3×', 'Trzy treningi całego ciała. Idealne na start lub gdy masz mało czasu.', [
+  ['Full Body 3×', 'Trzy treningi całego ciała w tygodniu, po 4–5 ćwiczeń — prosty układ na początek.', [
     ['Full Body A', [['squat', 3, '8', 150], ['bench', 3, '8', 120], ['row_cable', 3, '10', 90], ['plank', 3, '45', 60]]],
     ['Full Body B', [['deadlift', 3, '5', 180], ['db_ohp', 3, '10', 90], ['lat_pull', 3, '10', 90], ['leg_raise', 3, '12', 60]]],
     ['Full Body C', [['leg_press', 3, '10', 120], ['db_bench', 3, '10', 90], ['row_db', 3, '10', 90], ['curl_db', 2, '12', 60], ['tri_push', 2, '12', 60]]]
   ]],
-  ['Pośladki i nogi', 'Skupienie na pośladkach, tyle ud i górze w wersji wspierającej.', [
+  ['Pośladki i nogi', 'Nacisk na pośladki i tył uda; górna część ciała w mniejszej objętości.', [
     ['Pośladki A', [['hip_thrust', 4, '8-10', 120], ['rdl', 3, '8-10', 120], ['bulgar', 3, '10', 90], ['glute_kick', 3, '12-15', 60], ['abduct', 3, '15-20', 45]]],
     ['Nogi + góra', [['squat', 4, '8', 150], ['leg_curl', 3, '10-12', 75], ['lat_pull', 3, '10-12', 90], ['db_ohp', 3, '10-12', 75], ['plank', 3, '45', 45]]],
     ['Pośladki B', [['sumo', 3, '6-8', 150], ['hip_thrust', 3, '10-12', 90], ['step_up', 3, '10', 75], ['glute_br', 3, '15', 45], ['calf_st', 3, '15', 45]]]
