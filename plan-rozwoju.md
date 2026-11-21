@@ -30,3 +30,18 @@ Zasady: wszystko po polsku, schludnie i intuicyjnie (każdy ma wiedzieć, gdzie 
 | 24 | Wersja angielska i ukraińska | Zgoda, ale na samym końcu, gdy aplikacja będzie w pełni gotowa |
 
 Dodatkowo: przebudowa nawigacji — aplikacja ma być schludna i intuicyjna, bez opcji pochowanych po menu. To pierwszy krok, przed nowymi funkcjami.
+
+## Nawigacja (decyzje 21.11.2026)
+- Makieta punktu 1: pomysł tak, wykonanie słabe — zostaje duża grafika przełączana sprzęt/mięśnie, połączona z dolnym panelem serii.
+- N1 jedna zasada (każda funkcja w jednym miejscu, zakładki = pytania: Dziś / Plany / Historia / Postępy) — zgoda.
+- N2 odchudzony ekran Dziś (4 kafle: Żywienie, Porady i nauka, Narzędzia, Wpisz wagę; „Kalendarz ›” przy „Ten tydzień”) — zgoda.
+- N3 Historia z przełącznikiem Lista | Kalendarz — zgoda.
+- N4 Postępy: Przegląd / Mięśnie / Siła / Ciało — zgoda.
+- N5 jeden profil w Ustawieniach — zgoda, bez linijki „Zmień” w innych miejscach; wiek: aplikacja pamięta, kiedy wpisano, i co rok dodaje rok.
+- N6 Ustawienia w 5 sekcjach — zgoda.
+- N7 wyszukiwarka — NIE (zagraca ekran).
+- N8 porządek w menu „⋯” — zgoda.
+- N9 spójne nazwy — zgoda.
+- N10 pierwsze uruchomienie i jednorazowe podpowiedzi — zgoda.
+- N11 najpierw porządek, potem nowe funkcje — zgoda.
+- Zasada nadrzędna: nie komplikować, upraszczać i ułatwiać korzystanie.
