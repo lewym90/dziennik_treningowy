@@ -73,6 +73,10 @@
     health: { beg: { major: [6, 10],  minor: [3, 6] },   mid: { major: [8, 12],  minor: [4, 8] },   adv: { major: [8, 12],  minor: [5, 9] } }
   };
   F.KB.volSmall = { calves: [4, 10], abs: [4, 10], glutes: [6, 12], forearms: [0, 6] };
+  // jedno źródło zakresów serii dla całej aplikacji (ekran Mięśnie, czat, raport): cel i staż z aktualnego planu
+  F.volCtx = () => { const nx = F.nextWorkout && F.nextWorkout(); const p = nx ? nx.plan : (F.S.plans || [])[0]; const g = (p && p.meta && p.meta.goal) || 'hyp', e = (p && p.meta && p.meta.exp) || F.S.settings.exp || 'mid'; return { g: F.KB.vol[g] ? g : 'hyp', e: ['beg', 'mid', 'adv'].includes(e) ? e : 'mid' }; };
+  F.volFor = m => { if (F.KB.volSmall[m]) return F.KB.volSmall[m]; const { g, e } = F.volCtx(); const r = F.KB.vol[g][e]; return ['chest', 'back', 'quads', 'hams'].includes(m) ? r.major : r.minor; };
+  F.volLabel = () => { const { g, e } = F.volCtx(); const GN = { hyp: 'Masa mięśniowa', str: 'Siła', sculpt: 'Rzeźba / redukcja', endur: 'Wytrzymałość', health: 'Zdrowie i sprawność' }, EN = { beg: 'początkujący', mid: 'średniozaawansowany', adv: 'zaawansowany' }; return `${GN[g]}, ${EN[e]}`; };
   // ile serii jednej grupy w jednej sesji (górna granica, heurystyka)
   F.KB.perSession = { beg: 8, mid: 10, adv: 11 };  // preprint Pelland: ok. 11 serii (liczonych ułamkowo) na partię w sesji to punkt, za którym korzyść jest trudna do wykrycia
   F.KB.reps = {

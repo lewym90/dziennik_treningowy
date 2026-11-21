@@ -64,7 +64,7 @@
     if (m) { const k = NUMW[m[1]] != null ? NUMW[m[1]] : +m[1]; const at = now - k * UNIT(m[2]); return { kind: 'point', at, label: `${ulabel(k, m[2])} temu` }; }
     m = n.match(/\b(dzien|tydzien|miesiac|rok|kwartal)\s+temu\b/); if (m) return { kind: 'point', at: now - UNIT(m[1]), label: `${m[1] === 'tydzien' ? 'tydzień' : m[1] === 'miesiac' ? 'miesiąc' : m[1]} temu` };
     m = n.match(/\bostatni\w*\s+(\d+|dwa|dwie|trzy|cztery|piec|szesc)?\s*(dni|dzien|tydzien|tygodni\w*|miesiac\w*|miesiecy|rok|lat\w*|kwartal\w*)\b/);
-    if (m) { const k = m[1] ? (NUMW[m[1]] || +m[1]) : 1; const u = UNIT(m[2]); return range(now - k * u, now + 1, k === 1 ? `w ostatnim ${ulabel(1, m[2]).replace('dzień', 'dniu').replace('tydzień', 'tygodniu').replace('miesiąc', 'miesiącu').replace('rok', 'roku')}` : `w ostatnich ${ulabel(k, m[2])}`); }
+    if (m) { const k = m[1] ? (NUMW[m[1]] || +m[1]) : 1; const u = UNIT(m[2]); return range(now - k * u, now + 1, k === 1 ? `w ostatnim ${ulabel(1, m[2]).replace('dzień', 'dniu').replace('tydzień', 'tygodniu').replace('miesiąc', 'miesiącu').replace('rok', 'roku')}` : `w ostatnich ${k} ${UF[/^(dzien|dni|dob)/.test(m[2]) ? 'd' : /^(tydz|tyg)/.test(m[2]) ? 't' : /^mies/.test(m[2]) ? 'm' : /^kwart/.test(m[2]) ? 'k' : 'r'][2]}`); }
     const ws = F.startOfWeek(now), d0 = new Date(today), ms = new Date(d0.getFullYear(), d0.getMonth(), 1).getTime(), ys = new Date(d0.getFullYear(), 0, 1).getTime();
     if (/\b(w tym|ten|obecnym|biezacym) tygodni|\btego tygodnia\b/.test(n)) return range(ws, now + 1, 'w tym tygodniu');
     if (/\b(zeszl|poprzedn|ubiegl)\w* tygodni|\b(zeszly|poprzedni|ubiegly) tydzien/.test(n)) return range(ws - WK, ws, 'w zeszłym tygodniu');
@@ -100,8 +100,8 @@
   const planItem = id => { const p = planNow(); if (!p) return null; for (const d of p.days) { const it = d.items.find(i => i.exId === id); if (it) return { plan: p, day: d, it }; } return null; };
   const goalOf = () => { const p = planNow(); return (p && p.meta && p.meta.goal) || 'hyp'; };
   const expOf = () => { const p = planNow(); return (p && p.meta && p.meta.exp) || F.S.settings.exp || 'mid'; };
-  const weekSets = (m, from, to) => { let d = 0, ind = 0; S().forEach(se => { if (se.start < from || se.start >= to) return; se.exercises.forEach(e => { const ex = F.S.ex.get(e.exId); if (!ex) return; const n = e.sets.filter(isWork).length; if (ex.muscle === m) d += n; else if (ex.compound && F.secondaryOf(e.exId).includes(m)) ind += n * 0.5; }); }); return { d, ind, all: d + ind }; };
-  const volRange = m => { const g = goalOf(), e = expOf(); const K = F.KB; if (K.volSmall[m]) return K.volSmall[m]; const r = (K.vol[g] || K.vol.hyp)[e] || K.vol.hyp.mid; return ['chest', 'back', 'quads', 'hams'].includes(m) ? r.major : r.minor; };
+  const weekSets = (m, from, to) => { let d = 0, ind = 0; S().forEach(se => { if (se.start < from || se.start >= to) return; se.exercises.forEach(e => { const ex = F.S.ex.get(e.exId); if (!ex) return; const n = e.sets.filter(isWork).length; if (ex.muscle === m) d += n; else if (F.secondaryOf(e.exId).includes(m)) ind += n * 0.5; }); }); return { d, ind, all: d + ind }; };
+  const volRange = m => F.volFor(m);
   const topUsed = (n, filter) => exIndex().filter(r => r.use > 0 && r.ex.type !== 'time' && (!filter || filter(r.ex))).sort((a, b) => b.use - a.use).slice(0, n).map(r => r.ex);
   const noData = () => ({ html: `<p>Nie masz jeszcze zapisanych treningów, więc nie mam z czego liczyć. Zrób pierwszy trening, a od razu będę odpowiadać na pytania o Twoje wyniki.</p>`, acts: [{ l: 'Plany', i: 'clipboard-list', href: '#/plans' }, { l: 'Kreator planu', i: 'sparkles', href: '#/wizard' }], chips: ['Co umiesz?', 'Ile białka jeść?', 'Jak długie przerwy robić?'] });
 
@@ -276,13 +276,13 @@
     const list = (ms || F.BODY_ORDER).map(m => ({ m, v: weekSets(m, t.from, t.to), r: volRange(m) }));
     const wk = Math.max(1, (t.to - t.from) / WK);
     if (!ms && !list.some(x => x.v.all > 0)) return { html: `<p>${cap(t.label)} nie ma jeszcze serii. Ostatni trening: ${dd(S()[0].start)}.</p>`, chips: ['Ile serii w zeszłym tygodniu?', 'Co zaniedbuję?'] };
-    return { html: `<p>Serie ${t.label} (bezpośrednie + połowa pośrednich z ćwiczeń wielostawowych)${wk > 1.5 ? ', średnio na tydzień' : ''}:</p>${rows(list.filter(x => ms || x.v.all > 0).map(x => ({ i: F.mDot(x.m), l: cap(mName(x.m)), v: `${F.fmtNum(x.v.all / (wk > 1.5 ? wk : 1), 1)} <small>/ ${x.r[0]}–${x.r[1]}</small>` })))}<p class="ak-s">Obok zalecany zakres tygodniowy dla Twojego celu i poziomu.</p>`, chips: ['Co zaniedbuję?', 'Ile serii robić tygodniowo?'] };
+    return { html: `<p>Serie ${t.label} (ruch główny liczy się za 1, mięśnie pomocnicze za 0,5 — jak na ekranie Mięśnie)${wk > 1.5 ? ', średnio na tydzień' : ''}:</p>${rows(list.filter(x => ms || x.v.all > 0).map(x => ({ i: F.mDot(x.m), l: cap(mName(x.m)), v: `${F.fmtNum(x.v.all / (wk > 1.5 ? wk : 1), 1)} <small>/ ${x.r[0]}–${x.r[1]}</small>` })))}<p class="ak-s">Obok zalecany zakres FORGE dla celu: ${F.volLabel()} (oparty na ACSM 2026).</p>`, chips: ['Co zaniedbuję?', 'Ile serii robić tygodniowo?'] };
   };
 
   H.neglect = c => {
     if (!S().length) return noData(); const now = Date.now(); const list = F.BODY_ORDER.map(m => ({ m, v: weekSets(m, now - 28 * DAY, now + 1).all / 4, r: volRange(m) })).filter(x => x.r[1] > 0);
     const low = list.filter(x => x.v < x.r[0]).sort((a, b) => a.v / a.r[0] - b.v / b.r[0]), high = list.filter(x => x.v > x.r[1] * 1.25);
-    return { html: `<p>Średnio z ostatnich 4 tygodni, względem zaleceń dla Twojego celu:</p>${low.length ? `<p><b>Za mało:</b></p>${rows(low.slice(0, 6).map(x => ({ i: F.mDot(x.m), l: cap(mName(x.m)), v: `${F.fmtNum(x.v, 1)} <small>/ min. ${x.r[0]}</small>` })))}` : '<p>Żadna partia nie jest zaniedbana.</p>'}${high.length ? `<p><b>Dużo powyżej zakresu:</b> ${high.map(x => mName(x.m)).join(', ')}. Więcej nie zawsze znaczy lepiej — nadmiar utrudnia regenerację.</p>` : ''}`, chips: low.length ? [`Ćwiczenia na ${ACC[low[0].m]}`, 'Ile serii robić tygodniowo?'] : ['Jak mi poszedł ten miesiąc?'] };
+    return { html: `<p>Średnio z ostatnich 4 tygodni, względem zaleceń dla Twojego celu:</p>${low.length ? `<p><b>Za mało:</b></p>${rows(low.map(x => ({ i: F.mDot(x.m), l: cap(mName(x.m)), v: `${F.fmtNum(x.v, 1)} <small>/ min. ${x.r[0]}</small>` })))}` : '<p>Żadna partia nie jest zaniedbana.</p>'}${high.length ? `<p><b>Dużo powyżej zakresu:</b> ${high.map(x => mName(x.m)).join(', ')}. Więcej nie zawsze znaczy lepiej — nadmiar utrudnia regenerację.</p>` : ''}`, chips: low.length ? [`Ćwiczenia na ${ACC[low[0].m]}`, 'Ile serii robić tygodniowo?'] : ['Jak mi poszedł ten miesiąc?'] };
   };
 
   H.count = c => {
@@ -540,7 +540,7 @@
     const f = k && F.KB.facts[k[1]]; if (!f) return null;
     let mine = ''; const kex = c.ex || findEx(c.q), kms = findMus(c.q);
     if (k[1] === 'reps' && kex) { const pi = planItem(kex.id); if (pi) mine = `<p><b>W Twoim planie:</b> ${E(kex.name)} — ${pi.it.sets} × ${E(String(pi.it.reps))}.</p>`; }
-    if (k[1] === 'volume' && kms) { const now = Date.now(); mine = `<p><b>U Ciebie:</b> ${kms.map(m => `${mName(m)} — ${F.fmtNum(weekSets(m, now - 28 * DAY, now + 1).all / 4, 1)} tygodniowo (zalecam ${volRange(m).join('–')})`).join(', ')}; średnio z 4 tygodni, serie bezpośrednie + połowa pośrednich.</p>`; }
+    if (k[1] === 'volume' && kms) { const now = Date.now(); mine = `<p><b>U Ciebie:</b> ${kms.map(m => `${mName(m)} — ${F.fmtNum(weekSets(m, now - 28 * DAY, now + 1).all / 4, 1)} tygodniowo (zalecam ${volRange(m).join('–')})`).join(', ')}; średnio z 4 tygodni, ruch główny za 1, mięśnie pomocnicze za 0,5.</p>`; }
     if (k[1] === 'protein' && F.nutPlan) { const np = F.nutPlan(); if (np && !np.missing && !np.block) mine = `<p><b>Dla Ciebie:</b> ${np.pLo}–${np.pHi} g białka dziennie (od ${np.refMass} kg masy ciała), w Twoim planie żywienia ${np.prot} g.</p>`; }
     const srcs = (f.src || []).map(s => F.KB.src[s]).filter(Boolean).map(s => { let a = s.a.replace(/\s*\(.*\)\s*$/, ''); if (a.includes(',')) a = a.split(',')[0].replace(/ [A-Z]{1,3}$/, '') + ' i in.'; return `${a}, ${s.y}`; });
     return { html: `${mine}<p>${E(f.pl)}</p>${srcs.length ? `<p class="ak-src">${ic('book-open', 14)} ${srcs.join(' · ')}</p>` : ''}`, acts: k[2] ? [{ l: 'Czytaj w poradach', i: 'book-open', href: '#/guide/' + k[2] }] : [], chips: KN_CH[k[1]] || ['Ile białka jeść?', 'Jak długie przerwy robić?', 'Co to jest odciążenie?'] };

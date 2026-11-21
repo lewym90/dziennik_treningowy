@@ -10,7 +10,6 @@
      ===================================================================== */
   const MG = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'abs', 'quads', 'hams', 'glutes', 'calves'];
   // zakres tygodniowych serii efektywnych (poniżej = za mało, powyżej = dużo)
-  const TARGET = { chest: [10, 20], back: [10, 20], shoulders: [8, 16], biceps: [6, 14], triceps: [6, 14], forearms: [2, 8], abs: [6, 14], quads: [10, 20], hams: [6, 14], glutes: [6, 14], calves: [6, 14] };
   const ST = {
     none: { c: '#57524d', t: 'Brak serii' }, low: { c: '#a8693a', t: 'Za mało' }, ok: { c: '#ff9a1f', t: 'W normie' }, high: { c: '#ff3a14', t: 'Dużo' }
   };
@@ -26,7 +25,7 @@
     const wk = days / 7; MG.forEach(m => { out[m].perWeek = out[m].eff / wk; });
     return out;
   };
-  const status = (m, v) => { const [lo, hi] = TARGET[m]; return v <= 0 ? 'none' : v < lo ? 'low' : v <= hi ? 'ok' : 'high'; };
+  const status = (m, v) => { const [lo, hi] = F.volFor(m); return v <= 0 ? 'none' : v < lo ? 'low' : v <= hi ? 'ok' : 'high'; };
 
   F.statsMuscles = () => {
     const rng = F.ui.musRange || 7; const data = F.muscleSets(rng); const info = {}; MG.forEach(m => info[m] = status(m, data[m].perWeek));
@@ -41,12 +40,12 @@
       <div class="mleg">${['none', 'low', 'ok', 'high'].map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].t}</span>`).join('')}</div>
       <p class="dim small">Serie efektywne na tydzień: ruch główny liczy się za 1, mięśnie pomocnicze za 0,5. Dotknij partii, aby zobaczyć szczegóły.</p></section>
     <div class="banner hot"><div>${ic('target', 20)}</div><p>${tip}</p></div>
-    <h3 class="sec">Serie tygodniowo vs zalecany zakres</h3>
-    <section class="card cut">${sorted.map(m => { const v = data[m].perWeek, [lo, hi] = TARGET[m]; const pct = Math.min(100, v / (hi * 1.4) * 100); const a = lo / (hi * 1.4) * 100, b = hi / (hi * 1.4) * 100; return `<button class="mrow" data-a="musTap" data-m="${m}"><span class="mn">${F.mDot(m)}${F.MUSCLES[m]}</span><span class="mb"><i class="mz" style="left:${a}%;width:${b - a}%"></i><i class="mf" style="width:${pct}%;background:${ST[info[m]].c}"></i></span><b>${F.fmtNum(v, 1)}</b><em>${lo}–${hi}</em></button>`; }).join('')}</section>`;
+    <h3 class="sec">Serie tygodniowo vs zalecany zakres</h3><p class="dim small">Zakres dla celu: ${F.volLabel()}. Zalecany zakres FORGE, oparty na ACSM 2026 (dla masy mięśniowej co najmniej 10 serii tygodniowo na dużą partię).</p>
+    <section class="card cut">${sorted.map(m => { const v = data[m].perWeek, [lo, hi] = F.volFor(m); const pct = Math.min(100, v / (hi * 1.4) * 100); const a = lo / (hi * 1.4) * 100, b = hi / (hi * 1.4) * 100; return `<button class="mrow" data-a="musTap" data-m="${m}"><span class="mn">${F.mDot(m)}${F.MUSCLES[m]}</span><span class="mb"><i class="mz" style="left:${a}%;width:${b - a}%"></i><i class="mf" style="width:${pct}%;background:${ST[info[m]].c}"></i></span><b>${F.fmtNum(v, 1)}</b><em>${lo}–${hi}</em></button>`; }).join('')}</section>`;
   };
   F.act.musRange = b => { F.ui.musView = ''; F.ui.musRange = +b.dataset.r; F.render(true); };
   F.act.musTap = b => {
-    const m = b.dataset.m; if (F.ui.musView === 'rec' && F.ui.statTab === 'mus') { F.recoverySheet(m); return; } const rng = F.ui.musRange || 7; const d = F.muscleSets(rng)[m]; const s = status(m, d.perWeek); const [lo, hi] = TARGET[m];
+    const m = b.dataset.m; if (F.ui.musView === 'rec' && F.ui.statTab === 'mus') { F.recoverySheet(m); return; } const rng = F.ui.musRange || 7; const d = F.muscleSets(rng)[m]; const s = status(m, d.perWeek); const [lo, hi] = F.volFor(m);
     const ex = Object.entries(d.ex).sort((a, c) => c[1] - a[1]).slice(0, 8);
     F.sheet(`<div class="tiles two"><div class="tile cut"><span class="tl">Serie / tydzień</span><b class="tv">${F.fmtNum(d.perWeek, 1)}</b></div><div class="tile cut"><span class="tl">Zalecany zakres</span><b class="tv">${lo}–${hi}</b></div></div>
       <p class="sheet-p"><span class="stbadge" style="--sc:${ST[s].c}">${ST[s].t}</span> ${rng === 7 ? 'w ostatnich 7 dniach' : 'średnio w ostatnich 4 tygodniach'}. Bezpośrednich serii: <b>${d.direct}</b>.</p>
@@ -128,7 +127,7 @@
     return sub + (t === 'm' ? bodyMeasures() : t === 'p' ? bodyPhotos() : F.statsWeight());
   };
   F.act.bodyTab = b => { F.ui.bodyTab = b.dataset.t; F.render(true); };
-  F.MEASF = MF; F.MUS_TARGET = TARGET;
+  F.MEASF = MF;
   function bodyMeasures() {
     const ms = F.S.measures; const key = F.ui.mKey || 'waist'; const def = MF.find(x => x[0] === key) || MF[1];
     const last = ms[ms.length - 1]; const first = ms[0];
