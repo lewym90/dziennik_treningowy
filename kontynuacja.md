@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.23.0** (rozbudowana baza wiedzy), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.24.0** (profil przerw planu), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
