@@ -108,7 +108,7 @@
         <div class="two"><label class="fld"><span>Tkanka tłuszczowa (%)</span><input data-b="prof" data-k="bf" inputmode="decimal" value="${s.bf || ''}" placeholder="np. 18"></label><label class="fld"><span>Tętno spoczynkowe</span><input data-b="prof" data-k="hrRest" inputmode="numeric" value="${s.hrRest || ''}" placeholder="np. 60"></label></div>
         <label class="fld"><span>Tętno maksymalne</span><input data-b="prof" data-k="hrMax" inputmode="numeric" value="${s.hrMax || ''}" placeholder="${p.hrMaxKnown ? '' : 'zostaw puste — wyliczę: ' + p.hrMax}"></label>
         <p class="dim small">Znasz % tłuszczu? Użyję dokładniejszego wzoru na przemianę materii. Po treningu możesz wpisać średnie tętno z zegarka — kalorie będą trochę trafniejsze.</p></details>
-      ${td ? `<p class="small">Szacunkowe zapotrzebowanie dobowe <b>bez treningu: ≈ ${F.fmtNum(Math.round(td / 10) * 10, 0)} kcal</b>${p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown ? '' : ' <span class="dim">(uzupełnij dane, aby zawęzić)</span>'}. To orientacyjna wartość ±10%, nie zalecenie dietetyczne.</p>` : ''}
+      ${td ? `<p class="small">Zapotrzebowanie dobowe <b>bez treningu: ≈ ${F.fmtNum(Math.round(td / 10) * 10, 0)} kcal</b>${p.ageKnown && p.heightKnown && p.bwKnown && p.sexKnown ? '' : ' <span class="dim">(uzupełnij dane, aby wynik był dokładny)</span>'}. Wyliczone wzorem Mifflina–St Jeora.</p>` : ''}
       <p class="dim small">Dane zostają tylko na tym urządzeniu.</p></div>`;
   };
   F.bind.prof = el => {

@@ -21,7 +21,7 @@
 
   /* ---------- plan / następny trening ---------- */
   F.planOf = id => F.S.plans.find(p => p.id === id);
-  F.nextWorkout = () => {
+  F.nextWorkout = raw => {
     if (!F.S.plans.length) return null;
     const last = F.S.sessions.find(s => s.planId && F.planOf(s.planId));
     const plan = (last && F.planOf(last.planId)) || F.S.plans.find(p => p.days.length) || F.S.plans[0];
@@ -34,6 +34,8 @@
     // trening pominięty w kalendarzu: kolejka idzie dalej aż do następnego zapisanego treningu
     const sk = (F.S.settings.cal && F.S.settings.cal.skips) || [], tk = F.dayKey(Date.now()), after = (F.S.sessions.find(s => s.planId === plan.id) || {}).id || '';
     for (let k = 0; k < n; k++) { if (!sk.some(x => x.dayId === plan.days[di].id && x.after === after && x.key <= tk)) break; for (let j = 1; j <= n; j++) { const c = (di + j) % n; if (!cardioOnly(plan.days[c])) { di = c; break; } } }
+    // trening przeniesiony w kalendarzu za inny: następny jest ten, który w kalendarzu wypada najwcześniej
+    const cal = F.S.settings.cal; if (!raw && cal && cal.moves && Object.keys(cal.moves).length && F.calQueue) { const q0 = F.calQueue(21)[0]; if (q0 && q0.plan.id === plan.id) { const k = plan.days.indexOf(q0.day); if (k >= 0) return { plan, day: q0.day, di: k }; } }
     return { plan, day: plan.days[di], di };
   };
   const estMin = day => F.PLN && F.PLN.estMin ? F.PLN.estMin(day.items) : 0;

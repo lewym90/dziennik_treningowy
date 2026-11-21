@@ -27,6 +27,10 @@
     watson2015: { a: 'Watson NF, Badr MS, Belenky G i in. (AASM, Sleep Research Society)', y: 2015, t: 'Recommended amount of sleep for a healthy adult: a joint consensus statement', j: 'J Clin Sleep Med 11(6):591–592', u: 'https://www.aasm.org/resources/pdf/adultsleepdurationconsensus.pdf', k: 'konsensus towarzystw (panel 15 ekspertów, przegląd 5 314 prac)' },
     schoenfeld2013: { a: 'Schoenfeld BJ, Contreras B', y: 2013, t: 'Is postexercise muscle soreness a valid indicator of muscular adaptations?', j: 'Strength Cond J 35(5)', u: 'https://bretcontreras.com/wp-content/uploads/Is-Postexercise-Muscle-Soreness-a-Valid-Indicator-of-Muscular-Adaptations.pdf', k: 'przegląd narracyjny' },
     tanaka2001: { a: 'Tanaka H, Monahan KD, Seals DR', y: 2001, t: 'Age-predicted maximal heart rate revisited', j: 'J Am Coll Cardiol 37(1):153–156', u: 'https://doi.org/10.1016/S0735-1097(00)01054-8', k: 'metaanaliza i badanie' },
+    grgic2018r: { a: 'Grgic J, Schoenfeld BJ, Skrepnik M, Davies TB, Mikulic P', y: 2018, t: 'Effects of rest interval duration in resistance training on measures of muscular strength: a systematic review', j: 'Sports Med 48(1):137–151', u: 'https://pubmed.ncbi.nlm.nih.gov/28933024/', k: 'przegląd systematyczny (23 badania)' },
+    ramos2024: { a: 'Ramos-Campo DJ, Benito-Peinado PJ, Andreu-Caravaca L, Rojo-Tirado MA, Rubio-Arias JA', y: 2024, t: 'Efficacy of split versus full-body resistance training on strength and muscle growth: a systematic review with meta-analysis', j: 'J Strength Cond Res', u: 'https://pubmed.ncbi.nlm.nih.gov/38595233/', k: 'przegląd systematyczny z metaanalizą (14 badań)' },
+    wewege2022: { a: 'Wewege MA, Desai I, Honey C i in.', y: 2022, t: 'The effect of resistance training in healthy adults on body fat percentage, fat mass and visceral fat: a systematic review and meta-analysis', j: 'Sports Med 52(2):287–300', u: 'https://pubmed.ncbi.nlm.nih.gov/34536199/', k: 'przegląd systematyczny z metaanalizą (58 badań z randomizacją)' },
+    helms2015: { a: 'Helms ER, Fitschen PJ, Aragon AA, Cronin J, Schoenfeld BJ', y: 2015, t: 'Recommendations for natural bodybuilding contest preparation: resistance and cardiovascular training', j: 'J Sports Med Phys Fitness 55(3):164–178', u: 'https://pubmed.ncbi.nlm.nih.gov/24998610/', k: 'przegląd z zaleceniami' },
     mifflin1990: { a: 'Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO', y: 1990, t: 'A new predictive equation for resting energy expenditure in healthy individuals', j: 'Am J Clin Nutr 51(2):241–247', u: 'https://doi.org/10.1093/ajcn/51.2.241', k: 'badanie' }
   };
 
@@ -52,6 +56,9 @@
     protein: { src: ['issn2017'], pl: 'ISSN (2017): dla większości osób ćwiczących wystarcza ok. 1,4–2,0 g białka na kg masy ciała na dobę; pojedyncza porcja ok. 0,25 g/kg lub 20–40 g; porcje warto rozłożyć mniej więcej co 3–4 godziny. Efekt anaboliczny treningu utrzymuje się co najmniej 24 godziny, więc moment posiłku jest elastyczny.' },
     cut: { src: ['aragon2017'], pl: 'ISSN (2017, dieta a skład ciała): u szczupłych, trenujących siłowo osób w deficycie kalorycznym do zachowania mięśni może być potrzebne 2,3–3,1 g białka na kg beztłuszczowej masy ciała; wolniejsze tempo redukcji lepiej chroni masę mięśniową u osób szczupłych. Autorzy zaznaczają, że brakuje badań na kobietach i osobach starszych. Bardzo niskokaloryczne diety niosą ryzyko i wymagają nadzoru.' },
     hrmax: { src: ['tanaka2001'], pl: 'Tętno maksymalne szacuje się wzorem 208 − 0,7 × wiek (Tanaka i in., 2001); błąd indywidualny bywa znaczny.' },
+    restGoal: { src: ['acsm2009', 'grgic2018r', 'singer2024'], pl: 'Przerwy zależą od celu. Siła: 3–5 min przy bojach, bo pełny odpoczynek pozwala utrzymać ciężar w kolejnych seriach; początkującym wystarcza 1–2 min (Grgic i in., 2018). Masa: powyżej ok. 1,5 min dodatkowa korzyść jest już mała (Singer i in., 2024). Wytrzymałość: poniżej 90 s (ACSM, 2009).' },
+    split: { src: ['ramos2024'], pl: 'Metaanaliza Ramos-Campo i in. (2024; 14 badań): przy tej samej liczbie serii trening całego ciała i podział na partie dają podobny przyrost siły i masy mięśniowej. O wyborze decydują wygoda i dostępny czas.' },
+    cutTrain: { src: ['wewege2022', 'helms2015'], pl: 'Metaanaliza Wewege i in. (2022; 58 badań z randomizacją): trening siłowy zmniejsza tkankę tłuszczową, a liczba serii i sposób treningu nie zmieniały tego efektu. Helms i in. (2015) zalecają w redukcji trening jak na masę: głównie 6–12 powtórzeń, przerwy 1–3 min, każda partia co najmniej 2 razy w tygodniu. Wysokie powtórzenia nie „rzeźbią” mięśni — tłuszcz traci się deficytem kalorycznym.' },
     bmr: { src: ['mifflin1990'], pl: 'Podstawową przemianę materii dobrze szacuje wzór Mifflina–St Jeora (1990); przy znanym odsetku tkanki tłuszczowej można użyć wzoru Katcha–McArdle’a.' }
   };
 
@@ -61,7 +68,7 @@
   F.KB.vol = {
     hyp:    { beg: { major: [10, 14], minor: [6, 10] },  mid: { major: [10, 16], minor: [8, 14] },  adv: { major: [12, 20], minor: [10, 18] } },
     str:    { beg: { major: [6, 10],  minor: [4, 8] },   mid: { major: [8, 12],  minor: [6, 10] },  adv: { major: [10, 16], minor: [8, 12] } },
-    sculpt: { beg: { major: [8, 12],  minor: [5, 9] },   mid: { major: [10, 14], minor: [6, 12] },  adv: { major: [10, 16], minor: [8, 14] } },
+    sculpt: { beg: { major: [10, 14], minor: [6, 10] },  mid: { major: [10, 16], minor: [8, 14] },  adv: { major: [12, 20], minor: [10, 18] } },   // w deficycie trening jak na masę (Helms 2015, Wewege 2022)
     endur:  { beg: { major: [6, 10],  minor: [4, 8] },   mid: { major: [8, 12],  minor: [5, 9] },   adv: { major: [8, 14],  minor: [6, 10] } },
     health: { beg: { major: [6, 10],  minor: [3, 6] },   mid: { major: [8, 12],  minor: [4, 8] },   adv: { major: [8, 12],  minor: [5, 9] } }
   };
@@ -70,23 +77,24 @@
   F.KB.perSession = { beg: 8, mid: 10, adv: 11 };  // preprint Pelland: ok. 11 serii (liczonych ułamkowo) na partię w sesji to punkt, za którym korzyść jest trudna do wykrycia
   F.KB.reps = {
     hyp:    { main: '6-10',  sec: '8-12',  iso: '10-15' },
-    str:    { main: '3-6',   sec: '6-10',  iso: '8-12' },
-    sculpt: { main: '8-12',  sec: '10-15', iso: '12-15' },
-    endur:  { main: '12-20', sec: '15-20', iso: '15-25' },
+    str:    { main: '3-5',   sec: '5-8',   iso: '8-12' },
+    sculpt: { main: '6-10',  sec: '8-12',  iso: '10-15' },
+    endur:  { main: '15-20', sec: '15-20', iso: '15-25' },
     health: { main: '8-12',  sec: '10-12', iso: '12-15' }
   };
   F.KB.repsPower = { main: '3-5', sec: '5-8', iso: '8-10' };        // dni „power” w PHUL/PHAT (ciężkie)
   F.KB.repsHyp = { main: '8-12', sec: '10-15', iso: '12-20' };        // dni „hipertrofia” w PHUL/PHAT
   // przerwy (s) wg celu, doświadczenia i roli ćwiczenia: main = ciężkie wielostawowe, sec = pomocnicze wielostawowe, iso = izolowane
+  // ACSM 2009: siła 3–5 min przy bojach, ≥2–3 min przy ciężkich wielostawowych, 1–2 min pomocnicze; Grgic 2018: początkujący 1–2 min wystarcza;
+  // Singer 2024: masa — powyżej ok. 90 s mała dodatkowa korzyść, trenujący ≥2 min (Schoenfeld 2016); wytrzymałość poniżej 90 s (ACSM 2009); zdrowie 1–3 min (ACSM 2009, osoby starsze)
   F.KB.restT = {
-    hyp:    { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 180, sec: 120, iso: 75 }, adv: { main: 210, sec: 150, iso: 90 } },
-    str:    { beg: { main: 150, sec: 120, iso: 75 }, mid: { main: 240, sec: 150, iso: 90 }, adv: { main: 300, sec: 180, iso: 105 } },
-    sculpt: { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 150, sec: 105, iso: 60 }, adv: { main: 180, sec: 120, iso: 75 } },
-    endur:  { beg: { main: 60,  sec: 45,  iso: 45 }, mid: { main: 60,  sec: 45,  iso: 45 }, adv: { main: 60,  sec: 45,  iso: 45 } },
+    hyp:    { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 150, sec: 120, iso: 75 }, adv: { main: 180, sec: 120, iso: 90 } },
+    str:    { beg: { main: 180, sec: 120, iso: 75 }, mid: { main: 240, sec: 150, iso: 90 }, adv: { main: 300, sec: 180, iso: 90 } },
+    sculpt: { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 150, sec: 120, iso: 75 }, adv: { main: 180, sec: 120, iso: 90 } },
+    endur:  { beg: { main: 75,  sec: 60,  iso: 45 }, mid: { main: 75,  sec: 60,  iso: 45 }, adv: { main: 75,  sec: 60,  iso: 45 } },
     health: { beg: { main: 120, sec: 90,  iso: 60 }, mid: { main: 120, sec: 90,  iso: 60 }, adv: { main: 120, sec: 90,  iso: 60 } }
   };
   F.KB.restOf = (goal, exp, role, o) => { o = o || {}; const t = (F.KB.restT[goal] || F.KB.restT.hyp)[exp] || F.KB.restT.hyp.mid; let r = t[role] || t.iso; if (o.special) r = Math.min(r, role === 'main' ? 120 : 90); else if (o.cautious) r = Math.min(r, role === 'main' ? 150 : 105); return r; };
-  F.KB.restMax = (goal, o) => (o && (o.special || o.cautious)) ? 150 : goal === 'str' ? 300 : 240;
   F.KB.rest = Object.fromEntries(Object.keys(F.KB.restT).map(g => [g, F.KB.restT[g].mid]));
 
   // zapas powtórzeń (RIR) w tygodniu 1 mezocyklu; później maleje do wartości docelowej
@@ -95,5 +103,5 @@
     mid: { main: '2-3', sec: '2', iso: '1-2' },
     adv: { main: '2', sec: '1-2', iso: '1-2' }
   };
-  F.KB.meso = { beg: 6, mid: 5, adv: 5 };  // długość mezocyklu w tygodniach (ostatni tydzień = odciążenie); orientacyjnie
+  F.KB.meso = { beg: 6, mid: 5, adv: 5 };  // długość mezocyklu w tygodniach (ostatni tydzień = odciążenie); Rogerson 2024: średnio co 5,6 tyg.
 })();

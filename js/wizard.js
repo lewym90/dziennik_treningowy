@@ -50,7 +50,7 @@
     intro: () => `<section class="card cut"><h3>${ic('sparkles', 18)} Twój osobisty plan</h3>
       <p class="small">Ułożę plan tak, jak zrobiłby to trener: zapytam o zdrowie, Twoje dane, doświadczenie, cel, dni i sprzęt, a potem dobiorę podział, serie, powtórzenia, przerwy i ćwiczenia.</p>
       <p class="small">Ok. ${STEPS.length - 1} krótkich kroków. Dane zostają tylko w tym telefonie, a to, co wpiszesz o sobie, zapiszę w profilu, żeby nie pytać drugi raz.</p>
-      <p class="dim small">Plan jest wskazówką opartą na ogólnych zasadach treningu. Nie zastępuje lekarza ani trenera; przy chorobie, kontuzji lub ciąży skonsultuj się ze specjalistą.</p></section>`,
+      <p class="dim small">Plan powstaje na podstawie stanowisk ACSM i WHO oraz metaanaliz badań nad treningiem siłowym. Przy chorobie, kontuzji lub w ciąży przed startem skonsultuj się z lekarzem.</p></section>`,
     health: () => { const w = Z().w; const f = F.S.settings.sex === 'f'; return `<section class="card cut"><h3>${ic('shield', 18)} Zdrowie i bezpieczeństwo</h3>
       <p class="dim small">Pytania wzorowane na powszechnie stosowanym kwestionariuszu gotowości do aktywności fizycznej (PAR-Q+). Odpowiedz szczerze — to dla Twojego bezpieczeństwa.</p>
       ${SCR.map((q, i) => yn('scr', i, w.scr[i])).join('')}
@@ -111,7 +111,7 @@
       <label class="sw"><span><b>Stojak do przysiadów i wyciskania</b><small>bez stojaka pominę ciężkie ćwiczenia ze sztangą</small></span><input type="checkbox" data-b="wzFlag" data-k="rack" ${w.rack ? 'checked' : ''}><i></i></label></section>`; },
     limits: () => { const w = Z().w; const nm = id => E(P.exName(id)); const list = (arr, act) => arr.length ? `<div class="chips">${arr.map(id => `<button class="chip on" data-a="${act}" data-id="${id}">${nm(id)} ✕</button>`).join('')}</div>` : ''; return `<section class="card cut"><h3>${ic('shield', 18)} Ograniczenia i preferencje</h3>
       <h4 class="lbl">Bolące lub kontuzjowane miejsca</h4><div class="chips">${Object.entries(P.INJ).map(([k, t]) => chip(w.inj.includes(k), 'wzInj', `data-v="${k}"`, t)).join('')}</div>
-      <p class="dim small">Pominę ćwiczenia, które zwykle je obciążają. To nie jest porada medyczna — przy bólu skonsultuj się z lekarzem lub fizjoterapeutą.</p>
+      <p class="dim small">Pominę ćwiczenia, które obciążają te miejsca. Przy bólu przerwij ćwiczenie i skonsultuj się z lekarzem lub fizjoterapeutą.</p>
       <h4 class="lbl">Ćwiczenia, których nie chcę</h4>${list(w.avoid, 'wzUnavoid')}<button class="btn ghost sm" data-a="wzAddAvoid">${ic('plus', 16)} Dodaj</button>
       <h4 class="lbl">Ćwiczenia, które lubię (wstawię je, gdy pasują)</h4>${list(w.fav, 'wzUnfav')}<button class="btn ghost sm" data-a="wzAddFav">${ic('plus', 16)} Dodaj</button></section>`; },
     split: () => { const z = Z(), w = z.w; const gen = wFull(); const rk = P.rank(gen); const top = rk[0]; const lab = (i, r) => i === 0 ? 'Rekomendowany' : r.sc >= top.sc - 8 ? 'Dobry wybór' : r.sc >= top.sc - 20 ? 'Możliwy' : 'Mniej pasujący';
@@ -224,7 +224,7 @@
 
   /* ---------- podgląd ---------- */
   const fmtRest = s => s >= 60 ? (Math.floor(s / 60) + (s % 60 ? ':' + String(s % 60).padStart(2, '0') : '') + ' min') : s + ' s';
-  const nutrition = r => { const w = r.work; if (!['hyp', 'sculpt', 'str'].includes(w.goal)) return ''; const bw = w.bw; const prot = w.bmi >= 30 || !bw ? 'Przy większej masie ciała białko warto liczyć od masy należnej — omów to z dietetykiem.' : `Białko: ok. ${Math.round(bw * 1.4 / 5) * 5}–${Math.round(bw * 2.0 / 5) * 5} g dziennie (1,4–2,0 g na kg masy ciała), rozłożone na kilka posiłków.`; const cal = w.goal === 'sculpt' ? 'Redukcja wymaga umiarkowanego deficytu kalorycznego; wolniejsze tempo lepiej chroni mięśnie.' : w.goal === 'hyp' ? 'Przyrost masy wymaga lekkiej nadwyżki kalorii.' : ''; return `<section class="card cut"><h3>${ic('flame', 18)} Żywienie (orientacyjnie)</h3><p class="small">${prot}</p>${cal ? `<p class="small">${cal}</p>` : ''}<p class="dim small">Więcej w „Porady i nauka”. Przy chorobach, ciąży lub zaburzeniach odżywiania skonsultuj dietę ze specjalistą.</p></section>`; };
+  const nutrition = r => { const w = r.work; if (!['hyp', 'sculpt', 'str'].includes(w.goal)) return ''; const bw = w.bw; const prot = w.bmi >= 30 || !bw ? 'Przy większej masie ciała białko warto liczyć od masy należnej — omów to z dietetykiem.' : `Białko: ok. ${Math.round(bw * 1.4 / 5) * 5}–${Math.round(bw * 2.0 / 5) * 5} g dziennie (1,4–2,0 g na kg masy ciała), rozłożone na kilka posiłków.`; const cal = w.goal === 'sculpt' ? 'Redukcja wymaga umiarkowanego deficytu kalorycznego; wolniejsze tempo lepiej chroni mięśnie.' : w.goal === 'hyp' ? 'Przyrost masy wymaga lekkiej nadwyżki kalorii.' : ''; return `<section class="card cut"><h3>${ic('flame', 18)} Żywienie</h3><p class="small">${prot}</p>${cal ? `<p class="small">${cal}</p>` : ''}<p class="dim small">Więcej w „Porady i nauka”. Przy chorobach, ciąży lub zaburzeniach odżywiania skonsultuj dietę ze specjalistą.</p></section>`; };
 
   function preview() {
     const z = Z(), r = z.res, w = r.work; const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -237,11 +237,11 @@
       <section class="card cut"><h3>${ic('sparkles', 18)} Dlaczego ten plan</h3><div class="wz-why">${r.why.map(t => `<p>${t}</p>`).join('')}</div></section>
       ${dayHtml}${cardioHtml ? `<h3 class="sec">Cardio (opcjonalnie)</h3>${cardioHtml}` : ''}
       ${r.adv ? `<section class="card cut"><h3>${ic('heart', 18)} Cardio w tygodniu</h3><p class="small">Po zmianach: ok. <b>${F.CARDIO.eq(r.adv.acts)} min</b> umiarkowanego cardio tygodniowo (zakres przy Twoim celu: ${r.adv.band[0]}–${r.adv.band[1]} min; zalecenie WHO: 150–300 min).${r.adv.acts.some(a => !F.CARDIO.T[a.t][2]) ? ' Aktywności poza siłownią (np. pływanie, rolki) liczę do tej sumy, ale nie wstawiam ich do planu.' : ''}</p><p class="dim small">Cardio po treningu możesz w trakcie oznaczyć jako „Zrobię później” — dopiszesz je w domu, a trening zostanie przeliczony.</p></section>` : ''}
-      <section class="card cut"><h3>${ic('calendar', 18)} Mezocykl — jak prowadzić plan</h3>${meso}<p class="dim small">Powtarzaj plan przez ${r.meso.weeks} tygodni; ciężar zwiększaj, gdy dobijasz do górnej granicy powtórzeń z zachowanym zapasem. To schemat orientacyjny — jeśli czujesz przewlekłe zmęczenie, odciąż się wcześniej, a jeśli czujesz się świetnie, możesz przesunąć odciążenie.</p></section>
+      <section class="card cut"><h3>${ic('calendar', 18)} Mezocykl — jak prowadzić plan</h3>${meso}<p class="dim small">Powtarzaj plan przez ${r.meso.weeks} tygodni; ciężar zwiększaj, gdy dobijasz do górnej granicy powtórzeń z zachowanym zapasem. Jeśli czujesz przewlekłe zmęczenie, odciąż się wcześniej, a jeśli czujesz się świetnie, możesz przesunąć odciążenie o tydzień.</p></section>
       <section class="card cut"><h3>${ic('chart-column', 18)} Serie tygodniowo na grupę</h3>${vol}<p class="dim small">Wynik, zalecany zakres i liczba treningów grupy w tygodniu. Serie ćwiczeń wielostawowych liczą się częściowo także dla ramion i barków.</p></section>
       ${nutrition(r)}
       ${r.notes.length ? `<section class="card cut"><h3>${ic('info', 18)} Uwagi</h3><ul class="tips">${r.notes.map(n => `<li>${E(n)}</li>`).join('')}</ul></section>` : ''}
-      <p class="dim small pad">Plan jest wskazówką opartą na ogólnych zasadach treningu, nie zastępuje porady lekarza ani trenera. Przy bólu przerwij ćwiczenie. Ciężary dobierz sam — pierwszą serię zrób lekko, aby poznać swoje możliwości.</p>
+      <p class="dim small pad">Przy bólu przerwij ćwiczenie. Na pierwszym treningu dobierz ciężary: pierwszą serię zrób lekko, a kolejne tak, by zostawał zaplanowany zapas powtórzeń. Od drugiego treningu aplikacja podpowiada ciężar sama.</p>
       <div class="wz-spacer"></div><div class="wz-bar"><button class="btn primary full" data-a="wzSave">Zapisz plan</button><button class="btn ghost" data-a="wzBack">Zmień odpowiedzi</button><button class="btn ghost" data-a="wzAgain">${ic('repeat', 16)} Inna wersja</button></div>` };
   }
 })();

@@ -1,6 +1,6 @@
 /* Testy obliczeń FORGE w prawdziwej przeglądarce. Uruchom: node tests/calc.test.js (potrzebny Playwright). */
 const { chromium } = require('playwright'), { spawn } = require('child_process'), path = require('path');
-const sleep = ms => new Promise(r => setTimeout(r, ms)), PORT = 8171;
+const sleep = ms => new Promise(r => setTimeout(r, ms)), PORT = 8209;
 (async () => {
   const s = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: path.join(__dirname, '..'), stdio: 'ignore' }); await sleep(800);
   const b = await chromium.launch(), c = await b.newContext({ serviceWorkers: 'block', timezoneId: 'Europe/Warsaw' }), q = await c.newPage(); const errs = []; q.on('pageerror', e => errs.push(e.message));
@@ -23,6 +23,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms)), PORT = 8171;
     let q = F.calQueue(21); const str = () => F.calQueue(21).slice(0, 4).map(x => x.key % 100 + x.day.name).join(' ');
     eq('kolejka start', str(), '5C 6D 9A 10B');
     F.S.settings.cal.moves = { 20261106: 20261107 }; eq('przeniesienie nie rusza reszty', str(), '5C 7D 9A 10B');
+    F.S.settings.cal.moves = { 20261105: 20261108 }; eq('przeniesienie za inny trening zabiera swój dzień', str(), '6D 8C 9A 10B'); eq('następny trening zgodny z kalendarzem', F.nextWorkout().day.name, 'D');
     F.S.settings.cal.moves = {}; F.S.settings.cal.pauses = [20261106]; eq('przesunięcie o dzień', str(), '5C 7D 10A 11B');
     F.S.settings.cal.pauses = []; F.S.settings.cal.skips = [{ key: 20261106, dayId: 'D', after: 's2' }]; eq('pominięcie przyszłego', str(), '5C 9A 10B 12C');
     F.S.settings.cal.skips = [{ key: 20261105, dayId: 'C', after: 's2' }]; eq('pominięcie dzisiejszego zmienia następny trening', F.nextWorkout().day.name, 'D'); eq('pominięcie dzisiejszego', str(), '6D 9A 10B 12C');

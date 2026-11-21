@@ -14,7 +14,7 @@
 
   // kolejka: kolejne dni planu rozłożone na najbliższe dni treningowe
   F.calQueue = (days = 75) => {
-    const nx = F.nextWorkout(); if (!nx) return []; const c = cfg(), now = Date.now(), today = F.startOfDay(now), tk = F.dayKey(now);
+    const nx = F.nextWorkout(true); if (!nx) return []; const c = cfg(), now = Date.now(), today = F.startOfDay(now), tk = F.dayKey(now);
     const seq = []; const n = nx.plan.days.length; for (let k = 0; k < n; k++) { const d = nx.plan.days[(nx.di + k) % n]; if (!cardioOnly(d)) seq.push(d); }
     if (!seq.length) seq.push(nx.day);
     const doneToday = F.S.sessions.some(s => F.dayKey(s.start) === tk); const startK = doneToday ? F.dayKey(add(today, 1)) : tk;
@@ -23,14 +23,15 @@
       const b = add(today, i); if (!wd.includes(wdOf(b))) continue;
       const src = F.dayKey(shift(b, pauses)), dk = c.moves[src] || src; if (dk >= startK) slots.push({ src, key: dk });
     }
-    slots.sort((a, b) => a.key - b.key);
+    // dzień planu przypisujemy według pierwotnej kolejności (src), więc przeniesiony trening zabiera swój dzień ze sobą
+    slots.sort((a, b) => a.src - b.src);
     const out = []; let idx = 0;
     slots.forEach(s => {
       const sk = c.skips.find(x => x.key === s.src);
       if (sk) { if (sk.key > tk) idx++; return; } // pominięty dziś lub wcześniej ominęła już funkcja F.nextWorkout
       out.push({ ...s, ts: fromKey(s.key), day: seq[idx % seq.length], plan: nx.plan }); idx++;
     });
-    return out;
+    return out.sort((a, b) => a.key - b.key);
   };
 
   const rel = ts => { const d = Math.round((F.startOfDay(ts) - F.startOfDay(Date.now())) / 864e5); return d === 0 ? 'dziś' : d === 1 ? 'jutro' : WL[wdOf(ts)]; };
@@ -66,7 +67,12 @@
     const k = +b.dataset.k, ts = fromKey(k), sess = F.S.sessions.find(s => F.dayKey(s.start) === k); if (sess) { F.go('#/session/' + sess.id); return; }
     const sk = cfg().skips.find(x => x.key === k);
     if (sk) { F.sheet(`${title(longDay(ts), 'Pominięty trening')}<div class="menu"><button data-a="calRestore" data-k="${k}">${ic('rotate-ccw', 20)}<span>Przywróć ten trening</span></button></div>`); return; }
-    const x = F.calQueue(Math.max(75, (F.ui.calM || 0) * 31 + 62)).find(q => q.key === k); if (!x) return;
+    const Q = F.calQueue(Math.max(75, (F.ui.calM || 0) * 31 + 62)), x = Q.find(q => q.key === k);
+    if (!x) { // dzień wolny
+      const tk = F.dayKey(Date.now()), nx = Q[0], past = k < tk;
+      F.sheet(`${title(longDay(ts), past ? 'W tym dniu nie było treningu.' : 'Dzień wolny od treningu.')}${!past && nx ? `<div class="menu"><button data-a="calHere" data-k="${k}" data-s="${nx.src}">${ic('calendar', 20)}<span>Przenieś tu najbliższy trening<small>${E(nx.day.name)}, zaplanowany na ${longDay(nx.ts).toLowerCase()}</small></span></button>${k === tk ? `<button data-a="startDay" data-p="${nx.plan.id}" data-d="${nx.day.id}">${ic('play', 20)}<span>Zacznij teraz: ${E(nx.day.name)}</span></button>` : ''}</div>` : ''}`);
+      return;
+    }
     const moved = cfg().moves[x.src];
     F.sheet(`${title(longDay(ts), `${x.day.name} · ${info(x.day)}`)}<div class="menu"><button data-a="startDay" data-p="${x.plan.id}" data-d="${x.day.id}">${ic('play', 20)}<span>Zacznij teraz</span></button>
       <button data-a="calMove" data-k="${x.src}">${ic('calendar', 20)}<span>Przenieś na inny dzień<small>reszta kolejki zostaje bez zmian</small></span></button>
@@ -81,6 +87,7 @@
     if (F.calQueue(90).some(q => q.key === to && q.src !== src)) { F.toast('Tego dnia masz już trening'); return; }
     const c = cfg(); if (to === src) delete c.moves[src]; else c.moves[src] = to; refresh();
   };
+  F.act.calHere = b => { const c = cfg(), src = +b.dataset.s, to = +b.dataset.k; if (to === src) delete c.moves[src]; else c.moves[src] = to; refresh(); };
   F.act.calUnmove = b => { delete cfg().moves[+b.dataset.k]; refresh(); };
   F.act.calShift = b => { cfg().pauses.push(+b.dataset.k); refresh(); };
   F.act.calSkip = b => {

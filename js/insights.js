@@ -39,11 +39,11 @@
     else tip = 'Wszystkie partie są gotowe do pracy.';
     const legend = [['ready', GREEN], ['rec', 'var(--a2)'], ['fresh', 'var(--a1)']].map(([k, c]) => `<span><i style="background:${c}"></i>${STT[k]}</span>`).join('');
     return `<section class="card cut mmap"><div class="mmap-b"><figure>${F.bodyCv('f', colors, { tap: 1, dim: .75 })}<figcaption>Przód</figcaption></figure><figure>${F.bodyCv('b', colors, { tap: 1, dim: .75 })}<figcaption>Tył</figcaption></figure></div>
-      <div class="mleg">${legend}</div><p class="dim small">Szacunek z Twoich serii i czasu od treningu. Sen, jedzenie i samopoczucie mogą to zmienić. Dotknij partii, aby zobaczyć szczegóły.</p></section>
+      <div class="mleg">${legend}</div><p class="dim small">Liczone z Twoich serii i czasu od ostatniego treningu każdej partii. Dotknij partii, aby zobaczyć szczegóły.</p></section>
       <div class="banner hot"><div>${ic('target', 20)}</div><p>${tip}</p></div>
       <h3 class="sec">Gotowość partii</h3><section class="card cut">${sorted.map(m => `<button class="rg" data-a="musTap" data-m="${m}"><span>${F.mDot(m)}${F.MUSCLES[m]}</span><em>${r[m].rem > 0 ? `ok. ${Math.max(1, Math.round(r[m].rem))} h` : 'gotowe'}</em></button>`).join('')}</section>`;
   };
-  F.recoverySheet = m => { const x = F.recovery()[m]; F.sheet(`<div class="tiles two"><div class="tile cut"><span class="tl">Stan</span><b class="tv sm">${STT[x.st]}</b></div><div class="tile cut"><span class="tl">Do gotowości</span><b class="tv sm">${x.rem > 0 ? `ok. ${Math.max(1, Math.round(x.rem))} h` : 'teraz'}</b></div></div><p class="sheet-p">${x.rem > 0 ? `Ostatni trening tej partii to około ${F.fmtNum(x.sets, 1)} serii, a to szacunkowo ${Math.round(x.need)} h przerwy.` : 'W ostatnich dniach ta partia nie miała dużego obciążenia albo zdążyła odpocząć.'}</p>`, { title: E(F.MUSCLES[m]) }); };
+  F.recoverySheet = m => { const x = F.recovery()[m]; F.sheet(`<div class="tiles two"><div class="tile cut"><span class="tl">Stan</span><b class="tv sm">${STT[x.st]}</b></div><div class="tile cut"><span class="tl">Do gotowości</span><b class="tv sm">${x.rem > 0 ? `ok. ${Math.max(1, Math.round(x.rem))} h` : 'teraz'}</b></div></div><p class="sheet-p">${x.rem > 0 ? `Ostatni trening tej partii to około ${F.fmtNum(x.sets, 1)} serii, a to ${Math.round(x.need)} h regeneracji.` : 'W ostatnich dniach ta partia nie miała dużego obciążenia albo zdążyła odpocząć.'}</p>`, { title: E(F.MUSCLES[m]) }); };
   F.act.musRec = () => { F.ui.musView = 'rec'; F.render(true); };
 
   /* ---------- wnioski ---------- */

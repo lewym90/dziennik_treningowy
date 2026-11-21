@@ -169,14 +169,14 @@
         <div class="chips">${['cut', 'keep', 'bulk'].map(m => chip(np.mode === m, 'mode', m, modeL[m])).join('')}</div>
         <div class="sum-stats"><div><small>Cel dzienny</small><b>${F.fmtNum ? F.fmtNum(np.k) : np.k} kcal</b></div><div><small>Białko</small><b>${np.prot} g</b></div><div><small>Tłuszcz</small><b>${np.fat} g</b></div><div><small>Węglowodany</small><b>${np.carb} g</b></div></div>
         <p class="small">${E(np.note)}</p>
-        <p class="dim small">Zapotrzebowanie bez treningu ≈ ${np.tdee - np.train} kcal + średnio ${np.train} kcal dziennie z treningów (ostatnie 4 tygodnie). Szacunek ma błąd rzędu ±10% — po 2–3 tygodniach porównaj z trendem masy ciała i skoryguj o 100–200 kcal.</p>
+        <p class="dim small">Zapotrzebowanie bez treningu ≈ ${np.tdee - np.train} kcal + średnio ${np.train} kcal dziennie z treningów (ostatnie 4 tygodnie). Po 2–3 tygodniach porównaj z trendem masy ciała i skoryguj o 100–200 kcal, bo każdy organizm zużywa energię nieco inaczej.</p>
         <p class="dim small">Białko: dla większości osób ćwiczących wystarcza 1,4–2,0 g na kg masy ciała (zalecenie ISSN)${np.bmi >= 30 ? `; przy BMI ≥ 30 liczę od masy należnej (${np.refMass} kg)` : ''}, czyli ${np.pLo}–${np.pHi} g dziennie, rozłożone na kilka posiłków po ok. 0,25 g/kg. Tłuszcz ≈ 27% kalorii, resztę wypełniają węglowodany.</p></section>
       <section class="card cut"><h3>${ic('layers', 18)} Przykładowy dzień</h3>
         <div class="chips">${[3, 4, 5].map(x => chip(n === x, 'meals', x, x + (x === 5 ? ' posiłków' : ' posiłki'), 1)).join('')}${chip(veg, 'veg', veg ? '0' : '1', 'Bez mięsa i ryb')}</div>
         ${meals.map(m => `<div class="meal"><div class="wz-dh"><h4>${m.name}</h4><small class="dim">${Math.round(m.tot.k)} kcal · B ${Math.round(m.tot.p)} g</small></div>${m.rows.map(r => `<div class="meal-r"><span>${E(r.name)}</span><b>${r.id === 'egg' ? r.unit + ' szt.' : r.g + ' g'}</b></div>`).join('')}</div>`).join('')}
         <p class="small"><b>Razem:</b> ${Math.round(tot.k)} kcal · białko ${Math.round(tot.p)} g · węgle ${Math.round(tot.c)} g · tłuszcz ${Math.round(tot.f)} g.</p>
         <button class="btn ghost sm" data-a="nutAgain">${ic('repeat', 16)} Inna propozycja</button>
-        <p class="dim small">To jeden z wielu możliwych zestawów — wagi produktów surowych, jeśli nie podano inaczej; wartości odżywcze są przybliżone. Zamieniaj produkty na podobne i dopasuj do smaku. Przy chorobach, ciąży, alergiach lub zaburzeniach odżywiania skonsultuj dietę ze specjalistą.</p></section>
+        <p class="dim small">Wagi produktów surowych, jeśli nie podano inaczej. Zamieniaj produkty na podobne i dopasuj do smaku. Przy chorobach, ciąży, alergiach lub zaburzeniach odżywiania skonsultuj dietę ze specjalistą.</p></section>
       <section class="card cut">${ed}</section>` };
   };
 })();

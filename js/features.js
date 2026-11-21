@@ -90,10 +90,10 @@
     }).join('');
     const l3 = ['squat', 'bench', 'deadlift'].map(id => F.bestE1(id)); const have3 = l3.every(x => x > 0); const tot = l3.reduce((a, b) => a + b, 0);
     const dots = have3 ? F.dots(tot, bw, sex) : 0, wil = have3 ? F.wilks(tot, bw, sex) : 0;
-    const tri = have3 ? `<section class="card cut total"><h3>Trójbój — szacunek</h3><div class="big-n">${F.fw(tot)} <small>${F.unit()}</small></div><div class="trio"><div><small>Przysiad</small><b>${F.fw(l3[0])}</b></div><div><small>Wyciskanie</small><b>${F.fw(l3[1])}</b></div><div><small>Martwy</small><b>${F.fw(l3[2])}</b></div></div>
+    const tri = have3 ? `<section class="card cut total"><h3>Trójbój — suma maksimów</h3><div class="big-n">${F.fw(tot)} <small>${F.unit()}</small></div><div class="trio"><div><small>Przysiad</small><b>${F.fw(l3[0])}</b></div><div><small>Wyciskanie</small><b>${F.fw(l3[1])}</b></div><div><small>Martwy</small><b>${F.fw(l3[2])}</b></div></div>
       <div class="tiles two"><div class="tile cut"><span class="tl">DOTS</span><b class="tv">${F.fmtNum(dots, 1)}</b><small>${dotsLabel(dots)}</small></div><div class="tile cut"><span class="tl">Wilks</span><b class="tv">${F.fmtNum(wil, 1)}</b><small>wzór 2020</small></div></div>
       <p class="dim small">Liczone z szacowanych 1RM (serie do 10 powtórzeń) i masy ciała ${F.fwu(bw)}. Planer podejść zawodów znajdziesz w <a href="#/tools"><u>Narzędziach</u></a>.</p></section>` : `<p class="dim small center">Żeby policzyć DOTS i Wilks, zapisz przysiad, wyciskanie leżąc i martwy ciąg (id ćwiczeń: Przysiad ze sztangą, Wyciskanie sztangi leżąc, Martwy ciąg).</p>`;
-    return tri + `<h3 class="sec">Poziomy siły</h3>` + rows + setup + `<p class="dim small">Normy są orientacyjne — oparte na powszechnie przyjętych zestawieniach mnożników masy ciała, nie na oficjalnej tabeli. Pokazują, gdzie jesteś względem typowych trenujących.</p>`;
+    return tri + `<h3 class="sec">Poziomy siły</h3>` + rows + setup + `<p class="dim small">Normy to wielokrotności masy ciała stosowane w trójboju siłowym. Pokazują, gdzie jesteś względem innych trenujących.</p>`;
   };
   F.act.setSex = b => { F.S.settings.sex = b.dataset.v; F.saveSettings(); F.render(true); };
   F.act.stBw = async () => { const v = num(F.$('#st-bw').value); if (!v || F.fromDisp(v) < 20 || F.fromDisp(v) > 400) { F.toast('Podaj poprawną wagę'); return; } await F.addBW(F.fromDisp(v), Date.now()); F.rebuild(); F.toast('Zapisano wagę', 'hot'); F.render(true); };
