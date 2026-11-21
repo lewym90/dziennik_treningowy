@@ -910,3 +910,4 @@ form.ak-bar{flex-wrap:wrap}
 .pc-note{display:grid;gap:10px;padding:14px 16px;margin:0 0 14px;border-radius:14px;background:rgba(var(--a1-rgb),.08);box-shadow:inset 0 0 0 1px rgba(var(--a1-rgb),.3)}.pc-note p{margin:0;color:var(--tx2);font-size:14px;line-height:1.4}.pc-note .btn{justify-self:start}
 .sum-stats.nut{grid-template-columns:repeat(3,minmax(0,1fr))}.sum-stats.nut>div:first-child{grid-column:1/-1}.sum-stats.nut>div:first-child b{font-size:30px}
 .sum-stats.nut b em{font:600 15px var(--fb);color:var(--tx2);font-style:normal}
+.plan-b h3{overflow-wrap:anywhere;hyphens:auto}
