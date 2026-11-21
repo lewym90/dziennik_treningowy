@@ -228,7 +228,7 @@
       <h3 class="sec">Profil</h3><section class="card cut">${F.profileHtml()}<p class="dim small">Wagę wpiszesz w Postępy → Ciało.</p></section>
       <h3 class="sec">Trening</h3><section class="card cut list">
         <div class="stp"><span><b>Jednostki</b></span><div class="seg tiny"><button class="${s.unit === 'kg' ? 'on' : ''}" data-a="setUnit" data-u="kg">kg</button><button class="${s.unit === 'lb' ? 'on' : ''}" data-a="setUnit" data-u="lb">lb</button></div></div>
-        ${step('weeklyGoal', 'Cel tygodniowy', s.weeklyGoal, 'tr.', 1, 7, 1)}${step('defaultRest', s.restSet ? 'Domyślna przerwa' : 'Domyślna przerwa (wg celu planu)', s.restSet ? F.fmtDur(s.defaultRest) : F.fmtDur(F.autoRest({ compound: true })), '', 30, 600, 15)}
+        ${step('weeklyGoal', 'Cel tygodniowy', s.weeklyGoal, 'tr.', 1, 7, 1)}
         <div class="stp"><span><b>Krok ciężaru</b></span><div class="seg tiny">${[1, 1.25, 2.5, 5].map(v => `<button class="${s.step === v ? 'on' : ''}" data-a="setStepW" data-v="${v}">${String(v).replace('.', ',')}</button>`).join('')}</div></div>
         ${sw('autoRest', 'Automatyczna przerwa', 'Stoper rusza po zaliczeniu serii')}${sw('autoProg', 'Automatyczna progresja', 'Ciężar i powtórzenia z planu uzupełniane na podstawie ostatniego treningu')}${sw('sound', 'Dźwięk stopera')}
         <div class="stp stk"><span><b>Głośność sygnału</b><small>Głośniejszy przebija się przez muzykę w słuchawkach</small></span><div class="seg tiny">${[['n', 'Normalna'], ['l', 'Głośna'], ['m', 'Maks.']].map(v => `<button class="${(s.vol || 'l') === v[0] ? 'on' : ''}" data-a="setVol" data-v="${v[0]}">${v[1]}</button>`).join('')}</div></div>
@@ -251,7 +251,7 @@
   F.act.doBackupBtn = () => F.doBackup().then(() => F.render(true));
   F.act.doBackupLite = () => F.doBackup(false).then(() => F.render(true));
   F.bind.set = (el, type) => { const k = el.dataset.k; const s = F.S.settings; s[k] = el.type === 'checkbox' ? el.checked : el.value; F.saveSettings(); };
-  F.act.setStep = b => { const k = b.dataset.k; if (k === 'defaultRest' && !F.S.settings.restSet) { F.S.settings.defaultRest = F.autoRest({ compound: true }); F.S.settings.restSet = true; } const v = Math.max(+b.dataset.min, Math.min(+b.dataset.max, F.S.settings[k] + +b.dataset.d)); F.S.settings[k] = v; F.saveSettings(); F.render(true); };
+  F.act.setStep = b => { const k = b.dataset.k; const v = Math.max(+b.dataset.min, Math.min(+b.dataset.max, F.S.settings[k] + +b.dataset.d)); F.S.settings[k] = v; F.saveSettings(); F.render(true); };
   F.act.setStepW = b => { F.S.settings.step = +b.dataset.v; F.saveSettings(); F.render(true); };
   F.act.setVol = b => { F.S.settings.vol = b.dataset.v; F.saveSettings(); F.beep(F.SND_END, { force: 1 }); F.render(true); };
   F.act.setWarn = b => { F.S.settings.restWarn = +b.dataset.v; F.saveSettings(); F.render(true); };

@@ -154,7 +154,7 @@
       <div class="btn-row split"><button class="btn ghost" data-a="templates">${ic('sparkles', 18)} Plany startowe</button><a class="btn ghost" href="#/exercises">${ic('dumbbell', 18)} Ćwiczenia</a></div>`
     };
   }
-  F.act.newPlan = () => { const p = { id: F.uid(), name: 'Nowy plan', created: Date.now(), days: [{ id: F.uid(), name: 'Dzień 1', items: [] }] }; F.ui.edit = { plan: p, isNew: true }; F.go('#/plan/' + p.id + '/edit'); };
+  F.act.newPlan = () => { const cp = F.curPlan(); const g = cp && cp.meta && cp.meta.goal; const p = { id: F.uid(), name: 'Nowy plan', created: Date.now(), meta: { goal: g || undefined, exp: cp && cp.meta && cp.meta.exp || undefined, rest: { ...F.restProfile(cp) } }, days: [{ id: F.uid(), name: 'Dzień 1', items: [] }] }; F.ui.edit = { plan: p, isNew: true }; F.go('#/plan/' + p.id + '/edit'); };
   F.act.templates = () => {
     F.sheet(`<p class="sheet-p dim">Gotowe plany mają stałe serie, powtórzenia i przerwy. Plan dopasowany do Twojego celu, stażu, sprzętu i czasu ułoży kreator.</p><div class="stack">${F.TEMPLATES.map((t, i) => `<button class="tpl cut" data-a="addTpl" data-i="${i}"><b>${E(t[0])}</b><small>${E(t[1])}</small><em>${t[2].length} ${t[2].length === 1 ? 'dzień' : 'dni'} · ${t[2].reduce((a, d) => a + d[1].length, 0)} ćwiczeń</em></button>`).join('')}</div>`, { title: 'Plany startowe' });
   };
@@ -209,6 +209,7 @@
     return {
       html: `${head(st.isNew ? 'Nowy plan' : 'Edycja planu', { back: 1, right: `<button class="btn sm primary" data-a="planSave">${ic('save', 16)} Zapisz</button>` })}
       <label class="fld"><span>Nazwa planu</span><input data-b="pname" value="${E(p.name)}" maxlength="60"></label>
+      ${restBox(p, st.isNew)}
       ${p.days.map((d, di) => `<section class="card cut day edit" data-di="${di}">
         <div class="day-h"><label class="fld grow"><span>Dzień ${di + 1}</span><input data-b="dname" data-di="${di}" value="${E(d.name)}" maxlength="50"></label>
         <div class="mini-btns"><button class="ibtn" data-a="dayUp" data-di="${di}" ${di === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 18)}</button><button class="ibtn" data-a="dayDel" data-di="${di}" aria-label="Usuń dzień">${ic('trash-2', 18)}</button></div></div>
@@ -217,6 +218,16 @@
       <button class="btn ghost wide" data-a="dayAdd">${ic('plus', 18)} Dodaj dzień treningowy</button>`
     };
   }
+
+  // przerwy planu: trzy rodzaje ćwiczeń z przykładami; nowe i zamieniane ćwiczenia biorą przerwę stąd
+  const REST_K = [['main', 'Ciężkie wielostawowe', 'przysiad, martwy ciąg, wyciskanie leżąc, wyciskanie nad głowę, wiosłowanie, podciąganie, ściąganie drążka, wypychanie nogami'], ['sec', 'Pozostałe wielostawowe', 'wykroki, przysiad bułgarski, hip thrust, wyciskanie hantli na skosie, pompki na poręczach, pompki'], ['iso', 'Izolowane (jeden staw)', 'uginanie ramion, prostowanie ramion na wyciągu, wznosy bokiem, prostowanie i uginanie nóg na maszynie, wspięcia na palce']];
+  const restBox = (p, open) => { const r = F.restProfile(p); return `<details class="card cut rest-box" ${open ? 'open' : ''}><summary><b>${ic('timer', 18)} Przerwy w tym planie</b><small>${REST_K.map(k => F.fmtDur(r[k[0]])).join(' · ')}</small></summary>
+      <p class="dim small">Każde ćwiczenie dodane do planu albo w trakcie treningu dostaje przerwę stąd, według swojego rodzaju. Przy pojedynczym ćwiczeniu możesz ją zmienić niżej.</p>
+      ${REST_K.map(([k, l, ex]) => `<label class="fld rest-f"><span>${l}</span><div class="rest-in"><input data-b="prest" data-k="${k}" inputmode="numeric" value="${r[k]}" maxlength="3"><em>s</em><b>${F.fmtDur(r[k])}</b></div><small class="dim">np. ${ex}</small></label>`).join('')}
+      ${p.meta && F.KB.restT[p.meta.goal] ? `<p class="dim small">Zalecane dla celu „${E((F.PLN.GOALS[p.meta.goal] || [''])[0])}”: ${['main', 'sec', 'iso'].map(k => F.fmtDur(F.KB.restOf(p.meta.goal, p.meta.exp || 'mid', k))).join(' · ')}.</p>` : `<p class="dim small">Zalecenia: ciężkie wielostawowe 2–3 min (przy treningu siły 3–5 min), pozostałe 1,5–2 min, izolowane 1–1,5 min (ACSM).</p>`}
+      <button class="btn ghost wide" data-a="restApply">${ic('repeat', 16)} Zastosuj do wszystkich ćwiczeń w planie</button></details>`; };
+  F.bind.prest = (el, type) => { if (type !== 'change') return; const p = E_(); p.meta = p.meta || {}; p.meta.rest = { ...F.restProfile(p) }; const v = Math.max(15, Math.min(600, parseInt(el.value) || 0)); p.meta.rest[el.dataset.k] = v; F.render(true); };
+  F.act.restApply = async () => { const p = E_(); p.meta = p.meta || {}; const r = p.meta.rest = { ...F.restProfile(p) }; if (!(await F.confirm({ title: 'Zastosować przerwy do wszystkich ćwiczeń?', text: 'Przerwy wpisane ręcznie przy pojedynczych ćwiczeniach zostaną zastąpione.', ok: 'Zastosuj', cancel: 'Wróć' }))) return; p.days.forEach(d => { d.items.forEach(it => { if (it.cardio) return; const role = it.role || F.restRole(it.exId); it.rest = r[role]; }); const inf = F.ssInfo(d.items); d.items.forEach((it, k) => { const g = inf[k]; if (g) it.rest = Math.max(...d.items.slice(g.start, g.end + 1).map(x => x.rest || 0)); }); }); F.toast('Przerwy ustawione', 'hot'); F.render(true); };
 
   /* ---------- elementy edytora: pojedyncze ćwiczenia i bloki superserii ---------- */
   const piAdv = (it, di, ii) => `<details class="pi-adv" ${it.prog && it.prog !== 'auto' || it.inc || it.pct || it.scheme ? 'open' : ''}><summary>Progresja i % 1RM</summary><div class="pi-f three"><label><span>Progresja</span><select data-b="it" data-f="prog" data-di="${di}" data-ii="${ii}">${[['auto', 'Podwójna (auto)'], ['linear', 'Liniowa'], ['off', 'Wyłączona']].map(o => `<option value="${o[0]}" ${(it.prog || 'auto') === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></label><label><span>Skok ${F.unit()}</span><input inputmode="decimal" data-b="it" data-f="inc" data-di="${di}" data-ii="${ii}" value="${it.inc ? F.fw(it.inc / F.wm(it.exId)).replace(',', '.') : ''}" placeholder="auto"></label><label><span>% 1RM</span><input inputmode="numeric" data-b="it" data-f="pct" data-di="${di}" data-ii="${ii}" value="${it.pct || ''}" placeholder="–"></label></div><div class="pi-f"><label><span>Schemat serii</span><select data-b="it" data-f="scheme" data-di="${di}" data-ii="${ii}"><option value="" ${it.scheme === 'pyr' ? '' : 'selected'}>Jeden ciężar</option><option value="pyr" ${it.scheme === 'pyr' ? 'selected' : ''}>Narastająco (piramida)</option></select></label></div><p class="dim small">Podwójna: najpierw powtórzenia do góry zakresu, potem więcej kilogramów. Liniowa: stały schemat, ciężar rośnie co trening. % 1RM liczy ciężar z Twojego najlepszego wyliczonego 1RM.</p></details>`;
@@ -254,7 +265,7 @@
   F.act.dayUp = b => { const i = +b.dataset.di, d = E_().days; [d[i - 1], d[i]] = [d[i], d[i - 1]]; F.render(true); };
   F.act.itUp = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i - 1], it[i]] = [it[i], it[i - 1]]; F.cleanSS(it); F.render(true); };
   F.act.itDown = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i + 1], it[i]] = [it[i], it[i + 1]]; F.cleanSS(it); F.render(true); };
-  F.act.itSwap = async b => { const day = E_().days[+b.dataset.di], it = day.items[+b.dataset.ii]; const id = await F.swapSheet(it.exId, day.items.map(x => x.exId)); if (!id) return; it.exId = id; F.render(true); };
+  F.act.itSwap = async b => { const day = E_().days[+b.dataset.di], it = day.items[+b.dataset.ii]; const id = await F.swapSheet(it.exId, day.items.map(x => x.exId)); if (!id) return; const r0 = it.role || F.restRole(it.exId), r1 = F.restRole(id); if ((r0 === 'iso') !== (r1 === 'iso')) { it.rest = F.restFor(id, E_(), r1); it.role = r1; } it.exId = id; F.render(true); };
   F.act.itDel = b => { const it = E_().days[+b.dataset.di].items; it.splice(+b.dataset.ii, 1); F.cleanSS(it); F.render(true); };
   const unify = (items, st, en, src) => { for (let k = st; k <= en; k++) { items[k].sets = src.sets; items[k].rest = src.rest; } };
   F.act.itLink = b => {
@@ -270,10 +281,10 @@
   F.act.itAddSS = async b => { const day = E_().days[+b.dataset.di], i = +b.dataset.ii; const ids = await F.pickExercises(); if (!ids || !ids.length) return; const g = F.ssInfo(day.items)[i]; const first = day.items[g.start]; const add = ids.map(id => { const ex = exOf(id); return { id: F.uid(), exId: id, sets: first.sets, reps: ex && ex.type === 'time' ? '45' : '10', rest: first.rest, ss: first.ss }; }); day.items.splice(g.end + 1, 0, ...add); F.render(true); };
   F.act.itAdd = async b => {
     const ids = await F.pickExercises(); if (!ids || !ids.length) return; const day = E_().days[+b.dataset.di];
-    ids.forEach(id => { const ex = exOf(id); const rest = ex && ex.compound ? 120 : 75; day.items.push({ id: F.uid(), exId: id, sets: 3, reps: ex && ex.type === 'time' ? '45' : '8-12', rest }); }); F.render(true);
+    ids.forEach(id => { const ex = exOf(id); const role = F.restRole(id); day.items.push({ id: F.uid(), exId: id, sets: 3, reps: ex && ex.type === 'time' ? '45' : '8-12', rest: F.restFor(id, E_(), role), role }); }); F.render(true);
   };
   F.act.planSave = async () => {
-    const p = E_(); p.days.forEach(d => F.cleanSS(d.items)); if (!p.name.trim()) p.name = 'Plan bez nazwy'; p.days.forEach(d => { d.items.forEach(i => { if (!i.sets || i.sets < 1) i.sets = 1; }); });
+    const p = E_(); p.meta = p.meta || {}; if (!p.meta.rest) p.meta.rest = { ...F.restProfile(p) }; p.days.forEach(d => F.cleanSS(d.items)); if (!p.name.trim()) p.name = 'Plan bez nazwy'; p.days.forEach(d => { d.items.forEach(i => { if (!i.sets || i.sets < 1) i.sets = 1; }); });
     await F.savePlan(p); F.ui.edit = null; F.toast('Plan zapisany', 'hot'); F.go('#/plan/' + p.id);
   };
 

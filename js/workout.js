@@ -7,7 +7,8 @@
 
   const dayPart = () => { const h = new Date().getHours(); return h < 10 ? 'Poranny trening' : h < 15 ? 'Trening południowy' : h < 20 ? 'Popołudniowy trening' : 'Wieczorny trening'; };
   const parseRepsLo = r => { const m = String(r || '').match(/\d+/); return m ? +m[0] : 0; };
-  const exRest = (e, ex) => e.rest || F.autoRest(ex);
+  const dPlan = () => { const d = F.S.draft; return (d && d.planId && F.planOf && F.planOf(d.planId)) || F.curPlan(); };
+  const exRest = (e, ex) => e.rest || F.autoRest(ex, dPlan());
 
   /* ---------- superserie / obwody: ciągłe grupy ćwiczeń o tym samym ss ---------- */
   F.ssInfo = arr => { const out = arr.map(() => null); let i = 0, g = 0; while (i < arr.length) { const id = arr[i].ss; let j = i; if (id) while (j + 1 < arr.length && arr[j + 1].ss === id) j++; if (id && j > i) { const L = String.fromCharCode(65 + (g++ % 26)); for (let k = i; k <= j; k++) out[k] = { tag: L + (k - i + 1), pos: k - i, size: j - i + 1, start: i, end: j, L }; } i = j + 1; } return out; };
@@ -314,13 +315,13 @@
   };
   F.act.exNote = async b => { const i = +b.dataset.i; const e = D().exercises[i]; F.closeSheet(true); const v = await F.prompt({ title: 'Notatka', label: 'Co warto zapamiętać? (np. ustawienie maszyny)', value: e.note || '' }); if (v != null) { e.note = v; F.saveDraft(); redraw(i); } };
   F.act.exRestSet = async b => { const i = +b.dataset.i; const e = D().exercises[i]; F.closeSheet(true); const v = await F.prompt({ title: 'Czas przerwy', label: 'Sekundy', value: String(exRest(e, exOf(e.exId))), type: 'number' }); if (v != null && +v > 0) { e.rest = +v; F.saveDraft(); redraw(i); } };
-  F.act.exSwap = async b => { const i = +b.dataset.i; const e0 = D().exercises[i]; const id = await F.swapSheet(e0.exId, D().exercises.map(x => x.exId)); if (!id) return; const e = D().exercises[i]; e.exId = id; e.sets = buildSets(id, e.sets.length || 3, e.target && e.target.reps); F.saveDraft(); F.render(true); };
+  F.act.exSwap = async b => { const i = +b.dataset.i; const e0 = D().exercises[i]; const id = await F.swapSheet(e0.exId, D().exercises.map(x => x.exId)); if (!id) return; const e = D().exercises[i]; if ((F.restRole(e0.exId) === 'iso') !== (F.restRole(id) === 'iso') || !e.rest) e.rest = F.restFor(id, dPlan()); e.exId = id; e.sets = buildSets(id, e.sets.length || 3, e.target && e.target.reps); F.saveDraft(); F.render(true); };
   F.act.exUp = b => { const i = +b.dataset.i, a = D().exercises; [a[i - 1], a[i]] = [a[i], a[i - 1]]; F.cleanSS(a); F.saveDraft(); F.closeSheet(true); F.render(true); };
   F.act.exDown = b => { const i = +b.dataset.i, a = D().exercises; [a[i + 1], a[i]] = [a[i], a[i + 1]]; F.cleanSS(a); F.saveDraft(); F.closeSheet(true); F.render(true); };
   F.act.exRemove = async b => { const i = +b.dataset.i; const e = D().exercises[i]; if (e.sets.some(s => s.done) && !(await F.confirm({ title: 'Usunąć ćwiczenie?', text: 'Zaliczone serie z tego ćwiczenia przepadną.', ok: 'Usuń', danger: true }))) return; D().exercises.splice(i, 1); F.cleanSS(D().exercises); F.saveDraft(); F.closeSheet(true); rebuildWkIdx(); F.render(true); };
   F.act.wkAdd = async () => {
     const ids = await F.pickExercises(); if (!ids || !ids.length) return;
-    ids.forEach(id => { const ex = exOf(id); D().exercises.push({ k: F.uid(), exId: id, note: '', rest: 0, target: null, sets: buildSets(id, ex && ex.muscle === 'cardio' && ex.type === 'time' ? 1 : 3, ex && ex.type === 'time' ? '45' : '') }); }); F.closeSheet(true); F.saveDraft(); F.ui.wkPage = pagesOf().length - 1; F.render(true);
+    ids.forEach(id => { const ex = exOf(id); D().exercises.push({ k: F.uid(), exId: id, note: '', rest: ex && ex.muscle === 'cardio' ? 0 : F.restFor(id, dPlan()), target: null, sets: buildSets(id, ex && ex.muscle === 'cardio' && ex.type === 'time' ? 1 : 3, ex && ex.type === 'time' ? '45' : '') }); }); F.closeSheet(true); F.saveDraft(); F.ui.wkPage = pagesOf().length - 1; F.render(true);
   };
   F.act.wkMin = () => F.go('#/home');
   F.act.wkCancel = async () => {

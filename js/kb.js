@@ -135,7 +135,21 @@
   F.volCtx = () => { const nx = F.nextWorkout && F.nextWorkout(); const p = nx ? nx.plan : (F.S.plans || [])[0]; const g = (p && p.meta && p.meta.goal) || 'hyp', e = (p && p.meta && p.meta.exp) || F.S.settings.exp || 'mid'; return { g: F.KB.vol[g] ? g : 'hyp', e: ['beg', 'mid', 'adv'].includes(e) ? e : 'mid' }; };
   F.volFor = m => { if (F.KB.volSmall[m]) return F.KB.volSmall[m]; const { g, e } = F.volCtx(); const r = F.KB.vol[g][e]; return ['chest', 'back', 'quads', 'hams'].includes(m) ? r.major : r.minor; };
   // przerwa dla ćwiczenia spoza planu: według celu i stażu z aktualnego planu, chyba że użytkownik sam ustawił domyślną przerwę
-  F.autoRest = ex => { const s = F.S.settings; if (s.restSet) return ex && ex.compound ? s.defaultRest : Math.max(30, Math.round(s.defaultRest * 0.6 / 15) * 15); const { g, e } = F.volCtx(); return F.KB.restOf(g, e, ex && ex.compound ? 'sec' : 'iso'); };
+  // przerwy planu: jeden zestaw (ciężkie wielostawowe / pozostałe wielostawowe / izolowane), z którego korzysta wszystko, co się do planu dodaje lub w nim zmienia
+  const med = a => { const b = [...a].sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : 0; };
+  F.restProfile = plan => {
+    if (plan && plan.meta && plan.meta.rest && plan.meta.rest.main) return plan.meta.rest;
+    const g = plan && plan.meta && F.KB.restT[plan.meta.goal] ? plan.meta.goal : null, e = plan && plan.meta && ['beg', 'mid', 'adv'].includes(plan.meta.exp) ? plan.meta.exp : (F.S.settings.exp || 'mid');
+    const base = g ? { main: F.KB.restOf(g, e, 'main'), sec: F.KB.restOf(g, e, 'sec'), iso: F.KB.restOf(g, e, 'iso') } : null;
+    // plan bez zapisanego profilu: odczytaj przerwy z jego ćwiczeń, osobno dla każdego rodzaju
+    const by = { main: [], sec: [], iso: [] }; if (plan) plan.days.forEach(d => d.items.forEach(it => { if (it.rest > 0 && !it.cardio) by[it.role || (F.PLN && F.PLN.roleOf ? F.PLN.roleOf(it.exId) : 'iso')].push(it.rest); }));
+    const fb = base || { main: F.KB.restOf('hyp', e, 'main'), sec: F.KB.restOf('hyp', e, 'sec'), iso: F.KB.restOf('hyp', e, 'iso') };
+    return { main: med(by.main) || fb.main, sec: med(by.sec) || fb.sec, iso: med(by.iso) || fb.iso };
+  };
+  F.restRole = id => F.PLN && F.PLN.roleOf ? F.PLN.roleOf(id) : ((F.S.ex.get(id) || {}).compound ? 'sec' : 'iso');
+  F.restFor = (id, plan, role) => F.restProfile(plan)[role || F.restRole(id)];
+  F.curPlan = () => { const nx = F.nextWorkout && F.nextWorkout(); return nx ? nx.plan : (F.S.plans || [])[0] || null; };
+  F.autoRest = (ex, plan) => F.restProfile(plan || F.curPlan())[ex && ex.id ? F.restRole(ex.id) : ex && ex.compound ? 'sec' : 'iso'];
   F.volLabel = () => { const { g, e } = F.volCtx(); const GN = { hyp: 'Masa mięśniowa', str: 'Siła', sculpt: 'Rzeźba / redukcja', endur: 'Wytrzymałość', health: 'Zdrowie i sprawność' }, EN = { beg: 'początkujący', mid: 'średniozaawansowany', adv: 'zaawansowany' }; return `${GN[g]}, ${EN[e]}`; };
   // ile serii jednej grupy w jednej sesji (górna granica, heurystyka)
   F.KB.perSession = { beg: 8, mid: 10, adv: 11 };  // preprint Pelland: ok. 11 serii (liczonych ułamkowo) na partię w sesji to punkt, za którym korzyść jest trudna do wykrycia

@@ -894,3 +894,8 @@ form.ak-bar{flex-wrap:wrap}
 .ak-meal .ak-r b{font-weight:600;font-size:13.5px;white-space:normal;text-align:right}
 .ak-goal small.ak-s{display:block;margin-top:4px}
 .ak-tiles.n3 em,.ak-tiles.n3 small{white-space:normal;line-height:1.25}
+.rest-box{padding:14px 16px}.rest-box summary{display:flex;flex-direction:column;gap:2px;cursor:pointer;list-style:none}.rest-box summary::-webkit-details-marker{display:none}
+.rest-box summary b{display:flex;align-items:center;gap:8px;font:700 16px var(--fd)}.rest-box summary small{color:var(--tx2);font-size:13px;padding-left:26px}
+.rest-box[open] summary{margin-bottom:10px}.rest-f{margin:10px 0 0}.rest-f small{display:block;margin-top:5px;line-height:1.35}
+.rest-in{display:flex;align-items:center;gap:8px}.rest-in input{width:90px;text-align:center}.rest-in em{font-style:normal;color:var(--tx2)}.rest-in b{margin-left:auto;font:700 15px var(--fd);color:var(--a2)}
+.rest-box .btn{margin-top:12px}

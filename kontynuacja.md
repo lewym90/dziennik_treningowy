@@ -58,12 +58,21 @@ Stan na 21 listopada 2026. Wersja **1.23.0** (rozbudowana baza wiedzy), opubliko
   - Żywienie: redukcja = deficyt 15%, ale maks. 500 kcal (Murphy 2022); białko w redukcji 2,0 g/kg (z % tłuszczu: 2,3 g/kg beztłuszczowej masy); masa = nadwyżka 10% (Iraki 2019, wcześniej 8% bez źródła).
   - Spalanie treningu: MET 3,5–6,0 (Kompendium 2024; wcześniej 3–8,5).
   - Cardio: teksty zgodne z Schumann 2022 (brak osłabienia masy i siły maks.; rozdziel ≥3 h przy sile eksplozywnej); usunięta rada „rower zamiast biegu”.
-  - Przerwa dla ćwiczeń spoza planu: według celu i stażu (`F.autoRest`), dopóki użytkownik sam nie zmieni „Domyślnej przerwy” (`settings.restSet`).
+  - (zastąpione w v1.24.0) przerwa spoza planu z „Domyślnej przerwy”.
   - Kreator: wyrównanie serii między dużymi partiami przy limicie czasu; minimum 4 serie tygodniowo na dużą partię (Iversen 2021).
   - Siła: progi poziomów opisane uczciwie jako progi FORGE (nie z badań); usunięte etykiety DOTS („poziom krajowy” itp.).
   - Gotowe plany: opisy bez haseł marketingowych + informacja, że plan dopasowany ułoży kreator.
   - Regeneracja: opis modelu FORGE (24–72 h / 18–48 h) + Morán-Navarro 2017.
   - Usunięte niepotwierdzone zdania (np. „wahają się o 1–2 kg”, test mowy w ciąży, przykłady równowagi spoza WHO, „szacowany” → „wyliczony”).
+
+## v1.24.0 — profil przerw planu (21.11.2026)
+- Jedno źródło przerw: każdy plan ma `meta.rest = {main, sec, iso}` (ciężkie wielostawowe / pozostałe wielostawowe / izolowane). Kreator ustawia z `F.KB.restOf(cel, staż, rola)`.
+- Rola ćwiczenia: `F.PLN.roleOf(id)` w planner.js (main = pule ruchów głównych kreatora; iso = niewielostawowe lub na czas; reszta sec). Element planu zapisuje `role`.
+- `F.restProfile(plan)` w kb.js: `meta.rest`, inaczej z celu/stażu planu, inaczej mediana przerw z ćwiczeń planu według roli (stare plany — profil wyliczany automatycznie). `F.restFor(id, plan)`, `F.autoRest(ex, plan)`, `F.curPlan()`.
+- Edytor planu: blok „Przerwy w tym planie” — 3 pola (15–600 s) z przykładami ćwiczeń, przycisk „Zastosuj do wszystkich ćwiczeń” (superserie: najdłuższa w grupie). Nowy plan dziedziczy profil aktualnego planu.
+- Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
+- Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
+- Porada „Przerwy” ma akapit o profilu przerw.
 
 ## Audyt (21.11.2026)
 - Automatyczny przegląd: 22 ekrany, 556 kliknięć, 0 błędów JS, wszystkie przyciski mają obsługę. 45 akcji niszczących (usuwanie, kopie, import) nie było klikanych automatem.
