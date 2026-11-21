@@ -143,7 +143,7 @@
     const m = c.q.toLowerCase().replace(/(\d)[,.](\d)/g, '$1.$2').match(/(\d+(?:\.\d+)?)\s*(?:kg|lb)?\s*(?:x|×|na|razy|po)\s*(\d+)/); if (!m) return { html: '<p>Podaj ciężar i powtórzenia, np. „100 kg na 5”.</p>', chips: ['100 kg na 5', '80 kg na 8'] };
     const w = +m[1], r = +m[2]; if (r > 30) return { html: '<p>Przy ponad 30 powtórzeniach wzory na maks tracą sens. Weź cięższą serię.</p>' };
     const ep = F.e1rm(w, r), br = r < 37 ? w * 36 / (37 - r) : 0;
-    return { html: `${tiles([{ l: 'Wzór Epleya', v: `${F.fmtNum(ep, 1)} ${F.unit()}`, hot: 1 }, { l: 'Wzór Brzyckiego', v: `${F.fmtNum(br, 1)} ${F.unit()}` }])}<p>Z serii ${F.fmtNum(w, 1)} × ${r}. ${r > 12 ? 'Najdokładniej oba wzory działają do 12 powtórzeń.' : 'Średnio: <b>' + F.fmtNum((ep + br) / 2, 1) + ' ' + F.unit() + '</b>.'}</p>`, acts: [{ l: 'Kalkulatory', i: 'calculator', href: '#/tools' }], chips: [`Ile talerzy na ${Math.round(ep)} ${F.unit()}?`, `Rozgrzewka do ${Math.round(w)} ${F.unit()}`] };
+    return { html: `${tiles([{ l: 'Wzór Epleya', v: `${F.fmtNum(ep, 1)} ${F.unit()}`, hot: 1 }, { l: 'Wzór Brzyckiego', v: `${F.fmtNum(br, 1)} ${F.unit()}` }])}<p>Z serii ${F.fmtNum(w, 1)} × ${r}. ${r > 12 ? 'Najdokładniej oba wzory działają do 12 powtórzeń.' : 'Średnio: <b>' + F.fmtNum((ep + br) / 2, 1) + ' ' + F.unit() + '</b>.'}</p>`, acts: [{ l: 'Kalkulatory', i: 'calculator', href: '#/tools' }], chips: [`Talerze na ${F.fmtNum(Math.round(ep / 2.5) * 2.5, 1)} ${F.unit()}`, `Rozgrzewka do ${F.fmtNum(w, 1)} ${F.unit()}`] };
   };
 
   // gryf z talerzami po obu stronach; kolory jak w talerzach zawodniczych (25 czerwony, 20 niebieski, 15 żółty, 10 zielony, 5 biały)
@@ -192,7 +192,7 @@
     if (!S().length) return noData(); const ex = c.ex;
     if (!ex) { const list = [...F.S.ex.values()].map(e => ({ e, s: F.stagnation(e.id) })).filter(x => x.s && x.s.stuck >= 3).sort((a, b) => b.s.stuck - a.s.stuck);
       if (!list.length) return { html: '<p>Żadne ćwiczenie nie stoi w miejscu: w każdym poprawiłeś wynik w ciągu ostatnich 3 treningów. Tak trzymaj.</p>', chips: ['Jak mi poszedł ten miesiąc?', 'Ostatnie rekordy'] };
-      return { html: `<p>Bez poprawy od co najmniej 3 treningów:</p>${rows(list.slice(0, 6).map(x => ({ i: F.mDot(x.e.muscle), l: E(x.e.name), v: `${x.s.stuck} tr.` })))}`, chips: list.slice(0, 2).map(x => `Dlaczego stoi w miejscu — ${x.e.name}?`).concat(['Czy robię wystarczająco serii?']) }; }
+      return { html: `<p>Bez poprawy od co najmniej 3 treningów:</p>${rows(list.slice(0, 6).map(x => ({ i: F.mDot(x.e.muscle), l: E(x.e.name), v: `${x.s.stuck} tr.` })))}`, chips: list.slice(0, 2).map(x => `Dlaczego stoi w miejscu — ${x.e.name}?`).concat(['Co zaniedbuję?']) }; }
     const st = F.stagnation(ex.id); const h = hist(ex.id);
     if (!st || st.stuck < 2) return { html: `<p><b>${E(ex.name)}</b> nie stoi w miejscu${h.length < 4 ? ' — mam za mało treningów, żeby to ocenić (potrzebne 4)' : ': ostatnia poprawa była w ciągu 2 ostatnich treningów'}.</p>`, acts: [exLink(ex)], chips: [`Postęp — ${ex.name}`] };
     // diagnoza z danych
@@ -329,6 +329,7 @@
 
   // ---- wiedza (kompendium) ----
   const KN = [
+    [/(jesc|jedz|diet).*(redukc|deficyt|odchudz)|(redukc|deficyt|odchudz).*(jesc|jedz|diet)/, 'cut', 'protein'],
     [/bialk|protein/, 'protein', 'protein'], [/\brir\b|zapas powt|do upadku|upadek|upadku/, 'failure', 'reps'], [/odciaz|deload/, 'deload', 'volume'], [/\bsen\b|snu|spac|spanie|wyspa/, 'sleep', 'recovery'],
     [/zakwas|doms|bol miesni po/, 'doms', 'pain'], [/ile serii|objetosc|serii tygodniowo/, 'volume', 'volume'], [/jak czesto|czestotliw|ile razy w tygodniu/, 'freq', 'volume'], [/cardio|bieg|rower|aerob/, 'concurrent', 'cardio'],
     [/piramid/, 'pyramid', 'pyramid'], [/redukc|rzezb|spalic|spalanie|schudnac|odchudz|tluszcz/, 'cutTrain', 'myths'], [/podzial|split|fbw|full body|gora dol|push pull/, 'split', 'splits'],
@@ -455,7 +456,7 @@
   const loadLog = async () => { if (LOG) return LOG; try { LOG = (await F.kvGet('askLog')) || []; } catch (e) { LOG = []; } return LOG; };
   const saveLog = () => { try { F.kvSet('askLog', LOG.slice(-MAXLOG)); } catch (e) { } };
   const actHtml = a => a.href ? `<a class="ak-act" href="${a.href}"${a.a ? ` data-a="${a.a}"` : ''}${a.d ? Object.entries(a.d).map(([k, v]) => ` data-${k}="${E(v)}"`).join('') : ''}>${ic(a.i || 'arrow-right', 16)}${E(a.l)}</a>` : `<button class="ak-act" data-a="${a.a}"${a.d ? Object.entries(a.d).map(([k, v]) => ` data-${k}="${E(v)}"`).join('') : ''}>${ic(a.i || 'arrow-right', 16)}${E(a.l)}</button>`;
-  const avatar = () => `<span class="ak-av"><img src="icons/icon-192.png" alt=""></span>`;
+  const avatar = () => `<span class="ak-av"><img src="assets/bg/ask.webp" alt=""></span>`;
   const msgHtml = (m, last) => m.w === 'u' ? `<div class="ak-m me"><div class="ak-b">${E(m.t)}</div></div>`
     : `<div class="ak-m bot">${avatar()}<div class="ak-w"><div class="ak-b">${m.h}</div>${m.a && m.a.length ? `<div class="ak-acts">${m.a.map(actHtml).join('')}</div>` : ''}${last && m.c && m.c.length ? `<div class="ak-more"><small>W czym jeszcze mogę pomóc?</small><div class="ak-chips">${m.c.map(q => `<button class="chip" data-a="askQ" data-q="${E(q)}">${E(q)}</button>`).join('')}</div></div>` : ''}</div></div>`;
   const welcome = () => ({ w: 'b', h: `<p>${(() => { const hr = new Date().getHours(); return hr < 12 ? 'Dzień dobry' : hr < 18 ? 'Cześć' : 'Dobry wieczór'; })()}${F.S.settings.name ? ', ' + E(F.S.settings.name) : ''}. Zapytaj o swoje treningi, plan, rekordy, regenerację, ćwiczenia albo wiedzę treningową. Liczę wszystko z Twoich danych, bez internetu.</p>`, c: startChips(), a: [] });
@@ -463,17 +464,18 @@
     const log = LOG || [];
     const list = log.length ? log : [welcome()];
     return { html: `${F.head('Zapytaj FORGE', { back: 1, sub: 'Asystent treningowy · offline', right: `<button class="ibtn" data-a="askMenu" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
+      ${log.length <= 1 ? `<section class="ak-hero"><div><h2>Zapytaj o swój trening</h2><p>Wyniki, plan, rekordy, regeneracja i wiedza z badań. Liczę z Twoich danych — w telefonie, bez internetu.</p></div></section>` : ''}
       <div class="ak-log" id="ak-log" aria-live="polite">${list.map((m, i) => msgHtml(m, i === list.length - 1)).join('')}</div>
       <div class="ak-spacer"></div>
       <form class="ak-bar" id="ak-form" autocomplete="off"><input id="ak-in" enterkeyhint="send" placeholder="Zadaj pytanie…" maxlength="200" aria-label="Pytanie"><button class="ak-send" type="submit" aria-label="Wyślij">${ic('send', 20)}</button></form>`,
       after: root => { if (!LOG) loadLog().then(() => { if (LOG.length) F.render(true); });
         const f = F.$('#ak-form', root); f.addEventListener('submit', e => { e.preventDefault(); const i = F.$('#ak-in'); const v = i.value.trim(); if (!v) return; i.value = ''; send(v); });
-        F.chart.bindTips(root); scrollEnd(false); } };
+        F.chart.bindTips(root); if (log.length > 1) scrollEnd(false); } };
   };
   const scrollEnd = smooth => requestAnimationFrame(() => { const l = F.$('#ak-log'); if (!l) return; const last = l.lastElementChild; if (!last) return; const top = last.getBoundingClientRect().top + window.scrollY - 90; window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' }); });
   const send = async q => {
     if (busy) return; busy = true; await loadLog(); if (!LOG.length) LOG.push(welcome());
-    LOG.push({ w: 'u', t: q, ts: Date.now() });
+    LOG.push({ w: 'u', t: q, ts: Date.now() }); const hero = F.$('.ak-hero'); if (hero) { hero.classList.add('out'); setTimeout(() => hero.remove(), 260); }
     const l = F.$('#ak-log'); if (l) { l.querySelectorAll('.ak-more').forEach(x => x.remove()); l.insertAdjacentHTML('beforeend', msgHtml(LOG[LOG.length - 1]) + `<div class="ak-m bot ak-typing">${avatar()}<div class="ak-w"><div class="ak-b"><i></i><i></i><i></i></div></div></div>`); scrollEnd(true); }
     let a; try { a = F.ask(q); } catch (e) { console.error(e); a = { html: '<p>Coś poszło nie tak przy liczeniu odpowiedzi. Spróbuj zadać pytanie inaczej.</p>', chips: startChips() }; }
     await new Promise(r => setTimeout(r, 380 + Math.min(500, q.length * 8)));
