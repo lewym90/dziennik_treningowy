@@ -16,7 +16,7 @@
   F.act.tourNext = b => { const k = +b.dataset.k; if (k >= STEPS.length) F.act.tourEnd(); else F.tourShow(k); };
   F.act.tourEnd = () => { F.S.settings.tourSeen = 1; F.saveSettings(); const el = document.getElementById('tour'); if (el) el.remove(); if (!F.S.plans.length) F.go('#/plans'); };
   // pokaż tylko nowym użytkownikom (bez planów i treningów)
-  F.tourMaybe = () => { const s = F.S.settings; if (s.tourSeen) return; if (F.S.sessions.length || F.S.plans.length) { s.tourSeen = 1; F.saveSettings(); return; } setTimeout(() => { if (!F.S.sessions.length && !F.S.plans.length && !F.S.settings.tourSeen) F.tourShow(0); }, 2300); };
+  F.tourMaybe = () => { const s = F.S.settings; if (s.tourSeen) return; if (F.S.sessions.length || F.S.plans.length) { s.tourSeen = 1; F.saveSettings(); return; } setTimeout(() => { if (!F.S.sessions.length && !F.S.plans.length && !F.S.settings.tourSeen) F.tourShow(0); }, 1600); };
 
   // jednorazowe podpowiedzi: pokazują się raz, przy pierwszym wejściu na ekran
   const HINTS = {

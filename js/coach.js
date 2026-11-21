@@ -13,12 +13,31 @@
   const weekSets = (a, b) => { const out = {}; F.S.sessions.forEach(se => { if (se.start < a || se.start >= b) return; se.exercises.forEach(e => { const ex = F.S.ex.get(e.exId); if (!ex) return; const n = e.sets.filter(F.isWork).length; out[ex.muscle] = (out[ex.muscle] || 0) + n; }); }); return out; };
   const planSets = plan => { const out = {}; plan.days.forEach(d => d.items.forEach(i => { const ex = F.S.ex.get(i.exId); if (ex && ex.muscle !== 'cardio') out[ex.muscle] = (out[ex.muscle] || 0) + (+i.sets || 0); })); return out; };
 
+  /* ---------- blok treningowy (mezocykl): tydzień, docelowy zapas powtórzeń, odciążenie ---------- */
+  F.blockInfo = plan => {
+    if (!plan || !plan.meta || !plan.meta.meso) return null; const L = plan.meta.meso, exp = plan.meta.exp || 'mid', now = Date.now(), st = F.S.settings;
+    const dlStart = Math.max(st.lastDeload || 0, (st.deloadUntil || 0) - WK); const cycle = Math.max(dlStart > plan.created ? dlStart + WK : plan.created, plan.meta.blockStart || 0);
+    const wk = Math.max(1, Math.floor((now - cycle) / WK) + 1); const target = { beg: 2, mid: 1, adv: 1 }[exp] || 1;
+    const rir = wk >= L ? null : Math.min(3, Math.max(target, 3 - Math.round((wk - 1) * (3 - target) / Math.max(1, L - 2))));
+    return { week: Math.min(wk, L), weeks: L, over: wk > L, deload: wk === L, rir, start: cycle };
+  };
+  F.act.blockNext = async () => { const nx = F.nextWorkout(); if (!nx) return; nx.plan.meta = nx.plan.meta || {}; nx.plan.meta.blockStart = Date.now(); await F.savePlan(nx.plan); F.closeSheet(true); F.toast('Nowy blok: tydzień 1', 'hot'); F.render(true); };
+  F.act.blockSum = () => {
+    const nx = F.nextWorkout(); if (!nx) return; const b = F.blockInfo(nx.plan); if (!b) return; const ss = F.S.sessions.filter(s => s.planId === nx.plan.id && s.start >= b.start);
+    const w1 = ss.filter(s => s.start < b.start + WK), wl = ss.filter(s => s.start >= b.start + (b.weeks - 2) * WK && s.start < b.start + (b.weeks - 1) * WK);
+    const vol = a => a.reduce((x, s) => x + F.sessionVolume(s), 0), prs = ss.reduce((x, s) => x + (s.prs || []).length, 0);
+    F.sheet(`<div class="tiles three"><div class="tile cut"><span class="tl">Treningi</span><b class="tv sm">${ss.length}</b></div><div class="tile cut"><span class="tl">Rekordy</span><b class="tv sm">${prs}</b></div><div class="tile cut"><span class="tl">Tonaż</span><b class="tv sm">${F.fmtVol(vol(ss))}</b></div></div>
+      <p class="sheet-p">Tonaż tygodnia: na początku bloku ${F.fmtVol(vol(w1))}, w ostatnim tygodniu przed odciążeniem ${F.fmtVol(vol(wl))}.</p>
+      <p class="dim small">Kolejny blok zaczyna się od większego zapasu powtórzeń i znowu go zmniejsza. Ciężary zostają — zwiększasz je, gdy dobijasz do górnej granicy powtórzeń z zapasem.</p>
+      <button class="btn primary wide" data-a="blockNext">${ic('repeat', 18)} Zacznij następny blok</button><a class="btn ghost wide" href="#/wizard" data-a="newWizard">${ic('sparkles', 18)} Ułóż nowy plan w kreatorze</a>`, { title: 'Blok zakończony' });
+  };
+
   /* ---------- analiza planu (punkt 1: plan reagujący na postępy) ---------- */
   F.coachAnalyze = plan => {
     const out = []; const now = Date.now(); const strength = plan.days.length;
     const sess = F.S.sessions.filter(s => s.planId === plan.id).sort((a, b) => b.start - a.start);
     // cykl liczymy od utworzenia planu, a po odciążeniu od jego końca
-    const st = F.S.settings; const dlStart = Math.max(st.lastDeload || 0, (st.deloadUntil || 0) - WK); const cycle = dlStart > plan.created ? dlStart + WK : plan.created;
+    const st = F.S.settings; const dlStart = Math.max(st.lastDeload || 0, (st.deloadUntil || 0) - WK); const cycle = Math.max(dlStart > plan.created ? dlStart + WK : plan.created, (plan.meta && plan.meta.blockStart) || 0);
     const wk = Math.max(1, Math.floor((now - cycle) / WK) + 1); const mesoW = plan.meta && plan.meta.meso || 0;
     // adherencja: ostatnie 2 pełne tygodnie
     const ws = F.startOfWeek(now); const c1 = F.S.sessions.filter(s => s.start >= ws - WK && s.start < ws).length, c2 = F.S.sessions.filter(s => s.start >= ws - 2 * WK && s.start < ws - WK).length;

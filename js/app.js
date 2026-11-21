@@ -47,7 +47,7 @@
     [/^#\/plan\/([^/]+)\/edit$/, m => planEdit(m[1]), 'plans'], [/^#\/exercises$/, () => exercises(), 'plans'], [/^#\/ex\/([^/]+)$/, m => exDetail(m[1]), 'stats'],
     [/^#\/history$/, () => F.views.history(), 'history'], [/^#\/session\/([^/]+)$/, m => F.views.session(m[1]), 'history'],
     [/^#\/stats$/, () => F.views.stats(), 'stats'], [/^#\/tools$/, () => F.views.tools(), 'home'], [/^#\/settings$/, () => F.views.settings(), 'home'],
-    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'history'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
+    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'history'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/recap$/, () => F.views.recap(), 'stats'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
   ];
   let curTab = 'home';
   F.render = (keepScroll) => {
@@ -89,7 +89,7 @@
     } else if (nx) {
             hero = `<section class="hero cut"><div class="hero-k">Następny trening</div><h2>${E(nx.day.name)}</h2>
         <p class="hero-m"><span>${ic('calendar', 15)} Dzień ${nx.di + 1} z ${nx.plan.days.length}</span><span>${ic('timer', 15)} ${estMin(nx.day)} min</span><span>${ic('dumbbell', 15)} ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
-        <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button></section>`;
+        <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button></section>`;
     } else {
       hero = `<section class="hero cut"><div class="hero-k">Zacznij od zera</div><h2>Pora wykuć plan</h2><p class="hero-m">Ułóż plan w kreatorze, weź gotowy plan startowy albo wgraj ten, którego używasz dotąd (PDF lub zrzut ekranu).</p>
         <div class="btn-row"><a class="btn primary" href="#/wizard" data-a="newWizard">${ic('sparkles', 18)} Kreator planu</a><a class="btn ghost" href="#/plans">${ic('clipboard-list', 18)} Plany</a></div></section>`;
@@ -153,8 +153,9 @@
         <a class="pc-name" href="#/plan/${cur.id}"><h2>${E(cur.name)}</h2></a>
         <p class="pc-m">${tag ? `<span>${E(tag)}</span>` : ''}<span>${cur.days.length} ${F.plur(cur.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
         <div class="pc-row"><span class="dim">Następny</span><b>${E(nd.name.replace(/^(Pn|Wt|Śr|Cz|Pt|So|Nd) — /, ''))}</b>${when ? `<em>${E(when)}</em>` : ''}</div>
+        ${(() => { const b = F.blockInfo && F.blockInfo(cur); if (!b) return ''; return b.over ? `<button class="pc-row" data-a="blockSum"><span class="dim">Blok</span><b>Zakończony</b><em>podsumowanie</em></button>` : `<div class="pc-row pc-blk"><span class="dim">Blok</span><b>Tydzień ${b.week} z ${b.weeks}${b.deload ? ' · odciążenie' : ` · zapas ${b.rir} powt.`}</b><i class="pc-bar"><i style="width:${(b.week / b.weeks * 100).toFixed(0)}%"></i></i></div>`; })()}
         ${wd.length ? `<button class="pc-row pc-days" data-a="calDays"><span class="dim">Dni</span><b>${wd.map(i => F.WD_SHORT[i]).join(' · ')}</b><em>zmień</em></button>` : ''}
-        ${d ? `<a class="forge-btn" href="#/workout"><span>${ic('play', 20)} Wróć do treningu</span></a>` : `<button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button>`}</section>`;
+        ${d ? `<a class="forge-btn" href="#/workout"><span>${ic('play', 20)} Wróć do treningu</span></a>` : `<button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button>`}</section>`;
     }
     const others = F.S.plans.filter(p => p !== cur);
     return {
@@ -316,11 +317,11 @@
     const cur = F.S.ex.get(id); if (!cur) return []; const cdb = (F.EXDB && F.EXDB[id]) || { ca: 'strength' }; const ms = new Set(F.exMuscles(id).s), use = {}, no = new Set([id, ...skip]);
     F.S.sessions.forEach(x => x.exercises.forEach(e => { use[e.exId] = (use[e.exId] || 0) + 1; }));
     const sc = e => { let v = 0; const db = F.EXDB && F.EXDB[e.id]; if (e.equip === cur.equip) v += 3; if (!!e.compound === !!cur.compound) v += 2; F.exMuscles(e.id).s.forEach(m => { if (ms.has(m)) v += 1; }); v += Math.min(use[e.id] || 0, 10) * .5; if (!e.id.startsWith('fe_')) v += 3; if (OLY.test(e.name + ' ' + (e.alias || '')) !== OLY.test(cur.name + ' ' + (cur.alias || ''))) v -= 15; if (db) { if (db.lv === 'expert') v -= 3; if (db.ca && db.ca !== 'strength' && db.ca !== 'powerlifting' && db.ca !== cdb.ca) v -= 20; if (db.me && cdb.me && db.me === cdb.me) v += 1; } return v; };
-    return [...F.S.ex.values()].filter(e => e.muscle === cur.muscle && !no.has(e.id) && ((e.type === 'time') === (cur.type === 'time'))).map(e => [e, sc(e)]).filter(x => x[1] > -10).sort((a, b) => b[1] - a[1] || a[0].name.localeCompare(b[0].name, 'pl')).slice(0, n).map(x => x[0]);
+    return [...F.S.ex.values()].filter(e => e.muscle === cur.muscle && !no.has(e.id) && ((e.type === 'time') === (cur.type === 'time')) && (!F.gymOk || F.gymOk(e))).map(e => [e, sc(e)]).filter(x => x[1] > -10).sort((a, b) => b[1] - a[1] || a[0].name.localeCompare(b[0].name, 'pl')).slice(0, n).map(x => x[0]);
   };
   F.swapSheet = (id, skip = []) => new Promise(res => {
     const cur = F.S.ex.get(id) || {}, list = F.similarEx(id, skip); let done = false; const fin = v => { if (done) return; done = true; res(v); };
-    F.sheet(`<p class="dim small sw-h">Zamiast: <b>${E(cur.name || '')}</b></p>${list.length ? `<p class="dim small sw-h">Podobne, na tę samą partię</p><div class="exlist">${list.map(e => `<button class="exrow" data-a="swPick" data-id="${E(e.id)}">${mDot(e.muscle)}<span><b>${E(e.name)}</b><small>${F.MUSCLES[e.muscle]} · ${E(e.equip)}</small></span>${ic('chevron-right', 16)}</button>`).join('')}</div>` : ''}
+    F.sheet(`<p class="dim small sw-h">Zamiast: <b>${E(cur.name || '')}</b>${F.gymCur ? ` · sprzęt: ${E(F.gymCur().n)}` : ''}</p>${list.length ? `<p class="dim small sw-h">Podobne, na tę samą partię</p><div class="exlist">${list.map(e => `<button class="exrow" data-a="swPick" data-id="${E(e.id)}">${mDot(e.muscle)}<span><b>${E(e.name)}</b><small>${F.MUSCLES[e.muscle]} · ${E(e.equip)}</small></span>${ic('chevron-right', 16)}</button>`).join('')}</div>` : ''}
       <button class="btn ghost wide sw-all" data-a="swAll">${ic('search', 18)} Wszystkie ćwiczenia</button>`, { title: 'Zamień ćwiczenie', cls: 'tall', onclose: () => fin(null) });
     F.act.swPick = b => { const v = b.dataset.id; fin(v); F.closeSheet(true); };
     F.act.swAll = async () => { done = true; F.closeSheet(true); const ids = await F.pickExercises({ single: true, muscle: cur.muscle || '' }); res(ids && ids[0] || null); };

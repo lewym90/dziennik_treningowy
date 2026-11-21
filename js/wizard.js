@@ -3,7 +3,9 @@
   const F = window.F; const ic = (n, s, c) => window.icon(n, s, c); const E = F.esc; const V = F.views; const P = F.PLN;
   const num = v => parseFloat(String(v).replace(',', '.'));
   const WD = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
-  const STEPS = ['intro', 'about', 'health', 'exp', 'goal', 'cardio', 'sched', 'equip', 'limits', 'split'];
+  const STEPS_ALL = ['intro', 'about', 'health', 'exp', 'goal', 'cardio', 'sched', 'equip', 'limits', 'split'];
+  const STEPS_Q = ['intro', 'about', 'health', 'goal', 'sched', 'equip'];
+  let STEPS = STEPS_ALL;
   const STEP_T = { intro: 'Start', health: 'Zdrowie', about: 'O Tobie', exp: 'Doświadczenie', goal: 'Cel', cardio: 'Cardio', sched: 'Terminarz', equip: 'Sprzęt', limits: 'Ograniczenia', split: 'Podział' };
   const SCR = [
     'Czy lekarz kiedykolwiek stwierdził u Ciebie chorobę serca lub zalecił ćwiczenia wyłącznie pod nadzorem medycznym?',
@@ -37,8 +39,8 @@
       inj: arr(z.inj, x => P.INJ[x]) || [], avoid: arr(z.avoid, str) || [], fav: arr(z.fav, str) || [], split: 'auto', sleep: [1, 2, 3].includes(s.sleep) ? s.sleep : 0, bw: p.bwKnown ? p.bw : ''
     };
   };
-  F.wz = null; const Z = () => F.wz || (F.wz = { step: 'intro', w: defaults(), res: null, variant: 0, bwEdit: null });
-  const cur = () => STEPS.indexOf(Z().step);
+  F.wz = null; const Z = () => F.wz || (F.wz = { step: 'intro', w: defaults(), res: null, variant: 0, bwEdit: null, quick: !F.S.sessions.length && !F.S.plans.length });
+  const cur = () => { STEPS = Z().quick ? STEPS_Q : STEPS_ALL; return STEPS.indexOf(Z().step); };
   const goalDefaultsCardio = g => g === 'sculpt' || g === 'health' || g === 'endur';
 
   const chip = (on, act, attrs, label) => `<button class="chip ${on ? 'on' : ''}" data-a="${act}" ${attrs}>${E(label)}</button>`;
@@ -47,10 +49,11 @@
 
   /* ---------- kroki ---------- */
   const bodies = {
-    intro: () => `<section class="card cut"><h3>${ic('sparkles', 18)} Twój osobisty plan</h3>
+    intro: () => `<div class="seg wz-mode"><button class="${Z().quick ? 'on' : ''}" data-a="wzMode" data-v="q">${ic('zap', 16)} Szybki start</button><button class="${Z().quick ? '' : 'on'}" data-a="wzMode" data-v="a">${ic('sparkles', 16)} Zaawansowany</button></div>
+      ${Z().quick ? `<section class="card cut"><h3>${ic('zap', 18)} Szybki start</h3><p class="small">5 krótkich kroków: Ty, zdrowie, cel, dni i sprzęt. Resztę ustawię sam: podział, ćwiczenia, serie i przerwy. Cardio i ograniczenia możesz dodać później w trybie zaawansowanym.</p><p class="dim small">Pytania o zdrowie zostają — to dla Twojego bezpieczeństwa.</p></section>` : `<section class="card cut"><h3>${ic('sparkles', 18)} Twój osobisty plan</h3>
       <p class="small">Ułożę plan tak, jak zrobiłby to trener: zapytam o zdrowie, Twoje dane, doświadczenie, cel, dni i sprzęt, a potem dobiorę podział, serie, powtórzenia, przerwy i ćwiczenia.</p>
       <p class="small">Ok. ${STEPS.length - 1} krótkich kroków. Dane zostają tylko w tym telefonie, a to, co wpiszesz o sobie, zapiszę w profilu, żeby nie pytać drugi raz.</p>
-      <p class="dim small">Plan powstaje na podstawie stanowisk ACSM i WHO oraz metaanaliz badań nad treningiem siłowym. Przy chorobie, kontuzji lub w ciąży przed startem skonsultuj się z lekarzem.</p></section>`,
+      <p class="dim small">Plan powstaje na podstawie stanowisk ACSM i WHO oraz metaanaliz badań nad treningiem siłowym. Przy chorobie, kontuzji lub w ciąży przed startem skonsultuj się z lekarzem.</p></section>`}`,
     health: () => { const w = Z().w; const f = F.S.settings.sex === 'f'; return `<section class="card cut"><h3>${ic('shield', 18)} Zdrowie i bezpieczeństwo</h3>
       <p class="dim small">Pytania wzorowane na powszechnie stosowanym kwestionariuszu gotowości do aktywności fizycznej (PAR-Q+). Odpowiedz szczerze — to dla Twojego bezpieczeństwa.</p>
       ${SCR.map((q, i) => yn('scr', i, w.scr[i])).join('')}
@@ -76,7 +79,7 @@
       ${w.exp && w.exp !== 'beg' ? `<h4 class="lbl">Jak robić serie w ćwiczeniach głównych?</h4>
       <div class="chips">${chip(!w.scheme, 'wzScheme', 'data-v=""', 'Jeden ciężar we wszystkich seriach')}${chip(w.scheme === 'pyr', 'wzScheme', 'data-v="pyr"', 'Narastająco (piramida)')}</div>
       <p class="dim small">Badania nie pokazują przewagi żadnego z tych sposobów dla siły i masy mięśniowej — wybierz ten, który lepiej Ci służy. Piramida: w kolejnych seriach ciężar rośnie, a powtórzeń jest mniej (nie dotyczy planów dla osób 65+, w ciąży i po porodzie).</p>` : ''}</section>`; },
-    goal: () => { const w = Z().w; return `<section class="card cut"><h3>${ic('trophy', 18)} Cel</h3>
+    goal: () => { const w = Z().w; return `${Z().quick ? `<section class="card cut"><h3>${ic('dumbbell', 18)} Staż</h3><div class="chips">${Object.entries(P.EXPS).map(([k, v]) => chip(w.exp === k, 'wzSet', `data-k="exp" data-v="${k}"`, v[0])).join('')}</div></section>` : ''}<section class="card cut"><h3>${ic('trophy', 18)} Cel</h3>
       <div class="wz-opts">${Object.entries(P.GOALS).map(([k, v], i) => opt(w.goal === k, 'wzGoal', `data-v="${k}"`, v[0], v[1], i)).join('')}</div>
       <h4 class="lbl">Partie priorytetowe (do 3, opcjonalnie)</h4><div class="chips">${Object.entries(PRIO).map(([k, t]) => chip(w.prio.includes(k), 'wzPrio', `data-v="${k}"`, t)).join('')}</div>
       <p class="dim small">Priorytetowe partie dostaną więcej serii, pozostałe utrzymam na rozsądnym poziomie.</p>
@@ -105,6 +108,7 @@
       ${timeBlock(w)}</section>`; },
     equip: () => { const w = Z().w; return `<section class="card cut"><h3>${ic('dumbbell', 18)} Sprzęt</h3>
       <div class="wz-opts">${Object.entries(PRESET).map(([k, v], i) => opt(w.preset === k, 'wzPreset', `data-v="${k}"`, v[0], v[1], i + 5)).join('')}</div>
+      ${F.gyms && F.gyms().length > 1 ? `<h4 class="lbl">Twoje miejsca treningu</h4><div class="chips">${F.gyms().map(g => `<button class="chip" data-a="wzGym" data-id="${g.id}">${E(g.n)}</button>`).join('')}</div>` : ''}
       <h4 class="lbl">Dostosuj</h4>
       ${EQ_ALL.map(k => `<label class="sw"><span><b>${EQ_L[k]}</b></span><input type="checkbox" data-b="wzEq" data-k="${k}" ${w.equip.includes(k) ? 'checked' : ''}><i></i></label>`).join('')}
       <label class="sw"><span><b>Ławka (płaska / regulowana)</b></span><input type="checkbox" data-b="wzFlag" data-k="bench" ${w.bench ? 'checked' : ''}><i></i></label>
@@ -155,7 +159,7 @@
     return { html: `${F.head('Kreator planu', { back: 1, sub: z.step === 'intro' ? 'Plan dopasowany do Ciebie' : `Krok ${i} z ${total - 1}: ${STEP_T[z.step]}` })}
       ${z.step !== 'intro' ? `<div class="wz-prog"><i style="width:${Math.round(i / (total - 1) * 100)}%"></i></div>` : ''}
       ${bodies[z.step]()}
-      <div class="wz-spacer"></div><div class="wz-bar">${i > 0 ? `<button class="btn ghost" data-a="wzPrev">Wstecz</button>` : ''}<button class="btn primary ${i > 0 ? '' : 'full'}" data-a="wzNext">${z.step === 'split' ? ic('sparkles', 16) + ' Zaproponuj plan' : z.step === 'intro' ? 'Zaczynamy' : 'Dalej'}</button></div>` };
+      <div class="wz-spacer"></div><div class="wz-bar">${i > 0 ? `<button class="btn ghost" data-a="wzPrev">Wstecz</button>` : ''}<button class="btn primary ${i > 0 ? '' : 'full'}" data-a="wzNext">${z.step === 'split' || (z.quick && z.step === 'equip') ? ic('sparkles', 16) + ' Zaproponuj plan' : z.step === 'intro' ? 'Zaczynamy' : 'Dalej'}</button></div>` };
   };
   const rerender = () => { F.render(true); };
 
@@ -165,10 +169,12 @@
   F.act.wzPreg = b => { Z().w.preg = b.dataset.v; rerender(); };
   F.act.wzSex = b => { F.S.settings.sex = b.dataset.v; F.saveSettings(); const w = Z().w; if (b.dataset.v === 'f') { if (w.preg === 'no') w.preg = null; } else w.preg = 'no'; rerender(); };
   F.act.wzSet = b => { const w = Z().w, k = b.dataset.k; let v = b.dataset.v; if (b.dataset.n) v = +v; if (b.dataset.b1) v = v === '1'; w[k] = v; if (k === 'goal') { } rerender(); };
+  F.act.wzMode = b => { Z().quick = b.dataset.v === 'q'; rerender(); };
   F.act.wzGoal = b => { const w = Z().w; w.goal = b.dataset.v; w.cChoice = ''; rerender(); };
   F.act.wzPrio = b => { const w = Z().w, v = b.dataset.v; w.prio = w.prio.includes(v) ? w.prio.filter(x => x !== v) : (w.prio.length < 3 ? [...w.prio, v] : w.prio); rerender(); };
   F.act.wzDay = b => { const w = Z().w, v = +b.dataset.v; if (w.days.includes(v)) w.days = w.days.filter(x => x !== v); else if (w.days.length < 6) w.days = [...w.days, v].sort((a, c) => a - c); else F.toast('Maksymalnie 6 dni — jeden dzień odpoczynku jest potrzebny'); w.split = 'auto'; rerender(); };
   F.act.wzPreset = b => { const w = Z().w, p = PRESET[b.dataset.v]; w.preset = b.dataset.v; Object.assign(w, JSON.parse(JSON.stringify(p[2]))); rerender(); };
+  F.act.wzGym = b => { const g = F.gyms().find(x => x.id === b.dataset.id); if (!g) return; const w = Z().w; w.equip = [...g.eq]; w.preset = ''; w.rack = g.eq.includes('Sztanga'); F.render(true); };
   F.bind.wzEq = el => { const w = Z().w, k = el.dataset.k; w.equip = el.checked ? [...new Set([...w.equip, k])] : w.equip.filter(x => x !== k); w.preset = ''; };
   F.bind.wzFlag = el => { const w = Z().w; w[el.dataset.k] = el.checked; w.preset = ''; };
   F.bind.wzBw = el => { const v = num(el.value); Z().w.bw = v > 20 && v < 400 ? F.fromDisp(v) : ''; };
@@ -204,6 +210,7 @@
   F.act.wzNext = async () => {
     const z = Z(); const err = validate(); if (err) { F.toast(err[0], 'err'); const el = document.querySelector(err[1]); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('need'); setTimeout(() => el.classList.remove('need'), 1800); } return; }
     if (z.step === 'about') { const w = z.w; const last = F.latestBW(); if (w.bw > 20 && (!last || Math.abs(last - w.bw) > 0.05)) { await F.addBW(w.bw); } }
+    if (z.quick && z.step === 'equip') { const w = z.w; if (!w.exp) w.exp = 'beg'; if (w.active == null) w.active = false; if (w.cardioAdd == null) w.cardioAdd = false; if (w.cNow == null) w.cNow = false; if (!w.cChoice) w.cChoice = 'keep'; w.split = 'auto'; storeAnswers(); z.variant = 0; z.res = gen(0); window.scrollTo(0, 0); rerender(); return; }
     if (z.step === 'split') { storeAnswers(); z.variant = 0; z.res = gen(0); window.scrollTo(0, 0); rerender(); return; }
     const prev = z.step; z.step = STEPS[cur() + 1]; window.scrollTo(0, 0);
     try { rerender(); } catch (e) { console.error(e); z.step = prev; F.toast('Coś poszło nie tak — spróbuj ponownie', 'err'); }

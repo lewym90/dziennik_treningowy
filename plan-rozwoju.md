@@ -45,3 +45,8 @@ Dodatkowo: przebudowa nawigacji — aplikacja ma być schludna i intuicyjna, bez
 - N10 pierwsze uruchomienie i jednorazowe podpowiedzi — zgoda.
 - N11 najpierw porządek, potem nowe funkcje — zgoda.
 - Zasada nadrzędna: nie komplikować, upraszczać i ułatwiać korzystanie.
+
+## Stan wdrożenia
+- v1.26.0: N1–N10 (nawigacja).
+- v1.27.0: punkty 1, 2, 3, 4, 6, 7, 9, 10, 11, 12, 21, 22.
+- Do zrobienia: 8 (trójbój — tylko informacje z badań, bez układania szczytowania), 18 (tryb trenera), 19 (biblioteka programów), 23 (raport PDF); 5 do przemyślenia; 24 na końcu.

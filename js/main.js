@@ -22,8 +22,8 @@
     if (F.S.draft && !location.hash.startsWith('#/workout')) F.updateDock();
     if (F.tourMaybe && !q.get('a')) F.tourMaybe();
     // splash
-    const sp = F.$('#splash'); const wait = Math.max(0, 2100 - (performance.now() - t0));
-    setTimeout(() => F.burst(innerWidth / 2, innerHeight * .45, 40, 1.1), 900);
+    const sp = F.$('#splash'); const wait = Math.max(0, 1300 - (performance.now() - t0));
+    setTimeout(() => F.burst(innerWidth / 2, innerHeight * .45, 40, 1.1), 700);
     setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 800); }, wait);
     // skróty z ikony aplikacji
     if (q.get('a') === 'start') setTimeout(() => { history.replaceState(null, '', location.pathname + location.hash); if (F.S.draft) F.go('#/workout'); else F.startFlow(); }, wait + 300);

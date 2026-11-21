@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.26.0** (nowa nawigacja), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.27.0** (ekran serii, nowe funkcje 2–4, 6, 7, 9–12, 21, 22), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,20 @@ Stan na 21 listopada 2026. Wersja **1.26.0** (nowa nawigacja), opublikowana i sp
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.27.0 — ekran serii i nowe funkcje (21.11.2026)
+- Pkt 1: trening — serie jako kafelki (`chips()`, `#sx-i`), dolny panel `#set-dock` (klasa `.sdk`, `F.refreshSetDock`): ciężar/powtórzenia z −/+ i polem do wpisania (`data-b="wk"`), „Zalicz serię” (`check`), po zaliczeniu w panelu stoper przerwy (+30 s, Pomiń, „Cofnij” → `undoChk`). Wybór serii dotknięciem kafelka (`selSet`, `F.ui.sel`). Superserie i cardio — stare karty, panel tylko z przerwą. Duża grafika sprzęt/mięśnie zostaje (max 21vh).
+- Pkt 2: bloki — `F.blockInfo(plan)` (coach.js, z `meta.meso`, `meta.blockStart`): tydzień X z Y, docelowy zapas powtórzeń, tydzień odciążenia. Pasek w karcie aktualnego planu, notka na 1. ćwiczeniu, po bloku `blockSum` (podsumowanie, „Zacznij następny blok” → `blockStart`).
+- Pkt 3: `js/short.js` — „Mam mało czasu” (Dziś i karta planu): 30/45/60 min, `F.shortenItems` (iso→2 serie, sec→2, pomijanie iso, main→3, pomijanie sec, main→2, pomijanie main poza pierwszym; Iversen 2021). Pominięte serie NIE przechodzą na kolejny trening.
+- Pkt 4: `js/gym.js` — miejsca treningu (`settings.gyms`, `gymId`), sprzęt; `F.gymOk` filtruje `F.similarEx`; przycisk „Zajęte” na karcie (`exBusy`: „Zrób później” na koniec albo zamiennik); miejsce w nagłówku treningu (gdy >1), w Ustawieniach → Trening, w kreatorze (krok Sprzęt) jako skróty.
+- Pkt 6: `js/voice.js` — mikrofon w panelu serii; `F.voiceNums` (liczby słownie/cyframi, „i pół”, „przecinek”), zapis i zaliczenie, cofnięcie przez „Cofnij”.
+- Pkt 7: menu ćwiczenia → „Boli przy tym ćwiczeniu”: miejsce (`F.PLN.INJ`), zapis w `settings.painLog` i `sess.pain`, komunikat bezpieczeństwa, ≥2 zgłoszenia tego miejsca w 14 dni → zalecenie konsultacji; opcje: zamień / lżej −10% / pomiń. Przypomnienie na karcie ćwiczenia przez 28 dni.
+- Pkt 9: `js/goals2.js` — „Cel na dłużej” (Przegląd): ćwiczenie, maks (Epley), termin; tempo z regresji liniowej maksów z 8 tygodni (min. 3 treningi), data osiągnięcia, potrzebne tempo, punkty kontrolne.
+- Pkt 10: `js/recap.js`, trasa `#/recap` (przycisk w Przeglądzie): miesiąc/rok, karty (treningi, tonaż, rekordy, najmocniejszy okres, ulubione ćwiczenie, siła), udostępnianie jako obraz 1080×1920.
+- Pkt 11: porównanie zdjęć już było; dodany wyraźny blok prywatności z datą ostatniej kopii i przyciskiem „Zrób kopię teraz” (kopia domyślna zawiera zdjęcia).
+- Pkt 12: samopoczucie — okienko „Przed treningiem” (sen, energia 1–5, „Pomiń”) przy starcie; `sess.feel`; w Przeglądzie „Samopoczucie a wyniki” (od 6 ocenionych treningów).
+- Pkt 21: kreator — „Szybki start | Zaawansowany” (`Z().quick`, kroki: O Tobie, Zdrowie, Cel+staż, Dni, Sprzęt); domyślnie szybki dla nowych. Bez cardio (cChoice keep).
+- Pkt 22: start aplikacji — pomiar: DOMContentLoaded 0,25 s przy 4× wolniejszym CPU; czekanie wynikało z ekranu powitalnego (2,1 s) → 1,3 s.
 
 ## v1.26.0 — nowa nawigacja (21.11.2026)
 Decyzje właściciela: `plan-rozwoju.md` (repo) / `claude/forge-plan-rozwoju.md` (projekt). Zasada: upraszczać, każda funkcja w jednym miejscu.

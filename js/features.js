@@ -161,10 +161,12 @@
     const pose = F.ui.pPose || '';
     const list = ph.filter(p => !pose || p.pose === pose);
     const canCmp = ['front', 'side', 'back'].some(k => ph.filter(p => p.pose === k).length >= 2);
-    return `<div class="btn-row"><button class="btn primary grow" data-a="pAdd">${ic('camera', 18)} Dodaj zdjęcie</button><button class="btn ghost" data-a="pCompare" ${canCmp ? '' : 'disabled'}>${ic('arrow-left-right', 18)} Porównaj</button></div>
+    const lb = F.S.settings.lastBackup;
+    return `<div class="priv cut"><div>${ic('lock', 22)}</div><p><b>Twoje zdjęcia są prywatne</b>Zostają tylko w tym telefonie. Aplikacja nigdzie ich nie wysyła — nie ma konta ani chmury. Kopia zapasowa „ze zdjęciami” zapisuje je w pliku na Twoim telefonie.<small>${lb ? 'Ostatnia kopia: ' + F.fmtDate(lb) : 'Nie masz jeszcze kopii zapasowej.'} <button class="linkbtn" data-a="backupNow">Zrób kopię teraz</button></small></p></div>
+      <div class="btn-row"><button class="btn primary grow" data-a="pAdd">${ic('camera', 18)} Dodaj zdjęcie</button><button class="btn ghost" data-a="pCompare" ${canCmp ? '' : 'disabled'}>${ic('arrow-left-right', 18)} Porównaj</button></div>
       <div class="chips"><button class="chip ${!pose ? 'on' : ''}" data-a="pFilter" data-p="">Wszystkie</button>${Object.entries(POSES).map(([k, n]) => `<button class="chip ${pose === k ? 'on' : ''}" data-a="pFilter" data-p="${k}">${n}</button>`).join('')}</div>
       ${list.length ? `<div class="pgrid">${list.map(p => `<button class="pth" data-a="pView" data-id="${p.id}"><img src="${p.th}" alt="Zdjęcie sylwetki ${F.fmtDate(p.date)}" loading="lazy"><span>${POSES[p.pose] || ''}<small>${F.fmtDate(p.date)}</small></span></button>`).join('')}</div>` : F.empty('camera', 'Brak zdjęć', 'Rób zdjęcia co 2–4 tygodnie: to samo światło, ta sama odległość, ta sama poza. Porównanie przed/po robi różnicę.')}
-      <p class="dim small">${ic('lock', 13)} Zdjęcia zostają wyłącznie na tym urządzeniu (w pamięci przeglądarki). Nie są nigdzie wysyłane. Trafiają do kopii zapasowej, jeśli wybierzesz kopię ze zdjęciami.</p>`;
+`;
   }
   F.loadPhotos = async () => { F.ui.photos = (await F.dbAll('photos')).sort((a, b) => b.date - a.date); return F.ui.photos; };
   F.act.pFilter = b => { F.ui.pPose = b.dataset.p; F.render(true); };
