@@ -66,9 +66,11 @@ export async function sendTo(id, dev, n) {
 export async function runDue(now = Date.now()) {
   let sent = 0;
   for (const [id, dev] of Object.entries(db.devices)) {
+    const p = dev.pre;
+    if (p && p.at <= now) { delete dev.pre; touch(); if (p.at >= now - cfg.lateMs && !(dev.timer && dev.timer.at <= now) && await sendTo(id, dev, p)) sent++; }
     const t = dev.timer;
     if (!t || t.at > now) continue;
-    delete dev.timer; touch();
+    delete dev.timer; delete dev.pre; touch();
     if (t.at < now - cfg.lateMs) continue;       // przestarzały
     if (await sendTo(id, dev, t)) sent++;
   }
@@ -128,10 +130,13 @@ export async function handle(method, url, headers, body, now = Date.now()) {
     if (!Number.isFinite(sec) || sec < 1 || sec > cfg.maxSec) return [400, { error: 'zły czas' }];
     // Czas liczymy od chwili odebrania; telefon odejmuje własne opóźnienie sieci, wysyłając „sec” pomniejszone o nie.
     dev.timer = { at: now + sec * 1000, title: str(body.title || 'Przerwa skończona', 80), body: str(body.body || 'Do roboty — czas na kolejną serię.', 200), tag: 'forge-rest', url: './#/workout' };
+    // ostrzeżenie przed końcem przerwy (np. 30 s wcześniej); ten sam znacznik, więc końcowe powiadomienie je zastępuje
+    const pre = Math.round(+body.pre || 0); delete dev.pre;
+    if (pre >= 5 && pre < sec - 2) dev.pre = { at: dev.timer.at - pre * 1000, title: str(body.preTitle || `Za ${pre} s koniec przerwy`, 80), body: str(body.preBody || 'Przygotuj się do kolejnej serii.', 200), tag: 'forge-rest', url: './#/workout' };
     touch(); saveDb();
     return [200, { ok: true, at: dev.timer.at }];
   }
-  if (method === 'POST' && route === '/cancel') { if (dev.timer) { delete dev.timer; touch(); saveDb(); } return [200, { ok: true }]; }
+  if (method === 'POST' && route === '/cancel') { if (dev.timer || dev.pre) { delete dev.timer; delete dev.pre; touch(); saveDb(); } return [200, { ok: true }]; }
   if (method === 'POST' && route === '/unsubscribe') { delete db.devices[id]; touch(); saveDb(); return [200, { ok: true }]; }
   if (method === 'POST' && route === '/test') {
     const ok = await sendTo(id, dev, { title: 'FORGE', body: 'Działa. Tak będzie wyglądać koniec przerwy.' });

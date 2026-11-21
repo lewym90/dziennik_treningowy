@@ -12,18 +12,25 @@
   /* ---------- haptyka i dźwięk ---------- */
   F.haptic = p => { try { if (F.S.settings.vibrate && navigator.vibrate) navigator.vibrate(p); } catch (e) { } };
   let actx = null;
-  F.beep = (pattern = [[880, .12], [880, .12], [1320, .3]]) => {
-    if (!F.S.settings.sound) return;
+  // głośność sygnałów: n – normalna, l – głośna (domyślnie), m – maksymalna; ogranicznik pilnuje, żeby dźwięk nie charczał
+  F.VOL = { n: .3, l: .65, m: 1 }; let master = null;
+  F.beep = (pattern = [[880, .12], [880, .12], [1320, .3]], o = {}) => {
+    if (!F.S.settings.sound && !o.force) return;
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume();
+      if (!master) { const c = actx.createDynamicsCompressor(); c.threshold.value = -8; c.knee.value = 4; c.ratio.value = 12; c.attack.value = .002; c.release.value = .1; c.connect(actx.destination); master = c; }
+      const vol = (F.VOL[F.S.settings.vol] || F.VOL.l) * (o.soft ? .45 : 1);
       let t = actx.currentTime + .02;
       pattern.forEach(([f, d]) => {
-        const o = actx.createOscillator(), g = actx.createGain(); o.type = 'square'; o.frequency.value = f;
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.16, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + d);
-        o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + .02); t += d + .06;
+        const osc = actx.createOscillator(), g = actx.createGain(); osc.type = 'square'; osc.frequency.value = f;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.setValueAtTime(vol, t + d * .6); g.gain.exponentialRampToValueAtTime(.001, t + d);
+        osc.connect(g); g.connect(master); osc.start(t); osc.stop(t + d + .02); t += d + .05;
       });
     } catch (e) { }
   };
+  // koniec przerwy: wysokie, powtórzone tony, które przebijają się przez muzykę w słuchawkach
+  F.SND_END = [[1760, .13], [2349, .13], [1760, .13], [2349, .13], [1760, .13], [2349, .32]];
+  F.SND_WARN = [[1175, .14], [1568, .22]];
   F.unlockAudio = () => { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) { } };
   document.addEventListener('pointerdown', F.unlockAudio, { once: true });
 
@@ -107,10 +114,10 @@
     F.rest = { end: Date.now() + sec * 1000, total: sec, label: label || '' };
     persistRest(); restLoop(); F.updateDock(); if (F.onRestChange) F.onRestChange();
   };
-  F.restAdd = s => { if (!F.rest) return; F.rest.end += s * 1000; F.rest.total = Math.max(F.rest.total + s, 5); if (F.rest.end < Date.now()) F.restStop(); persistRest(); F.tickRest(); };
+  F.restAdd = s => { if (!F.rest) return; F.rest.end += s * 1000; if (s > 0) F.rest.warned = 0; F.rest.total = Math.max(F.rest.total + s, 5); if (F.rest.end < Date.now()) F.restStop(); persistRest(); F.tickRest(); };
   F.restStop = (finished) => {
     F.rest = null; persistRest(); clearInterval(restTick); restTick = 0;
-    if (finished) { F.beep(); F.haptic([300, 120, 300, 120, 500]); F.toast(ic('timer', 16) + ' Przerwa skończona. Do roboty.', 'hot'); }
+    if (finished) { F.beep(F.SND_END); F.haptic([300, 120, 300, 120, 500]); F.toast(ic('timer', 16) + ' Przerwa skończona. Do roboty.', 'hot'); }
     F.updateDock(); if (F.onRestChange) F.onRestChange(); F.releaseNoteTimer();
   };
   F.releaseNoteTimer = () => { };
@@ -123,7 +130,9 @@
     F.$$('[data-rest-time]').forEach(el => el.textContent = F.fmtDur(left));
     F.$$('[data-rest-bar]').forEach(el => el.style.transform = `scaleX(${Math.max(0, 1 - pct)})`);
     F.$$('[data-rest-ring]').forEach(el => { const c = +el.getAttribute('stroke-dasharray'); el.style.strokeDashoffset = c * pct; });
-    if (left <= 3 && left !== F._lastTick) { F._lastTick = left; F.beep([[660, .05]]); F.haptic(40); }
+    const warn = F.S.settings.restWarn ?? 30;
+    if (warn && !F.rest.warned && left <= warn && left > 3 && F.rest.total >= warn + 10) { F.rest.warned = 1; persistRest(); F.beep(F.SND_WARN); F.haptic([150, 80, 150]); F.toast(ic('timer', 16) + ` Za ${warn} s następna seria. Przygotuj się.`); }
+    if (left <= 3 && left !== F._lastTick) { F._lastTick = left; F.beep([[1320, .07]], { soft: 1 }); F.haptic(40); }
   };
   F.resumeRest = () => { if (F.S.draft && F.S.draft.rest && F.S.draft.rest.end > Date.now()) { F.rest = F.S.draft.rest; restLoop(); } else if (F.S.draft) { F.S.draft.rest = null; } };
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { F.tickRest(); if (F.S.draft && F.wakeWant) F.wakeLock(); } });

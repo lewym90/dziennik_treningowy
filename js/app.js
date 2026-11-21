@@ -222,7 +222,7 @@
   const runsOf = items => { const inf = F.ssInfo(items); const runs = []; let i = 0; while (i < items.length) { const e = inf[i] ? inf[i].end : i; runs.push([i, e]); i = e + 1; } return runs; };
   function singleHtml(d, di, ii) {
     const it = d.items[ii]; const runs = runsOf(d.items); const ri = runs.findIndex(r => r[0] === ii);
-    return `<div class="pi"><div class="pi-top">${mDot((exOf(it.exId) || {}).muscle)}<b>${E(exName(it.exId))}</b><div class="mini-btns"><button class="ibtn" data-a="itLink" data-di="${di}" data-ii="${ii}" ${ii === d.items.length - 1 ? 'disabled' : ''} aria-label="Połącz z następnym w superserię" title="Połącz z następnym w superserię">${ic('link-2', 16)}</button><button class="ibtn" data-a="blkMove" data-d="-1" data-di="${di}" data-ii="${ii}" ${ri === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="blkMove" data-d="1" data-di="${di}" data-ii="${ii}" ${ri === runs.length - 1 ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${ii}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
+    return `<div class="pi"><div class="pi-top">${mDot((exOf(it.exId) || {}).muscle)}<button class="pi-n" data-a="itSwap" data-di="${di}" data-ii="${ii}" aria-label="Zamień ćwiczenie"><b>${E(exName(it.exId))}</b>${ic('repeat', 15)}</button><div class="mini-btns"><button class="ibtn" data-a="itLink" data-di="${di}" data-ii="${ii}" ${ii === d.items.length - 1 ? 'disabled' : ''} aria-label="Połącz z następnym w superserię" title="Połącz z następnym w superserię">${ic('link-2', 16)}</button><button class="ibtn" data-a="blkMove" data-d="-1" data-di="${di}" data-ii="${ii}" ${ri === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="blkMove" data-d="1" data-di="${di}" data-ii="${ii}" ${ri === runs.length - 1 ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${ii}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
       ${it.cardio ? `<div class="pi-f"><label><span>Czas (min)</span><input inputmode="numeric" data-b="it" data-f="cmin" data-di="${di}" data-ii="${ii}" value="${Math.round((+it.reps || 0) / 60)}"></label></div>` : `<div class="pi-f four">${fld('Serie', 'sets', di, ii, it.sets, '', 'numeric')}${fld('Powtórzenia', 'reps', di, ii, it.reps || '', '8-10')}${fld('Przerwa s', 'rest', di, ii, it.rest || '', '90', 'numeric')}${fld('Ciężar ' + (F.wm(it.exId) === 2 ? '2× ' : '') + F.unit(), 'w', di, ii, it.w ? F.fw(it.w / F.wm(it.exId)).replace(',', '.') : '', '–', 'decimal')}</div>${piAdv(it, di, ii)}`}</div>`;
   }
   function blockHtml(d, di, g) {
@@ -231,7 +231,7 @@
       <div class="pi-f two ssb-sh"><label><span>Rundy</span><input inputmode="numeric" data-b="itss" data-f="sets" data-di="${di}" data-ii="${g.start}" value="${first.sets}"></label><label><span>Przerwa po rundzie (s)</span><input inputmode="numeric" data-b="itss" data-f="rest" data-di="${di}" data-ii="${g.start}" value="${first.rest || ''}" placeholder="90"></label></div>`;
     for (let k = g.start; k <= g.end; k++) {
       const it = items[k], tag = F.ssInfo(items)[k].tag;
-      h += `<div class="ssb-m"><div class="pi-top"><span class="ss-tag">${tag}</span><b>${E(exName(it.exId))}</b><div class="mini-btns"><button class="ibtn" data-a="itUp" data-di="${di}" data-ii="${k}" ${k === g.start ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="itDown" data-di="${di}" data-ii="${k}" ${k === g.end ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itUnlink" data-di="${di}" data-ii="${k}" aria-label="Wyjmij z superserii" title="Wyjmij z superserii">${ic('arrow-left-right', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${k}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
+      h += `<div class="ssb-m"><div class="pi-top"><span class="ss-tag">${tag}</span><button class="pi-n" data-a="itSwap" data-di="${di}" data-ii="${k}" aria-label="Zamień ćwiczenie"><b>${E(exName(it.exId))}</b>${ic('repeat', 15)}</button><div class="mini-btns"><button class="ibtn" data-a="itUp" data-di="${di}" data-ii="${k}" ${k === g.start ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 16)}</button><button class="ibtn" data-a="itDown" data-di="${di}" data-ii="${k}" ${k === g.end ? 'disabled' : ''} aria-label="W dół">${ic('arrow-down', 16)}</button><button class="ibtn" data-a="itUnlink" data-di="${di}" data-ii="${k}" aria-label="Wyjmij z superserii" title="Wyjmij z superserii">${ic('arrow-left-right', 16)}</button><button class="ibtn" data-a="itDel" data-di="${di}" data-ii="${k}" aria-label="Usuń">${ic('x', 16)}</button></div></div>
         <div class="pi-f two">${fld('Powtórzenia', 'reps', di, k, it.reps || '', '10')}${fld('Ciężar ' + (F.wm(it.exId) === 2 ? '2× ' : '') + F.unit(), 'w', di, k, it.w ? F.fw(it.w / F.wm(it.exId)).replace(',', '.') : '', '–', 'decimal')}</div>${piAdv(it, di, k)}</div>`;
     }
     const canJoin = g.end < items.length - 1 && !(F.ssInfo(items)[g.end + 1]);
@@ -252,6 +252,7 @@
   F.act.dayUp = b => { const i = +b.dataset.di, d = E_().days; [d[i - 1], d[i]] = [d[i], d[i - 1]]; F.render(true); };
   F.act.itUp = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i - 1], it[i]] = [it[i], it[i - 1]]; F.cleanSS(it); F.render(true); };
   F.act.itDown = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i + 1], it[i]] = [it[i], it[i + 1]]; F.cleanSS(it); F.render(true); };
+  F.act.itSwap = async b => { const day = E_().days[+b.dataset.di], it = day.items[+b.dataset.ii]; const id = await F.swapSheet(it.exId, day.items.map(x => x.exId)); if (!id) return; it.exId = id; F.render(true); };
   F.act.itDel = b => { const it = E_().days[+b.dataset.di].items; it.splice(+b.dataset.ii, 1); F.cleanSS(it); F.render(true); };
   const unify = (items, st, en, src) => { for (let k = st; k <= en; k++) { items[k].sets = src.sets; items[k].rest = src.rest; } };
   F.act.itLink = b => {
@@ -275,6 +276,21 @@
   };
 
   /* ---------- wybierak ćwiczeń ---------- */
+  // zamiana ćwiczenia: najpierw podobne na tę samą partię, potem cała baza
+  const OLY = /podrzut|rwani|clean|snatch|jerk|pullover/i;
+  F.similarEx = (id, skip = [], n = 12) => {
+    const cur = F.S.ex.get(id); if (!cur) return []; const cdb = (F.EXDB && F.EXDB[id]) || { ca: 'strength' }; const ms = new Set(F.exMuscles(id).s), use = {}, no = new Set([id, ...skip]);
+    F.S.sessions.forEach(x => x.exercises.forEach(e => { use[e.exId] = (use[e.exId] || 0) + 1; }));
+    const sc = e => { let v = 0; const db = F.EXDB && F.EXDB[e.id]; if (e.equip === cur.equip) v += 3; if (!!e.compound === !!cur.compound) v += 2; F.exMuscles(e.id).s.forEach(m => { if (ms.has(m)) v += 1; }); v += Math.min(use[e.id] || 0, 10) * .5; if (!e.id.startsWith('fe_')) v += 3; if (OLY.test(e.name + ' ' + (e.alias || '')) !== OLY.test(cur.name + ' ' + (cur.alias || ''))) v -= 15; if (db) { if (db.lv === 'expert') v -= 3; if (db.ca && db.ca !== 'strength' && db.ca !== 'powerlifting' && db.ca !== cdb.ca) v -= 20; if (db.me && cdb.me && db.me === cdb.me) v += 1; } return v; };
+    return [...F.S.ex.values()].filter(e => e.muscle === cur.muscle && !no.has(e.id) && ((e.type === 'time') === (cur.type === 'time'))).map(e => [e, sc(e)]).filter(x => x[1] > -10).sort((a, b) => b[1] - a[1] || a[0].name.localeCompare(b[0].name, 'pl')).slice(0, n).map(x => x[0]);
+  };
+  F.swapSheet = (id, skip = []) => new Promise(res => {
+    const cur = F.S.ex.get(id) || {}, list = F.similarEx(id, skip); let done = false; const fin = v => { if (done) return; done = true; res(v); };
+    F.sheet(`<p class="dim small sw-h">Zamiast: <b>${E(cur.name || '')}</b></p>${list.length ? `<p class="dim small sw-h">Podobne, na tę samą partię</p><div class="exlist">${list.map(e => `<button class="exrow" data-a="swPick" data-id="${E(e.id)}">${mDot(e.muscle)}<span><b>${E(e.name)}</b><small>${F.MUSCLES[e.muscle]} · ${E(e.equip)}</small></span>${ic('chevron-right', 16)}</button>`).join('')}</div>` : ''}
+      <button class="btn ghost wide sw-all" data-a="swAll">${ic('search', 18)} Wszystkie ćwiczenia</button>`, { title: 'Zamień ćwiczenie', cls: 'tall', onclose: () => fin(null) });
+    F.act.swPick = b => { const v = b.dataset.id; fin(v); F.closeSheet(true); };
+    F.act.swAll = async () => { done = true; F.closeSheet(true); const ids = await F.pickExercises({ single: true, muscle: cur.muscle || '' }); res(ids && ids[0] || null); };
+  });
   F.pickExercises = ({ single = false, muscle = '' } = {}) => new Promise(res => {
     const sel = new Set(); let q = '', mus = muscle;
     const list = () => {

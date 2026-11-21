@@ -40,5 +40,16 @@ assert.equal(Object.keys(m.getDb().devices).length, 0, 'wygasłe urządzenie usu
   await m.runDue(T + 100000); assert.equal(got.length, 1, 'B anulował, C nic nie planował');
   await m.handle('POST', '/timer', {}, { deviceId: ids[2], token: tok[ids[2]], sec: 10, body: 'C' }, T + 100000); await m.runDue(T + 111000);
   assert.deepEqual(got.map(x => x.body), ['A', 'C']);
+  // ostrzeżenie 30 s przed końcem, potem koniec; anulowanie usuwa oba
+  const U = 9_000_000; got.length = 0;
+  await m.handle('POST', '/timer', {}, { deviceId: ids[0], token: tok[ids[0]], sec: 90, body: 'KONIEC', pre: 30, preBody: 'UWAGA' }, U);
+  await m.runDue(U + 59000); assert.equal(got.length, 0, 'przed ostrzeżeniem nic');
+  await m.runDue(U + 61000); assert.deepEqual(got.map(x => x.body), ['UWAGA'], 'ostrzeżenie po 60 s');
+  await m.runDue(U + 91000); assert.deepEqual(got.map(x => x.body), ['UWAGA', 'KONIEC'], 'potem koniec');
+  await m.handle('POST', '/timer', {}, { deviceId: ids[0], token: tok[ids[0]], sec: 90, body: 'X', pre: 30, preBody: 'Y' }, U + 100000);
+  await m.handle('POST', '/cancel', {}, { deviceId: ids[0], token: tok[ids[0]] }, U + 110000); await m.runDue(U + 200000);
+  assert.equal(got.length, 2, 'anulowanie usuwa ostrzeżenie i koniec');
+  await m.handle('POST', '/timer', {}, { deviceId: ids[0], token: tok[ids[0]], sec: 20, body: 'Z', pre: 30 }, U + 300000); await m.runDue(U + 321000);
+  assert.deepEqual(got.slice(2).map(x => x.body), ['Z'], 'za krótka przerwa: bez ostrzeżenia');
 }
 console.log('OK — wszystkie testy serwera przeszły');

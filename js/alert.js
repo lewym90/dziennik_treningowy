@@ -60,7 +60,8 @@
     const sec = (F.rest.end - Date.now()) / 1000 - .4;
     try {
       if (sec < 3) await papi(c, '/cancel', { deviceId: c.deviceId }, 'POST', true);
-      else await papi(c, '/timer', { deviceId: c.deviceId, sec: Math.round(sec), title: 'Przerwa skończona', body: (F.rest.label ? F.rest.label + ' · c' : 'C') + 'zas na kolejną serię.' }, 'POST', true);
+      else { const warn = F.S.settings.restWarn ?? 30, pre = warn && F.rest.total >= warn + 10 && sec > warn + 3 ? warn : 0;
+        await papi(c, '/timer', { deviceId: c.deviceId, sec: Math.round(sec), title: 'Przerwa skończona', body: (F.rest.label ? F.rest.label + ' · c' : 'C') + 'zas na kolejną serię.', pre, preTitle: `Za ${pre} s koniec przerwy`, preBody: 'Przygotuj się do kolejnej serii.' }, 'POST', true); }
     } catch (e) { if (e.status === 401) { const ok = await rejoin(c); if (ok) pushSchedule(); } }
   }
   async function pushCancel() { const c = pcfg(); if (!c) return; try { await papi(c, '/cancel', { deviceId: c.deviceId }, 'POST', true); } catch (e) { } }
