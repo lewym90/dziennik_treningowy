@@ -47,7 +47,7 @@
     [/^#\/plan\/([^/]+)\/edit$/, m => planEdit(m[1]), 'plans'], [/^#\/exercises$/, () => exercises(), 'plans'], [/^#\/ex\/([^/]+)$/, m => exDetail(m[1]), 'stats'],
     [/^#\/history$/, () => F.views.history(), 'history'], [/^#\/session\/([^/]+)$/, m => F.views.session(m[1]), 'history'],
     [/^#\/stats$/, () => F.views.stats(), 'stats'], [/^#\/tools$/, () => F.views.tools(), 'home'], [/^#\/settings$/, () => F.views.settings(), 'home'],
-    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'history'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/recap$/, () => F.views.recap(), 'stats'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
+    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'history'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/recap$/, () => F.views.recap(), 'stats'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home'], [/^#\/get\/([A-Za-z0-9_-]+)$/, m => F.views.get(m[1]), 'plans'], [/^#\/clients$/, () => F.views.clients(), 'plans'], [/^#\/client\/([^/]+)$/, m => F.views.client(m[1]), 'plans']
   ];
   let curTab = 'home';
   F.render = (keepScroll) => {
@@ -164,9 +164,10 @@
       ${others.length ? `<h3 class="sec">${cur ? 'Inne plany' : 'Twoje plany'}</h3><div class="stack">${others.map(card).join('')}</div>` : ''}
       <h3 class="sec">Nowy plan</h3>
       <a class="importcard cut" href="#/wizard" data-a="newWizard"><div>${ic('sparkles', 30)}</div><p><b>Kreator planu</b><small>Odpowiesz na kilka pytań — ułożę plan pod Twój cel, staż, sprzęt i czas</small></p>${ic('chevron-right', 20)}</a>
-      <button class="importcard cut" data-a="templates"><div>${ic('clipboard-list', 30)}</div><p><b>Plany startowe</b><small>Pięć gotowych planów: masa, siła, całe ciało, pośladki</small></p>${ic('chevron-right', 20)}</button>
+      <button class="importcard cut" data-a="templates"><div>${ic('clipboard-list', 30)}</div><p><b>Plany startowe</b><small>Dziewięć gotowych planów: siłownia, dom, bez sprzętu, zdrowie</small></p>${ic('chevron-right', 20)}</button>
       <a class="importcard cut" href="#/import"><div>${ic('scan-text', 30)}</div><p><b>Importuj plan z pliku</b><small>PDF, zrzut ekranu, zdjęcie, tekst, CSV z innej aplikacji</small></p>${ic('chevron-right', 20)}</a>
-      <a class="btn ghost wide" href="#/exercises">${ic('dumbbell', 18)} Baza ćwiczeń</a>`
+      <a class="btn ghost wide" href="#/exercises">${ic('dumbbell', 18)} Baza ćwiczeń</a>
+      ${F.S.settings.coachMode ? `<h3 class="sec">Tryb trenera</h3><a class="importcard cut" href="#/clients"><div>${ic('users', 30)}</div><p><b>Podopieczni</b><small>Wczytane wyniki osób, którym układasz plany</small></p>${ic('chevron-right', 20)}</a>` : ''}`
     };
   }
   F.setCurPlan = id => { F.S.settings.curPlan = id; F.saveSettings(); };
@@ -176,7 +177,7 @@
   F.tplItems = tplItems;
   F.act.templates = () => {
     const G = F.PLN.GOALS, X = F.PLN.EXPS;
-    F.sheet(`<p class="sheet-p dim">Gotowe plany ze stałym układem. Serie, powtórzenia i przerwy dobrane do celu i stażu podanego przy planie. Plan pod Twój sprzęt, czas i ograniczenia ułoży kreator.</p><div class="stack">${F.TEMPLATES.map((t, i) => { const n = t[2].reduce((a, d) => a + d[1].length, 0), m = t[3]; return `<button class="tpl cut" data-a="addTpl" data-i="${i}"><b>${E(t[0])}</b><small>${E(t[1])}</small><em>${G[m.goal][0]} · ${X[m.exp][0].toLowerCase()} · ${m.weekdays.length} ${F.plur(m.weekdays.length, 'trening', 'treningi', 'treningów')} w tygodniu · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</em></button>`; }).join('')}</div>`, { title: 'Plany startowe' });
+    F.sheet(`<p class="sheet-p dim">Gotowe plany ze stałym układem. Serie, powtórzenia i przerwy dobrane do celu i stażu podanego przy planie. Plan pod Twój sprzęt, czas i ograniczenia ułoży kreator.</p>${[['gym', 'Siłownia'], ['home', 'Dom i bez sprzętu'], ['health', 'Zdrowie']].map(([c, cn]) => `<h3 class="sec">${cn}</h3><div class="stack">${F.TEMPLATES.map((t, i) => [t, i]).filter(([t]) => (t[3].cat || 'gym') === c).map(([t, i]) => { const n = t[2].reduce((a, d) => a + d[1].length, 0), m = t[3]; return `<button class="tpl cut" data-a="addTpl" data-i="${i}"><b>${E(t[0])}</b><small>${E(t[1])}</small><em>${G[m.goal][0]} · ${X[m.exp][0].toLowerCase()} · ${m.weekdays.length} ${F.plur(m.weekdays.length, 'trening', 'treningi', 'treningów')} w tygodniu · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</em></button>`; }).join('')}</div>`).join('')}`, { title: 'Plany startowe' });
   };
   F.act.addTpl = async b => {
     const t = F.TEMPLATES[+b.dataset.i], m = t[3];
@@ -213,7 +214,7 @@
   F.act.planMenu = b => {
     const id = b.dataset.id;
     const isCur = (F.nextWorkout() || {}).plan === F.planOf(id);
-    F.sheet(`<div class="menu">${isCur ? '' : `<button data-a="setCur" data-id="${id}">${ic('flame', 20)}Ustaw jako aktualny</button>`}<button data-a="planEditGo" data-id="${id}">${ic('pencil', 20)}Edytuj</button><button data-a="planDup" data-id="${id}">${ic('copy', 20)}Duplikuj</button><button data-a="planText" data-id="${id}">${ic('clipboard-paste', 20)}Kopiuj jako tekst</button><button data-a="planJson" data-id="${id}">${ic('file-json', 20)}Eksportuj do pliku</button><button class="danger" data-a="planDel" data-id="${id}">${ic('trash-2', 20)}Usuń plan</button></div>`, { title: 'Plan' });
+    F.sheet(`<div class="menu">${isCur ? '' : `<button data-a="setCur" data-id="${id}">${ic('flame', 20)}Ustaw jako aktualny</button>`}<button data-a="planEditGo" data-id="${id}">${ic('pencil', 20)}Edytuj</button><button data-a="planDup" data-id="${id}">${ic('copy', 20)}Duplikuj</button><button data-a="planSend" data-id="${id}">${ic('send', 20)}Wyślij podopiecznemu</button><button data-a="planText" data-id="${id}">${ic('clipboard-paste', 20)}Kopiuj jako tekst</button><button data-a="planJson" data-id="${id}">${ic('file-json', 20)}Eksportuj do pliku</button><button class="danger" data-a="planDel" data-id="${id}">${ic('trash-2', 20)}Usuń plan</button></div>`, { title: 'Plan' });
   };
   F.act.planEditGo = b => { F.closeSheet(true); F.go('#/plan/' + b.dataset.id + '/edit'); };
   F.act.planDup = async b => { const p = F.planOf(b.dataset.id); const c = JSON.parse(JSON.stringify(p)); c.id = F.uid(); c.name = p.name + ' (kopia)'; c.created = Date.now(); c.days.forEach(d => { d.id = F.uid(); d.items.forEach(i => i.id = F.uid()); }); await F.savePlan(c); F.closeSheet(true); F.toast('Zduplikowano plan'); F.go('#/plan/' + c.id); };

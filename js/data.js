@@ -145,27 +145,47 @@ F.TEMPLATES = [
     ['Push — klatka, barki, triceps', [['bench', 4], ['db_inc', 3], ['fly_cable', 3], ['ohp', 3], ['lateral', 3], ['tri_push', 3], ['tri_over', 2]]],
     ['Pull — plecy, biceps', [['pullup', 4], ['row_bb', 3], ['row_cable', 3], ['curl_bb', 3], ['curl_ham', 3], ['cab_crunch', 2], ['leg_raise', 2]]],
     ['Nogi', [['squat', 4], ['leg_press', 4], ['leg_ext', 2], ['rdl', 4], ['leg_curl_s', 3], ['hip_thrust', 2], ['calf_st', 3]]]
-  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 2, 4] }],
+  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 2, 4], cat: 'gym' }],
   ['Góra / Dół', 'Każda partia 2 razy w tygodniu: dzień cięższy (mniej powtórzeń) i dzień lżejszy (więcej powtórzeń). 10–16 serii tygodniowo na dużą partię. Trening trwa 60–70 min.', [
     ['Góra A — cięższa', [['bench', 4], ['row_bb', 3], ['ohp', 3], ['lat_pull', 3], ['curl_ez', 3], ['tri_push', 3]]],
     ['Dół A — cięższy', [['squat', 4], ['rdl', 3], ['leg_press', 3], ['leg_curl_s', 3], ['calf_st', 3], ['cab_crunch', 3]]],
     ['Góra B — lżejsza', [['db_inc', 3], ['pullup', 3], ['fly_cable', 3], ['row_cable', 3], ['lateral', 3], ['curl_inc', 3], ['tri_over', 3]], 'hy'],
     ['Dół B — lżejszy', [['hack', 3], ['hip_thrust', 3], ['bulgar', 3], ['leg_curl', 2], ['leg_ext', 3], ['calf_se', 3], ['leg_raise', 3]], 'hy']
-  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 1, 3, 4] }],
+  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 1, 3, 4], cat: 'gym' }],
   ['Siła A/B (3×5)', 'Przysiad w każdym treningu, pozostałe boje na zmianę. Treningi A i B naprzemiennie, 3 razy w tygodniu: A-B-A, w następnym tygodniu B-A-B. Gdy zrobisz wszystkie serie po 5 powtórzeń, następnym razem dołóż ciężar.', [
     ['Trening A', [['squat', 3, '5'], ['bench', 3, '5'], ['row_bb', 3, '5'], ['rdl', 2, '6-8'], ['cab_crunch', 2]]],
     ['Trening B', [['squat', 3, '5'], ['ohp', 3, '5'], ['deadlift', 1, '5'], ['db_bench', 2, '6-8'], ['curl_bb', 2], ['plank', 2]]]
-  ], { goal: 'str', exp: 'beg', weekdays: [0, 2, 4] }],
+  ], { goal: 'str', exp: 'beg', weekdays: [0, 2, 4], cat: 'gym' }],
   ['Całe ciało 3×', 'Trzy treningi całego ciała w tygodniu, każda duża partia 3 razy. Proste ćwiczenia na wolnych ciężarach i maszynach. Trening trwa 50–60 min.', [
     ['Całe ciało A', [['squat', 3], ['bench', 4], ['lat_pull', 3], ['leg_curl_s', 3], ['tri_push', 2], ['plank', 2]]],
     ['Całe ciało B', [['rdl', 3], ['db_ohp', 3], ['row_cable', 3], ['leg_press', 4], ['curl_db', 2], ['pushup', 3]]],
     ['Całe ciało C', [['goblet', 3], ['db_bench', 3], ['row_db', 3], ['leg_curl', 3], ['curl_db', 2], ['cab_crunch', 2]]]
-  ], { goal: 'hyp', exp: 'beg', weekdays: [0, 2, 4] }],
+  ], { goal: 'hyp', exp: 'beg', weekdays: [0, 2, 4], cat: 'gym' }],
   ['Pośladki i nogi', 'Nacisk na pośladki i tył uda — pośladki dostają więcej serii niż zakres FORGE dla tej partii. Góra ciała w mniejszej objętości: klatka 6 serii tygodniowo, a minimum według przeglądu Iversena i in. (2021) to 4.', [
     ['Pośladki A', [['hip_thrust', 4], ['rdl', 3], ['bulgar', 3], ['abduct', 3], ['db_bench', 3], ['lat_pull', 3]]],
     ['Nogi i góra', [['squat', 4], ['leg_curl_s', 3], ['glute_kick', 3], ['db_ohp', 3], ['row_cable', 3], ['cab_crunch', 2]]],
     ['Pośladki B', [['sumo', 3], ['hip_thrust', 3], ['step_up', 3], ['db_inc', 3], ['row_db', 3], ['calf_st', 2], ['plank', 2]]]
-  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 2, 4] }]
+  ], { goal: 'hyp', exp: 'mid', weekdays: [0, 2, 4], cat: 'gym' }],
+  ['Siła: Góra / Dół', 'Cztery dni: każdy bój ma swój dzień z 3–5 powtórzeniami, reszta to ćwiczenia pomocnicze. Każda partia 2 razy w tygodniu (ACSM 2026: dla siły co najmniej 2 sesje). Trening trwa 45–65 min.', [
+    ['Góra 1 — wyciskanie leżąc', [['bench', 4, '3-5'], ['row_bb', 3, '6-8'], ['db_bench', 3, '6-8'], ['ohp', 2, '6-8'], ['tri_push', 2]]],
+    ['Dół 1 — przysiad', [['squat', 4, '3-5'], ['rdl', 3, '6-8'], ['leg_curl', 2], ['calf_st', 2], ['cab_crunch', 2]]],
+    ['Góra 2 — wyciskanie nad głowę', [['ohp', 4, '3-5'], ['db_inc', 3, '6-8'], ['row_cable', 3, '8-10'], ['lat_pull', 2, '8-10'], ['curl_ez', 2]]],
+    ['Dół 2 — martwy ciąg', [['deadlift', 3, '3-5'], ['front_sq', 3, '6-8'], ['bulgar', 2, '8-10'], ['plank', 2]]]
+  ], { goal: 'str', exp: 'mid', weekdays: [0, 1, 3, 4], cat: 'gym' }],
+  ['Dom: hantle i drążek', 'Hantle (najlepiej regulowane), ławka lub stabilne podwyższenie i drążek. Trzy treningi całego ciała, każda duża partia 3 razy w tygodniu. Trening trwa 50–60 min.', [
+    ['Dom A', [['fe_dumbbell_squat_to_a_bench', 4], ['db_bench', 4], ['row_db', 3], ['fe_stiff_legged_dumbbell_deadlift', 3], ['lateral', 2], ['plank', 2]]],
+    ['Dom B', [['bulgar', 3], ['pullup', 3], ['db_ohp', 3], ['glute_br', 3], ['curl_db', 2], ['pushup', 3]]],
+    ['Dom C', [['lunge', 3], ['pushup', 3], ['fe_bent_over_two_dumbbell_row', 3], ['fe_stiff_legged_dumbbell_deadlift', 3], ['fe_standing_dumbbell_calf_raise', 2], ['crunch', 2]]]
+  ], { goal: 'hyp', exp: 'beg', weekdays: [0, 2, 4], cat: 'home' }],
+  ['Bez sprzętu', 'Sam ciężar ciała — w domu, w hotelu albo w plenerze. Bez drążka plecy i biceps pracują słabo; gdy możesz, dodaj drążek albo gumę. Trening trwa 40–50 min.', [
+    ['Ciało A', [['fe_bodyweight_squat', 3], ['pushup', 3], ['glute_br', 3], ['fe_superman', 3], ['plank', 2]]],
+    ['Ciało B', [['fe_bodyweight_walking_lunge', 3], ['fe_incline_push_up', 3], ['fe_single_leg_glute_bridge', 2], ['bench_dip', 2], ['side_plank', 2]]],
+    ['Ciało C', [['fe_bodyweight_squat', 3], ['pushup', 3], ['fe_step_up_with_knee_raise', 2], ['fe_superman', 3], ['fe_dead_bug', 2]]]
+  ], { goal: 'health', exp: 'beg', weekdays: [0, 2, 4], cat: 'home' }],
+  ['Zdrowie 60+', 'Dwa treningi na zmianę, 3 razy w tygodniu: maszyny i proste ćwiczenia siły i równowagi (WHO 2020), z zapasem powtórzeń zamiast do upadku (ACSM 2026). Przy chorobach przewlekłych start skonsultuj z lekarzem. Trening trwa 40–45 min.', [
+    ['Trening A', [['leg_press', 2], ['chest_mach', 2], ['row_mach', 2], ['step_up', 2], ['leg_curl_s', 2], ['plank', 2]]],
+    ['Trening B', [['fe_dumbbell_squat_to_a_bench', 2], ['lat_pull', 2], ['chest_mach', 2], ['glute_br', 2], ['calf_st', 2], ['side_plank', 2]]]
+  ], { goal: 'health', exp: 'beg', weekdays: [0, 2, 4], cat: 'health' }]
 ];
 
 F.QUOTES = [

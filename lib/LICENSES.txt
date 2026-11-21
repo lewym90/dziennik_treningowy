@@ -1,0 +1,4 @@
+Biblioteki dołączone do FORGE (ładowane lokalnie, bez internetu):
+- jsPDF 4.2.1 — licencja MIT, (c) 2010-2025 James Hall, (c) 2015-2025 yWorks GmbH — https://github.com/parallax/jsPDF
+- qrcode-generator 1.4.4 — licencja MIT, (c) 2009 Kazuhiko Arase — https://github.com/kazuhikoarase/qrcode-generator
+- Czcionki Barlow i Barlow Condensed — SIL Open Font License 1.1, (c) The Barlow Project Authors — https://github.com/jpt/barlow

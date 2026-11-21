@@ -72,9 +72,19 @@
   F.STRSTD = { STD, LV, label: d => dotsLabel(d) };
   const poly = (c, x) => c.reduce((a, k, i) => a + k * Math.pow(x, i), 0);
   F.dots = (total, bw, sex) => { const c = sex === 'f' ? [-57.96288, 13.6175032, -0.1126655495, 0.0005158568, -0.0000010706] : [-307.75076, 24.0900756, -0.1918759221, 0.0007391293, -0.000001093]; const d = poly(c, bw); return d > 0 ? total * 500 / d : 0; };
+  // IPF GL (2020), trójbój klasyczny: 100 / (A − B·e^(−C·masa)); mężczyźni A 1199.72839, B 1025.18162, C 0.00921; kobiety A 610.32796, B 1045.59282, C 0.03048
+  F.ipfGL = (total, bw, sex) => { if (!total || !bw) return 0; const [A, B, C] = sex === 'f' ? [610.32796, 1045.59282, 0.03048] : [1199.72839, 1025.18162, 0.00921]; if (bw < (sex === 'f' ? 35 : 40)) return 0; return total * 100 / (A - B * Math.exp(-C * bw)); };
   F.wilks = (total, bw, sex) => { const c = sex === 'f' ? [-125.4255398, 13.71219419, -0.03307250631, -0.001050400051, 0.00000938773881462799, -0.000000023334613884954] : [47.46178854, 8.472061379, 0.07369410346, -0.001395833811, 0.00000707665973070743, -0.0000000120804336482315]; const d = poly(c, bw); return d > 0 ? total * 600 / d : 0; };
   const dotsLabel = d => d >= 500 ? 'poziom elitarny' : d >= 400 ? 'poziom krajowy/regionalny' : d >= 300 ? 'mocny amator' : d >= 200 ? 'solidny początek' : 'początek drogi';
   const sexKey = () => F.S.settings.sex === 'f' ? 'f' : F.S.settings.sex === 'm' ? 'm' : '';
+  const meetHtml = () => {
+    const m = F.S.settings.meet, now = F.startOfDay(Date.now()); const days = m ? Math.round((F.startOfDay(m) - now) / DAY) : null;
+    const tip = days == null || days < 0 ? '' : days <= 4 ? 'Ostatnie dni: zawodnicy najczęściej odpoczywają 1,5–4 dni przed startem.' : days <= 10 ? 'Ostatnie 7–10 dni: zawodnicy zwykle zmniejszają objętość o 40–50%; ostatni ciężki przysiad i martwy ciąg 5–10 dni przed startem.' : days <= 21 ? 'Zwykle 2–3 tygodnie przed startem wypada najwyższa intensywność.' : days <= 56 ? 'Zwykle 4–8 tygodni przed startem wypada największa objętość treningowa.' : '';
+    return `<h3 class="sec">Zawody</h3><section class="card cut meet">${days != null && days >= 0 ? `<div class="meet-h"><b>${days === 0 ? 'Dziś start!' : days + ' ' + F.plur(days, 'dzień', 'dni', 'dni') + ' do startu'}</b><small>${F.fmtDateLong(m)}</small></div>${tip ? `<p class="small">${tip} <span class="dim">(Travis i in. 2021; Winwood i in. 2026)</span></p>` : ''}` : `<p class="dim small">Wpisz datę startu, a pokażę odliczanie i co zwykle robią zawodnicy na danym etapie.</p>`}
+      <label class="fld"><span>Data zawodów</span><input type="date" data-b="meetDate" value="${m ? F.dateInput(m) : ''}"></label>
+      <div class="btn-row"><a class="btn ghost" href="#/tools">${ic('trophy', 16)} Planer podejść</a><a class="btn ghost" href="#/guide/meet">${ic('book-open', 16)} Co mówią badania</a></div></section>`;
+  };
+  F.bind.meetDate = el => { const v = el.value; F.S.settings.meet = /^\d{4}-\d{2}-\d{2}$/.test(v) ? new Date(v + 'T12:00').getTime() : 0; F.saveSettings(); F.render(true); };
   F.statsStrength = () => {
     const sex = sexKey(), bw = F.latestBW();
     const setup = '';
@@ -90,9 +100,9 @@
     const l3 = ['squat', 'bench', 'deadlift'].map(id => F.bestE1(id)); const have3 = l3.every(x => x > 0); const tot = l3.reduce((a, b) => a + b, 0);
     const dots = have3 ? F.dots(tot, bw, sex) : 0, wil = have3 ? F.wilks(tot, bw, sex) : 0;
     const tri = have3 ? `<section class="card cut total"><h3>Trójbój — suma maksimów</h3><div class="big-n">${F.fw(tot)} <small>${F.unit()}</small></div><div class="trio"><div><small>Przysiad</small><b>${F.fw(l3[0])}</b></div><div><small>Wyciskanie</small><b>${F.fw(l3[1])}</b></div><div><small>Martwy</small><b>${F.fw(l3[2])}</b></div></div>
-      <div class="tiles two"><div class="tile cut"><span class="tl">DOTS</span><b class="tv">${F.fmtNum(dots, 1)}</b><small>wzór DOTS</small></div><div class="tile cut"><span class="tl">Wilks</span><b class="tv">${F.fmtNum(wil, 1)}</b><small>wzór 2020</small></div></div>
+      <div class="tiles three"><div class="tile cut"><span class="tl">Punkty GL</span><b class="tv sm">${F.fmtNum(F.ipfGL(tot, bw, sex), 1)}</b><small>IPF, klasyczny</small></div><div class="tile cut"><span class="tl">DOTS</span><b class="tv sm">${F.fmtNum(dots, 1)}</b><small>wzór DOTS</small></div><div class="tile cut"><span class="tl">Wilks</span><b class="tv sm">${F.fmtNum(wil, 1)}</b><small>wzór 2020</small></div></div>
       <p class="dim small">Liczone z wyliczonych 1RM (serie do 10 powtórzeń) i masy ciała ${F.fwu(bw)}. Planer podejść zawodów znajdziesz w <a href="#/tools"><u>Narzędziach</u></a>.</p></section>` : `<p class="dim small center">Żeby policzyć DOTS i Wilks, zapisz przysiad, wyciskanie leżąc i martwy ciąg (id ćwiczeń: Przysiad ze sztangą, Wyciskanie sztangi leżąc, Martwy ciąg).</p>`;
-    return tri + `<h3 class="sec">Poziomy siły</h3>` + rows + setup + `<p class="dim small">Progi poziomów to wielokrotności masy ciała przyjęte w FORGE do śledzenia postępu — nie pochodzą z badania naukowego. Do porównań siły między osobami o różnej masie ciała służą wzory DOTS i Wilks używane w trójboju.</p>`;
+    return tri + meetHtml() + `<h3 class="sec">Poziomy siły</h3>` + rows + setup + `<p class="dim small">Progi poziomów to wielokrotności masy ciała przyjęte w FORGE do śledzenia postępu — nie pochodzą z badania naukowego. Do porównań siły między osobami o różnej masie ciała służą wzory DOTS i Wilks używane w trójboju.</p>`;
   };
   F.act.setSex = b => { F.S.settings.sex = b.dataset.v; F.saveSettings(); F.render(true); };
   F.act.stBw = async () => { const v = num(F.$('#st-bw').value); if (!v || F.fromDisp(v) < 20 || F.fromDisp(v) > 400) { F.toast('Podaj poprawną wagę'); return; } await F.addBW(F.fromDisp(v), Date.now()); F.rebuild(); F.toast('Zapisano wagę', 'hot'); F.render(true); };

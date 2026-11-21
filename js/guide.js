@@ -80,6 +80,11 @@
       ['h', 'Nawodnienie'], ['ul', ['Nie dopuszczaj do utraty ponad 2% masy ciała przez odwodnienie w czasie wysiłku — pogarsza to wyniki.', 'Tempo pocenia się ocenisz, ważąc się przed i po treningu.']],
       ['p', 'Przy chorobach przewlekłych, w ciąży i przy przyjmowaniu leków skonsultuj suplementy z lekarzem. Innych suplementów FORGE nie omawia, bo dowody na ich działanie są słabsze.']
     ] },
+    { id: 'meet', c: 'plan', ic: 'trophy', t: 'Przed zawodami w trójboju', lead: 'Co mówią badania o ostatnich tygodniach przed startem — i czego jeszcze nie wiadomo.', f: ['taper'], b: [
+      ['h', 'Stan wiedzy'], ['p', 'Badań nad szczytowaniem formy w trójboju jest mało i nie ma jednego sprawdzonego protokołu. Dlatego FORGE nie układa planu szczytowania — pokazuje, co robią zawodnicy, i liczy podejścia oraz punkty.'],
+      ['h', 'Typowa praktyka zawodników'], ['ul', ['Największa objętość 4–8 tygodni przed startem, najwyższa intensywność 2–3 tygodnie przed.', 'W ostatnich 7–10 dniach objętość mniejsza o 40–50%.', 'Ostatni ciężki przysiad i martwy ciąg 5–10 dni przed startem, wyciskanie leżąc 3–7 dni przed.', 'Pełny odpoczynek 1,5–4 dni przed zawodami.']],
+      ['h', 'W FORGE'], ['ul', ['Siła → Zawody: data startu i odliczanie, punkty GL, DOTS i Wilks z Twoich wyliczonych maksów.', 'Narzędzia → Planer podejść: trzy podejścia na każdy bój z Twojego maksa.', 'Szczytowanie ustal z trenerem — aplikacja nie zastąpi oceny kogoś, kto widzi Cię na pomoście.']]
+    ] },
     { id: 'groups', c: 'base', ic: 'users', t: 'Kobiety, osoby starsze i ciąża', lead: 'Zasady treningu są wspólne; różnią się priorytety i ostrożność.', f: ['women', 'older', 'preg'], b: [
       ['h', 'Kobiety'], ['p', 'Kobiety i mężczyźni zyskują podobnie pod względem masy mięśniowej i siły nóg, a kobiety względnie więcej siły górnej części ciała. Serie, ciężary i progresja są takie same.'],
       ['h', 'Osoby starsze'], ['ul', ['Trening oporowy skutecznie przeciwdziała utracie siły i masy mięśniowej z wiekiem.', 'Po 65. roku życia co najmniej 3 dni w tygodniu ćwiczenia łączące równowagę i siłę.', 'Bez treningu do upadku — zostawiaj większy zapas powtórzeń. Kreator robi to automatycznie od 60. roku życia.']],

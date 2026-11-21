@@ -49,4 +49,5 @@ Dodatkowo: przebudowa nawigacji — aplikacja ma być schludna i intuicyjna, bez
 ## Stan wdrożenia
 - v1.26.0: N1–N10 (nawigacja).
 - v1.27.0: punkty 1, 2, 3, 4, 6, 7, 9, 10, 11, 12, 21, 22.
-- Do zrobienia: 8 (trójbój — tylko informacje z badań, bez układania szczytowania), 18 (tryb trenera), 19 (biblioteka programów), 23 (raport PDF); 5 do przemyślenia; 24 na końcu.
+- v1.28.0: punkty 8 (tylko informacje z badań, bez układania szczytowania), 18, 19, 23.
+- Zostało: 5 do przemyślenia (animacje), 20 do decyzji (chmura), 13–16 później, 24 na samym końcu.

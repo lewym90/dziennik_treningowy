@@ -20,7 +20,7 @@
     if (!location.hash) location.hash = '#/home';
     F.render();
     if (F.S.draft && !location.hash.startsWith('#/workout')) F.updateDock();
-    if (F.tourMaybe && !q.get('a')) F.tourMaybe();
+    if (F.tourMaybe && !q.get('a') && !location.hash.startsWith('#/get/')) F.tourMaybe();
     // splash
     const sp = F.$('#splash'); const wait = Math.max(0, 1300 - (performance.now() - t0));
     setTimeout(() => F.burst(innerWidth / 2, innerHeight * .45, 40, 1.1), 700);

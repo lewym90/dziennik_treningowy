@@ -966,3 +966,10 @@ body.kbd .sdk.on{padding-bottom:10px}
 .pc-blk{flex-wrap:wrap}.pc-bar{flex-basis:100%;height:5px;border-radius:3px;background:#2a231e;margin-top:6px;position:relative;overflow:hidden}.pc-bar>i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--a1),var(--a2));border-radius:3px}
 .wz-mode{margin-bottom:12px}.wz-mode button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .feel{margin:0;padding:0;background:none;box-shadow:none}.fl-q{margin:0 0 8px;color:var(--tx2);font-size:14px;line-height:1.4}.fl-skip{margin-top:12px}
+.meet-h{display:grid;gap:2px;margin-bottom:6px}.meet-h b{font:700 22px var(--fd)}.meet-h small{color:var(--tx2)}
+/* tryb trenera */
+.qr{background:#fff;border-radius:14px;padding:12px;width:min(260px,70vw);margin:4px auto 14px}.qr svg{display:block;width:100%;height:auto}
+.pl-prev{list-style:none;margin:0 0 6px;padding:0}.pl-prev li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line,rgba(255,255,255,.08));font-size:14px}.pl-prev li b{white-space:nowrap}
+.cli-s{padding:14px}.cli-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}.cli-h small{color:var(--dim,#9aa)}
+.cli-e{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:14px;border-top:1px solid var(--line,rgba(255,255,255,.06))}.cli-e b{font-weight:600;text-align:right}
+.warn-t{color:var(--warn,#f5a524)}
