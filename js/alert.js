@@ -75,6 +75,7 @@
   };
   F.act.pushTest = async () => { const c = pcfg(); if (!c) return; try { await papi(c, '/test', { deviceId: c.deviceId }); F.toast('Wysłano. Za chwilę powinno przyjść powiadomienie.'); } catch (e) { F.toast(e.message || 'Nie udało się wysłać'); } };
   F.act.pushOff = async () => { const c = pcfg(); pset(null); try { if (c) await papi(c, '/unsubscribe', { deviceId: c.deviceId }); } catch (e) { } try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) { } F.toast('Rozłączono'); F.render(true); };
+  F.pushOn = () => !!pcfg();
   F.pushHtml = () => {
     const c = pcfg(), ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const warn = ios && !standalone() ? `<p class="dim small" style="color:var(--a1)">Na iPhonie powiadomienia działają tylko z aplikacji dodanej do ekranu początkowego (Safari → Udostępnij → Do ekranu początkowego), otwartej stamtąd.</p>` : '';

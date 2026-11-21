@@ -155,6 +155,7 @@
       return { name: nm, rows, tot, target: K };
     });
   };
+  F.mealPlan = mealPlan; F.FOOD = FOOD;
   F.act.nutSet = b => { const s = F.S.settings; s.nut = { ...(s.nut || {}), [b.dataset.k]: b.dataset.n ? +b.dataset.v : b.dataset.v === '1' ? true : b.dataset.v === '0' ? false : b.dataset.v }; F.saveSettings(); F.render(true); };
   F.act.nutAgain = () => { F.ui.nutSeed = (F.ui.nutSeed || 0) + 1; F.render(true); };
   V.nutrition = () => {

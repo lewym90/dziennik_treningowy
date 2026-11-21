@@ -70,6 +70,7 @@
     F.S.sessions.forEach(se => se.exercises.forEach(e => { if (e.exId !== id) return; e.sets.forEach(s => { if (F.isWork(s) && s.w && s.r && s.r <= 10) best = Math.max(best, F.e1rm(F.effLoad(ex, s, se.start), s.r)); }); }));
     return best;
   };
+  F.STRSTD = { STD, LV, label: d => dotsLabel(d) };
   const poly = (c, x) => c.reduce((a, k, i) => a + k * Math.pow(x, i), 0);
   F.dots = (total, bw, sex) => { const c = sex === 'f' ? [-57.96288, 13.6175032, -0.1126655495, 0.0005158568, -0.0000010706] : [-307.75076, 24.0900756, -0.1918759221, 0.0007391293, -0.000001093]; const d = poly(c, bw); return d > 0 ? total * 500 / d : 0; };
   F.wilks = (total, bw, sex) => { const c = sex === 'f' ? [-125.4255398, 13.71219419, -0.03307250631, -0.001050400051, 0.00000938773881462799, -0.000000023334613884954] : [47.46178854, 8.472061379, 0.07369410346, -0.001395833811, 0.00000707665973070743, -0.0000000120804336482315]; const d = poly(c, bw); return d > 0 ? total * 600 / d : 0; };
@@ -127,6 +128,7 @@
     return sub + (t === 'm' ? bodyMeasures() : t === 'p' ? bodyPhotos() : F.statsWeight());
   };
   F.act.bodyTab = b => { F.ui.bodyTab = b.dataset.t; F.render(true); };
+  F.MEASF = MF; F.MUS_TARGET = TARGET;
   function bodyMeasures() {
     const ms = F.S.measures; const key = F.ui.mKey || 'waist'; const def = MF.find(x => x[0] === key) || MF[1];
     const last = ms[ms.length - 1]; const first = ms[0];
