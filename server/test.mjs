@@ -53,3 +53,21 @@ assert.equal(Object.keys(m.getDb().devices).length, 0, 'wygasłe urządzenie usu
   assert.deepEqual(got.slice(2).map(x => x.body), ['Z'], 'za krótka przerwa: bez ostrzeżenia');
 }
 console.log('OK — wszystkie testy serwera przeszły');
+
+// Łączenie bez kodu (jeden przycisk w aplikacji), limit nowych połączeń z jednego IP, zwalnianie nieużywanych miejsc
+{
+  const mk = (i) => ({ endpoint: 'https://push.example/open' + i, keys: { p256dh: 'a', auth: 'b' } });
+  const T = 1_800_000_000_000;
+  let r = await m.handle('POST', '/subscribe', {}, { deviceId: 'open_device_00000001', subscription: mk(1) }, T, '1.1.1.1');
+  assert.equal(r[0], 200, 'bez kodu działa'); assert.ok(r[1].token);
+  r = await m.handle('POST', '/subscribe', {}, { deviceId: 'open_device_00000002', setup: 'zly', subscription: mk(2) }, T, '1.1.1.1');
+  assert.equal(r[0], 401, 'błędny kod nadal odrzucany');
+  let last; for (let i = 3; i < 20; i++) last = await m.handle('POST', '/subscribe', {}, { deviceId: 'open_device_0000000' + String(i).padStart(2, '0'), subscription: mk(i) }, T, '2.2.2.2');
+  assert.equal(last[0], 429, 'limit nowych połączeń z jednego IP');
+  r = await m.handle('POST', '/subscribe', {}, { deviceId: 'open_device_00000099', subscription: mk(99) }, T + 3_700_000, '2.2.2.2');
+  assert.equal(r[0], 200, 'po godzinie znowu można');
+  r = await m.handle('POST', '/subscribe', {}, { deviceId: 'code_device_00000001', setup: 'KOD123', subscription: mk(100) }, T, '2.2.2.2');
+  assert.equal(r[0], 200, 'z poprawnym kodem bez limitu IP');
+  console.log('OK: łączenie bez kodu');
+}
+

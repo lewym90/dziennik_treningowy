@@ -17,7 +17,11 @@ const cfg = {
   vapidPrivate: process.env.VAPID_PRIVATE || '',
   subject: process.env.VAPID_SUBJECT || 'https://lewym90.github.io/dziennik_treningowy/',
   origin: process.env.ALLOW_ORIGIN || 'https://lewym90.github.io',
-  maxDevices: +(process.env.MAX_DEVICES || 100),
+  // Bez kodu: aplikacja łączy się jednym przyciskiem. REQUIRE_CODE=1 przywraca obowiązkowy kod połączenia.
+  requireCode: process.env.REQUIRE_CODE === '1',
+  maxDevices: Math.max(+(process.env.MAX_DEVICES || 0), 5000),
+  idleDays: +(process.env.IDLE_DAYS || 60),   // przy komplecie urządzeń zwalniamy najdłużej nieużywane (dłużej niż tyle dni)
+  newPerIpHour: +(process.env.NEW_PER_IP_HOUR || 10),
   lateMs: +(process.env.LATE_MS || 90000),   // timer spóźniony o więcej (np. po restarcie serwera) jest pomijany
   tickMs: +(process.env.TICK_MS || 500),
   maxSec: 3600,
@@ -101,7 +105,22 @@ const validSub = (s) => s && typeof s.endpoint === 'string' && /^https:\/\//.tes
 const validId = (s) => typeof s === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(s);
 const str = (v, n) => String(v == null ? '' : v).slice(0, n);
 
-export async function handle(method, url, headers, body, now = Date.now()) {
+const newHits = new Map();
+const tooManyNew = (ip, now) => {
+  if (!ip) return false; const h = Math.floor(now / 3600000), k = `${ip}:${h}`;
+  newHits.set(k, (newHits.get(k) || 0) + 1);
+  if (newHits.size > 5000) for (const x of newHits.keys()) if (!x.endsWith(`:${h}`)) newHits.delete(x);
+  return newHits.get(k) > cfg.newPerIpHour;
+};
+// zwolnij miejsce: usuń najdłużej nieużywane urządzenie, jeśli nie było używane od cfg.idleDays
+const evictIdle = (now) => {
+  let oldId = null, oldT = Infinity;
+  for (const [id, d] of Object.entries(db.devices)) { const t = d.used || d.created || 0; if (t < oldT) { oldT = t; oldId = id; } }
+  if (oldId && now - oldT > cfg.idleDays * 864e5) { delete db.devices[oldId]; log(`zwolniono nieużywane urządzenie ${oldId.slice(0, 6)}`); return true; }
+  return false;
+};
+
+export async function handle(method, url, headers, body, now = Date.now(), ip = '') {
   const route = url.split('?')[0].replace(/\/+$/, '') || '/';
   if (method === 'GET' && route === '/health') return [200, { ok: true, devices: Object.keys(db.devices).length }];
   if (method === 'GET' && route === '/vapid') return [200, { publicKey: cfg.vapidPublic }];
@@ -115,16 +134,20 @@ export async function handle(method, url, headers, body, now = Date.now()) {
       dev.sub = subscription; touch(); saveDb();
       return [200, { ok: true }];
     }
-    if (!cfg.setupCode || typeof setup !== 'string' || !safeEq(setup, cfg.setupCode)) return [401, { error: 'zły kod połączenia' }];
-    if (Object.keys(db.devices).length >= cfg.maxDevices) return [403, { error: 'za dużo urządzeń' }];
+    const codeOk = cfg.setupCode && typeof setup === 'string' && setup !== '' && safeEq(setup, cfg.setupCode);
+    if (cfg.requireCode && !codeOk) return [401, { error: 'zły kod połączenia' }];
+    if (!codeOk && setup && cfg.setupCode) return [401, { error: 'zły kod połączenia' }];
+    if (!codeOk && tooManyNew(ip, now)) return [429, { error: 'za dużo nowych połączeń, spróbuj za godzinę' }];
+    if (Object.keys(db.devices).length >= cfg.maxDevices && !evictIdle(now)) return [403, { error: 'serwer jest pełny, spróbuj później' }];
     const token = crypto.randomBytes(24).toString('base64url');
-    db.devices[deviceId] = { tokenHash: sha(token), sub: subscription, created: now };
+    db.devices[deviceId] = { tokenHash: sha(token), sub: subscription, created: now, used: now };
     touch(); saveDb();
     return [200, { ok: true, token }];
   }
   const id = body && body.deviceId;
   const dev = validId(id) ? db.devices[id] : null;
   if (!dev || !auth || !safeEq(sha(auth), dev.tokenHash)) return [401, { error: 'brak uprawnień' }];
+  if (now - (dev.used || 0) > 864e5) { dev.used = now; touch(); }
   if (method === 'POST' && route === '/timer') {
     const sec = Math.round(+body.sec);
     if (!Number.isFinite(sec) || sec < 1 || sec > cfg.maxSec) return [400, { error: 'zły czas' }];
@@ -151,18 +174,19 @@ export function createServer() {
     const cors = { 'Access-Control-Allow-Origin': origin && origin === cfg.origin ? origin : cfg.origin, 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Max-Age': '86400', Vary: 'Origin' };
     const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...cors }); res.end(JSON.stringify(obj)); };
     if (req.method === 'OPTIONS') { res.writeHead(204, cors); return res.end(); }
-    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',').pop().trim(); // ostatni wpis dopisuje nasz proxy — pierwszego może podrobić klient
     if (limited(ip)) return send(429, { error: 'za dużo żądań' });
     try {
       const body = req.method === 'POST' ? await readBody(req) : {};
-      const [code, obj] = await handle(req.method, req.url, req.headers, body);
+      const [code, obj] = await handle(req.method, req.url, req.headers, body, Date.now(), ip);
       send(code, obj);
     } catch (e) { send(e.code === 413 || e.code === 400 ? e.code : 500, { error: e.message || 'błąd' }); }
   });
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  if (!cfg.vapidPublic || !cfg.vapidPrivate || !cfg.setupCode) { console.error('Brak VAPID_PUBLIC / VAPID_PRIVATE / SETUP_CODE w środowisku.'); process.exit(1); }
+  if (!cfg.vapidPublic || !cfg.vapidPrivate) { console.error('Brak VAPID_PUBLIC / VAPID_PRIVATE w środowisku.'); process.exit(1); }
+  if (cfg.requireCode && !cfg.setupCode) { console.error('REQUIRE_CODE=1, ale brak SETUP_CODE.'); process.exit(1); }
   loadDb();
   const srv = createServer();
   srv.listen(cfg.port, cfg.host, () => log(`FORGE push: ${cfg.host}:${cfg.port}, urządzeń: ${Object.keys(db.devices).length}`));

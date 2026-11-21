@@ -973,3 +973,4 @@ body.kbd .sdk.on{padding-bottom:10px}
 .cli-s{padding:14px}.cli-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}.cli-h small{color:var(--dim,#9aa)}
 .cli-e{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:14px;border-top:1px solid var(--line,rgba(255,255,255,.06))}.cli-e b{font-weight:600;text-align:right}
 .warn-t{color:var(--warn,#f5a524)}
+.pu-adv{margin-top:10px}.pu-adv summary{cursor:pointer;color:var(--dim,#9aa);font-size:14px;padding:6px 0}.pu-adv .fld{margin-top:8px}

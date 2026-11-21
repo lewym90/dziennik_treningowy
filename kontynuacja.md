@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.28.1** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.28.2** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,11 @@ Stan na 21 listopada 2026. Wersja **1.28.1** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.28.2 — powiadomienia jednym przyciskiem (21.11.2026)
+- Serwer: kod połączenia nie jest już wymagany (REQUIRE_CODE=1 przywraca). Ochrona: maks. 10 nowych urządzeń na godzinę z jednego IP (IP z ostatniego wpisu X-Forwarded-For), limit urządzeń min. 5000, przy komplecie zwalniane najdłużej nieużywane (>60 dni, pole `used`). Błędny kod nadal odrzucany; z poprawnym kodem bez limitu IP. Testy: `cd server && npm test`.
+- Aplikacja (alert.js): przycisk „Włącz powiadomienia” + próbne powiadomienie od razu; adres i kod schowane w „Własny serwer”. `rejoin` działa bez kodu.
+- Wymaga aktualizacji serwera na VPS poleceniem z instalatora (klucze zostają, telefony już połączone działają dalej).
 
 ## v1.28.0 — trójbój, biblioteka planów, raport PDF, tryb trenera (21.11.2026)
 - Pkt 8 (tylko informacje, bez układania szczytowania — Travis 2020: brak dowodów na konkretne protokoły): karta „Zawody” w Narzędziach (`meetHtml`, `settings.meet`): odliczanie, wskazówka na dany etap (ankiety Travis 2021, przegląd Winwood 2026), linki do Planera podejść i artykułu `#/guide/meet` („Przed zawodami w trójboju”, grafika `assets/guide/meet.webp` od v1.28.1). Punkty IPF GL (`F.ipfGL`, współczynniki IPF 2020, sprawdzone na przykładach) obok DOTS/Wilks. Źródła w kb.js: travis2020, travis2021, burke2023, winwood2026, ipfgl; fakt `taper`.

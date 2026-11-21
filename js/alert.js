@@ -66,11 +66,12 @@
   }
   async function pushCancel() { const c = pcfg(); if (!c) return; try { await papi(c, '/cancel', { deviceId: c.deviceId }, 'POST', true); } catch (e) { } }
   async function rejoin(c) { // serwer nie zna już telefonu: zarejestruj ponownie zapamiętanym kodem
-    try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (!sub || !c.code) return false; const res = await papi({ url: c.url }, '/subscribe', { deviceId: c.deviceId, setup: c.code, subscription: sub.toJSON() }); if (!res.token) return false; c.token = res.token; pset(c); return true; } catch (e) { return false; }
+    try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (!sub) return false; const res = await papi({ url: c.url }, '/subscribe', { deviceId: c.deviceId, setup: c.code, subscription: sub.toJSON() }); if (!res.token) return false; c.token = res.token; pset(c); return true; } catch (e) { return false; }
   }
   F.act.pushConnect = async b => {
-    const url = (F.$('#pu-url') || {}).value, code = (F.$('#pu-code') || {}).value; if (b) b.disabled = true;
-    try { await pushConnect(url, code); F.toast('Połączono z serwerem. Dotknij „Wyślij test”.', 'hot'); } catch (e) { F.toast(e.message || 'Nie udało się połączyć'); }
+    const url = ((F.$('#pu-url') || {}).value || '').trim() || DEF_URL, code = (F.$('#pu-code') || {}).value || ''; if (b) b.disabled = true;
+    try { const c = await pushConnect(url, code); F.toast('Powiadomienia włączone. Wysyłam próbne…', 'hot'); try { await papi(c, '/test', { deviceId: c.deviceId }); } catch (e) { } }
+    catch (e) { F.toast(e.status === 401 && !code.trim() ? 'Serwer wymaga kodu połączenia — wpisz go w „Własny serwer”.' : (e.message || 'Nie udało się połączyć')); }
     if (b) b.disabled = false; F.render(true);
   };
   F.act.pushTest = async () => { const c = pcfg(); if (!c) return; try { await papi(c, '/test', { deviceId: c.deviceId }); F.toast('Wysłano. Za chwilę powinno przyjść powiadomienie.'); } catch (e) { F.toast(e.message || 'Nie udało się wysłać'); } };
@@ -79,9 +80,10 @@
   F.pushHtml = () => {
     const c = pcfg(), ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const warn = ios && !standalone() ? `<p class="dim small" style="color:var(--a1)">Na iPhonie powiadomienia działają tylko z aplikacji dodanej do ekranu początkowego (Safari → Udostępnij → Do ekranu początkowego), otwartej stamtąd.</p>` : '';
-    return `<section class="card cut"><div class="stp"><span><b>Powiadomienia z serwera</b><small>Zalecane. Koniec przerwy dociera przez Apple/Google, także przy zablokowanym telefonie. Nie rusza muzyki.</small></span><span class="chip ${c ? 'on' : ''}">${c ? 'Połączono' : 'Wyłączone'}</span></div>${warn}
+    return `<section class="card cut"><div class="stp"><span><b>Powiadomienia z serwera</b><small>Zalecane. Koniec przerwy dociera przez Apple/Google, także przy zablokowanym telefonie. Nie rusza muzyki.</small></span><span class="chip ${c ? 'on' : ''}" style="flex:none;white-space:nowrap">${c ? 'Włączone' : 'Wyłączone'}</span></div>${warn}
       ${c ? `<div class="btn-row"><button class="btn ghost" data-a="pushTest">Wyślij test</button><button class="btn ghost" data-a="pushOff">Rozłącz</button></div>`
-      : `<label class="fld"><span>Adres serwera</span><input id="pu-url" value="${F.esc(DEF_URL)}" inputmode="url" autocapitalize="off" autocorrect="off"></label><label class="fld"><span>Kod połączenia (z instalatora)</span><input id="pu-code" autocapitalize="off" autocorrect="off" placeholder="np. aB3dE9xYz1"></label><div class="btn-row"><button class="btn" data-a="pushConnect">Połącz i zezwól na powiadomienia</button></div>`}</section>`;
+      : `<button class="btn primary wide" data-a="pushConnect">${window.icon('bell', 18)} Włącz powiadomienia</button><p class="dim small">Telefon zapyta o zgodę na powiadomienia — wybierz „Zezwól”.</p>
+        <details class="pu-adv"><summary>Własny serwer</summary><label class="fld"><span>Adres serwera</span><input id="pu-url" value="${F.esc(DEF_URL)}" inputmode="url" autocapitalize="off" autocorrect="off"></label><label class="fld"><span>Kod połączenia (jeśli serwer go wymaga)</span><input id="pu-code" autocapitalize="off" autocorrect="off" placeholder="zostaw puste"></label></details>`}</section>`;
   };
 
 
