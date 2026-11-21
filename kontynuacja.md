@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.19.0** (commit `1ae996a` + ta notatka), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.20.0** („Zapytaj FORGE”), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -36,6 +36,14 @@ Stan na 21 listopada 2026. Wersja **1.19.0** (commit `1ae996a` + ta notatka), op
    - Plan z samą masą ciała: odfiltrowane dziwne ćwiczenia (`JUNK`, kategorie inne niż siłowe, poziom „expert” dla nie-zaawansowanych), rotacja wariantów, informacja o drążku/hantlach.
 6. **Kalendarz:** dzień wolny pokazuje „Dzień wolny od treningu” z opcją „Przenieś tu najbliższy trening”. Przeniesiony trening zabiera swój dzień (kolejność wg `src`). `F.nextWorkout()` uwzględnia przeniesienia; `F.nextWorkout(true)` = surowa kolejka planu (używa jej `F.calQueue`).
 7. **Teksty bez zastrzeżeń** i nowe źródła w „Porady i nauka”: `restGoal`, `split` (Ramos-Campo 2024), `cutTrain` (Wewege 2022, Helms 2015).
+
+## v1.20.0 — „Zapytaj FORGE” (czat, `js/ask.js`)
+- Wejście: ikona dymka z pytajnikiem w nagłówku ekranu Dziś (obok ustawień). Trasa `#/ask`.
+- Działa offline, bez AI: rozpoznaje temat (36 tematów), ćwiczenie (nazwy i aliasy, odmiana przez wspólny rdzeń), partię i okres („miesiąc temu”, „w październiku”, „w zeszłym tygodniu”, „ostatnie 3 miesiące”…). Kontekst: „a w wyciskaniu?”, „a dwa miesiące temu?”. Gdy brakuje ćwiczenia, dopytuje i pokazuje najczęstsze.
+- Tematy: wynik z danej daty, rekordy, ostatnie rekordy, maks (1RM), postęp z wykresem, stagnacja z diagnozą z danych (serie vs zakres z KB, częstotliwość, przerwa vs `restOf`, odciążenie), ostatni raz, cel na dziś (`F.suggest`), przerwy (plan + zalecane), regeneracja, następny/jutrzejszy trening (przycisk „Zacznij”), serie na partię, zaniedbane partie, liczba treningów, tonaż (wykres 8 tygodni), podsumowanie okresu, waga ciała (wykres), kalorie (`F.nutPlan` z coach.js — z blokadami dla <18 lat i ED), cele, ranga, seria tygodni, zamienniki (`F.similarEx`), technika (`F.EXINFO.t`), mięśnie (mapa ciała), ćwiczenia na partię, kalkulator 1RM („100 na 5”, „100×5”), talerze (rysunek gryfu), rozgrzewka, wiedza z `F.KB.facts` ze źródłami i linkiem do porady, pomoc do aplikacji, ból → komunikat bezpieczeństwa, suplementy → brak wiedzy w bazie.
+- Na końcu odpowiedzi „W czym jeszcze mogę pomóc?” + 2–4 pytania. Historia w `kv askLog` (60 wiadomości), menu ⋯: „Kopiuj podsumowanie dla AI” (profil, plan, 10 treningów, maksy, serie na partię, waga) i „Wyczyść rozmowę”.
+- Awatar asystenta tymczasowo `icons/icon-192.png` — docelowo grafika od właściciela (`assets/bg/ask.webp`).
+- Testy: skrypty `ask.js`/`ask2.js`/`ask3.js` w scratchpadzie (60 pytań z danymi + pusty użytkownik), 0 błędów.
 
 ## Audyt (21.11.2026)
 - Automatyczny przegląd: 22 ekrany, 556 kliknięć, 0 błędów JS, wszystkie przyciski mają obsługę. 45 akcji niszczących (usuwanie, kopie, import) nie było klikanych automatem.

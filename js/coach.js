@@ -133,6 +133,7 @@
     const pLo = round(ref * 1.4), pHi = round(ref * 2.0); const prot = Math.round(ref * (mode === 'cut' ? 1.9 : 1.7)); const fat = Math.round(k * 0.27 / 9); const carb = Math.max(0, Math.round((k - prot * 4 - fat * 9) / 4));
     return { k, tdee: Math.round(total), train: Math.round(train), mode, note, prot, pLo, pHi, fat, carb, bmi, refMass: Math.round(ref), floor: Math.round(floor), p };
   };
+  F.nutPlan = nutPlan;
   const mealPlan = (np, n, veg, seed) => {
     const names = n === 3 ? ['Śniadanie', 'Obiad', 'Kolacja'] : n === 4 ? ['Śniadanie', 'Obiad', 'Przekąska', 'Kolacja'] : ['Śniadanie', 'II śniadanie', 'Obiad', 'Przekąska', 'Kolacja'];
     const share = n === 3 ? [0.28, 0.4, 0.32] : n === 4 ? [0.25, 0.33, 0.12, 0.3] : [0.22, 0.12, 0.3, 0.12, 0.24];

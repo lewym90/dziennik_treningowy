@@ -46,7 +46,7 @@
     [/^#\/plan\/([^/]+)\/edit$/, m => planEdit(m[1]), 'plans'], [/^#\/exercises$/, () => exercises(), 'plans'], [/^#\/ex\/([^/]+)$/, m => exDetail(m[1]), 'stats'],
     [/^#\/history$/, () => F.views.history(), 'history'], [/^#\/session\/([^/]+)$/, m => F.views.session(m[1]), 'history'],
     [/^#\/stats$/, () => F.views.stats(), 'stats'], [/^#\/tools$/, () => F.views.tools(), 'home'], [/^#\/settings$/, () => F.views.settings(), 'home'],
-    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'plans'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
+    [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'plans'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home']
   ];
   let curTab = 'home';
   F.render = (keepScroll) => {
@@ -101,7 +101,7 @@
     if (F.installEvt && !F.isStandalone()) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Zainstaluj FORGE</b><br><small>Pełny ekran i działanie bez internetu.</small></p><button class="btn sm primary" data-a="installApp">Instaluj</button></div>`;
     else if (F.isIOS() && !F.isStandalone() && !s.installDismissed) banners += `<div class="banner"><div>${ic('smartphone', 20)}</div><p><b>Dodaj do ekranu początkowego</b><br><small>Safari → Udostępnij → „Do ekranu początkowego”.</small></p><button class="ibtn" data-a="dismissInstall" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
     return {
-      html: `<header class="hm-top"><img class="hm-logo" src="assets/bg/logo.webp" alt="FORGE"><a class="ibtn" href="#/settings" aria-label="Ustawienia">${ic('settings', 22)}</a></header>
+      html: `<header class="hm-top"><img class="hm-logo" src="assets/bg/logo.webp" alt="FORGE"><div class="hm-r"><a class="ibtn ask" href="#/ask" aria-label="Zapytaj FORGE">${ic('message-circle-question', 22)}</a><a class="ibtn" href="#/settings" aria-label="Ustawienia">${ic('settings', 22)}</a></div></header>
       <section class="hm-greet"><div><h1>${greet}${s.name ? ', ' + E(s.name) : ''}</h1><p>${F.fmtDateLong(Date.now())}</p></div><a class="hm-rank" href="#/stats" data-a="goOver">${F.chart.ring(rk.pct, 76, 4, F.rankImg(rk.i, 50))}<small>${rk.name}</small></a></section>
       ${hero}
       ${F.pendHtml ? F.pendHtml() : ""}
