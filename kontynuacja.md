@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.29.3** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.29.4** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,10 @@ Stan na 21 listopada 2026. Wersja **1.29.3** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.29.4 — aktualizacja nie może zapisać starych plików (22.11.2026)
+- Właściciel po aktualizacji do 1.29.3 nadal widział błąd kreatora. Przyczyna: GitHub Pages wysyła pliki z `cache-control: max-age=600`, a instalacja nowego service workera (`addAll(CORE)`) mogła pobrać stary plik z pamięci przeglądarki i zapisać go pod nową wersją. Teraz instalacja pobiera CORE z `cache: 'reload'` (zawsze z serwera). Sprawdzone: świeża instalacja ma w pamięci poprawiony wizard.js.
+- Zasada na przyszłość: po wydaniu nowej wersji poprawka dociera w całości przy pierwszej aktualizacji.
 
 ## v1.29.3 — kreator pamięta wybory po cofnięciu (22.11.2026)
 - Zgłoszenie (nagranie): po cofnięciu do kroku Cel i powrocie krok Cardio pokazywał zaznaczoną opcję, ale „Dalej” mówił „Wybierz, co robimy z cardio”. Przyczyny: stuknięcie tego samego celu kasowało wybór cardio (`wzGoal` — teraz tylko przy zmianie celu) i walidacja nie uznawała opcji pokazanej jako zaznaczona domyślnie (teraz ją przyjmuje).
