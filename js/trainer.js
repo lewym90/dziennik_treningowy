@@ -61,6 +61,7 @@
   let CLI = null;
   const clients = async () => { if (!CLI) CLI = (await F.kvGet('clients')) || []; return CLI; };
   const saveCli = async L => { CLI = L; await F.kvSet('clients', L); };
+  F.cliCache = () => CLI; F.cliLoad = clients;
   const cliSync = () => { if (CLI) return CLI; clients().then(() => F.render(true)); return null; };
   F.act.cliImport = () => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'application/json,.json'; i.onchange = async () => { const f = i.files[0]; if (!f) return; try { const o = JSON.parse(await f.text()); if (o.app !== 'FORGE' || o.kind !== 'results') throw new Error('To nie jest plik z wynikami FORGE'); const L = await clients(); const k = L.findIndex(c => c.id === o.id); const rec = { id: o.id, name: o.name, upd: Date.now(), made: o.made, bw: o.bw, sessions: o.sessions }; if (k >= 0) { const old = L[k]; const ids = new Set(o.sessions.map(x => x.id)); rec.sessions = [...o.sessions, ...old.sessions.filter(x => !ids.has(x.id))].sort((a, b) => b.start - a.start); L[k] = { ...old, ...rec }; } else L.push(rec); await saveCli(L); F.toast('Wczytano wyniki: ' + E(o.name), 'hot'); F.render(true); } catch (e) { F.toast(e.message || 'Nie udało się wczytać pliku', 'err'); } }; i.click(); };
   V.clients = () => {

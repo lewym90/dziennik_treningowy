@@ -77,7 +77,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.28.2';
+  F.APPVER = '1.29.0';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
@@ -204,7 +204,7 @@
     else if (ex.type === 'br') { if (hadAny && m.reps > p.reps) out.push({ k: 'reps', label: 'Rekord powtórzeń' }); }
     else if (hadAny) {
       if (m.w > p.w) out.push({ k: 'w', label: 'Rekord ciężaru' });
-      else if (m.e1 > p.e1 + 0.001) out.push({ k: 'e1', label: 'Rekord 1RM (szac.)' });
+      else if (m.e1 > p.e1 + 0.001) out.push({ k: 'e1', label: 'Rekord 1RM (wyliczony)' });
       else {
         const wk = Math.round(m.w * 100);
         const prevBest = p.byW[wk];

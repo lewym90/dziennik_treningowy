@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.28.2** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.29.0** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,15 @@ Stan na 21 listopada 2026. Wersja **1.28.2** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.29.0 — czat: polecenia i wiedza o całej aplikacji (22.11.2026)
+- Nowy `js/ask2.js` (ładowany po ask.js i tour.js, w CORE). Owija `F.ask`: najpierw rozmowa (układanie planu), potem polecenia, potem mapa aplikacji (FEAT, ~75 funkcji: tytuł, gdzie jest, jak działa, przyciski), na końcu stary czat. `F.ask` może zwrócić Promise (zapis do bazy) — `send()` w ask.js robi `await`.
+- Polecenia (wywołują te same funkcje co przyciski): ustawienia (przełączniki, jednostki, krok, cel tygodniowy, głośność, ostrzeżenie, kolor, talerze, gryf, wygaszanie ekranu), profil (imię, płeć, wiek, wzrost, staż, aktywność, tętno), waga i pomiary, miejsce treningu, start/skrócenie/powtórzenie treningu, odciążenie, nowy blok, aktualny plan, plany startowe, przerwy w planie, kalendarz (przenieś, pomiń, dni treningowe), cele (miesięczne, na dłużej), zawody, raport PDF/tygodnia/podsumowanie, kopia, CSV, tryb trenera (włącz, wyślij plan → link i QR, wyniki dla trenera, podopieczni, „co u Kasi”), powiadomienia, nawigacja.
+- Układanie planu w rozmowie: cel → dni → sprzęt → staż (gdy brak w profilu) → ankieta bezpieczeństwa (ta sama co kreator) → ciąża/poród (kobiety → kreator). `F.wzBuild(opts, variant)` w wizard.js = ten sam generator co kreator. Plan zapisany, NIE aktualny; pytanie „Ustawić jako aktualny?”, „Inny wariant” podmienia plan.
+- „Cofnij”: `F.act.askUndo` (mapa funkcji w pamięci — po przeładowaniu cofnięcie niedostępne, czat to mówi). Usuwanie zablokowane (`delCmd`).
+- Literówki: słownik z opisów FEAT, podpowiedzi, nazw ćwiczeń i listy słów poleceń; poprawka tylko gdy żadne słowo nie ma tego samego 6-literowego początku.
+- Testy: `gen.js` → `chat_tests.json` (3165 sformułowań), `ct.js` (trasy, F.askDry), `cf.js` (efekty + cofanie). Wynik: 3161/3165.
+- Przy okazji: „Rekord 1RM (szac.)” → „(wyliczony)”.
 
 ## v1.28.2 — powiadomienia jednym przyciskiem (21.11.2026)
 - Serwer: kod połączenia nie jest już wymagany (REQUIRE_CODE=1 przywraca). Ochrona: maks. 10 nowych urządzeń na godzinę z jednego IP (IP z ostatniego wpisu X-Forwarded-For), limit urządzeń min. 5000, przy komplecie zwalniane najdłużej nieużywane (>60 dni, pole `used`). Błędny kod nadal odrzucany; z poprawnym kodem bez limitu IP. Testy: `cd server && npm test`.

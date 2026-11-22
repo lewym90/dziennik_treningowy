@@ -51,3 +51,11 @@ Dodatkowo: przebudowa nawigacji — aplikacja ma być schludna i intuicyjna, bez
 - v1.27.0: punkty 1, 2, 3, 4, 6, 7, 9, 10, 11, 12, 21, 22.
 - v1.28.0: punkty 8 (tylko informacje z badań, bez układania szczytowania), 18, 19, 23.
 - Zostało: 5 do przemyślenia (animacje), 20 do decyzji (chmura), 13–16 później, 24 na samym końcu.
+
+## Czat „Zapytaj FORGE” — polecenia (decyzje 22.11.2026)
+- Czat ma wiedzieć wszystko o całej aplikacji i wykonywać polecenia (tysiące sformułowań, literówki).
+- Plan ułożony przez czat: tylko zapis w Planach + pytanie „Ustawić jako aktualny?” (nie zmienia aktualnego planu sam).
+- Polecenia zmieniające ustawienia lub dane: wykonane od razu, w odpowiedzi przycisk „Cofnij”.
+- Usuwanie przez czat: zablokowane — czat tylko prowadzi na miejsce, gdzie się usuwa.
+- Stała zasada: każda nowa funkcja aplikacji = wpis w mapie aplikacji czatu (FEAT w js/ask2.js) + polecenie, jeśli ma sens.
+- Wdrożone w v1.29.0.

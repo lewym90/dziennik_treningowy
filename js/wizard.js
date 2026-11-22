@@ -152,6 +152,16 @@
     const r = F.planGen(w2, v); if (w.special) { r.plan.meta = { ...(r.plan.meta || {}), special: w.special }; r.notes = [...(SPN[w.special] || []), ...r.notes]; }
     F.cardioApply(r, prep, adv.acts, adv); r.adv = adv; r.why = [...r.why, `<b>Cardio.</b> ${E(adv.text)}`]; return r; };
 
+  // Plan bez przechodzenia ekranów kreatora (polecenie z czatu): te same reguły i ten sam generator co kreator.
+  F.wzBuild = (o, variant = 0) => {
+    const keep = F.wz; const w = { ...defaults(), ...o };
+    if (o.preset && PRESET[o.preset]) Object.assign(w, PRESET[o.preset][2]);
+    if (!w.exp) w.exp = 'beg'; if (w.active == null) w.active = true; w.cardioAdd = false; w.cNow = false; w.cAct = []; w.cChoice = 'keep'; if (!o.split) w.split = 'auto';
+    F.wz = { step: 'split', w, res: null, variant, quick: true };
+    try { const r = gen(variant); r.special = wFull().special; return r; } finally { F.wz = keep; }
+  };
+  F.WZ_PRESET = PRESET; F.WZ_SCR = SCR;
+
   /* ---------- widok ---------- */
   V.wizard = () => {
     const z = Z(); if (z.res) return preview();
