@@ -166,7 +166,7 @@
   V.wizard = () => {
     const z = Z(); if (z.res) return preview();
     const i = cur(); const total = STEPS.length;
-    return { html: `${F.head('Kreator planu', { back: 1, sub: z.step === 'intro' ? 'Plan dopasowany do Ciebie' : `Krok ${i} z ${total - 1}: ${STEP_T[z.step]}` })}
+    return { html: `${F.head('Kreator planu', { back: i > 0 ? 'wzPrev' : 1, sub: z.step === 'intro' ? 'Plan dopasowany do Ciebie' : `Krok ${i} z ${total - 1}: ${STEP_T[z.step]}` })}
       ${z.step !== 'intro' ? `<div class="wz-prog"><i style="width:${Math.round(i / (total - 1) * 100)}%"></i></div>` : ''}
       ${bodies[z.step]()}
       <div class="wz-spacer"></div><div class="wz-bar">${i > 0 ? `<button class="btn ghost" data-a="wzPrev">Wstecz</button>` : ''}<button class="btn primary ${i > 0 ? '' : 'full'}" data-a="wzNext">${z.step === 'split' || (z.quick && z.step === 'equip') ? ic('sparkles', 16) + ' Zaproponuj plan' : z.step === 'intro' ? 'Zaczynamy' : 'Dalej'}</button></div>` };
@@ -250,7 +250,7 @@
     const cardioAfter = d => d.items.length ? '' : '';
     const vol = Object.entries(r.volume).map(([m, v]) => { const pct = clamp(v.sets / (v.range[1] * 1.3) * 100, 4, 100); const ok = v.sets >= v.range[0] - 0.5 && v.sets <= v.range[1] + 0.5; return `<div class="wz-v"><span>${P.MLABEL[m]}</span><div class="bar"><i style="width:${pct}%"></i></div><b class="${ok ? '' : 'warn'}">${Math.round(v.sets)}</b><small class="dim">${v.range[0]}–${v.range[1]} · ${v.freq}×/tyg.</small></div>`; }).join('');
     const meso = `<table class="wz-meso">${r.meso.rows.map(x => `<tr class="${x.deload ? 'dl' : ''}"><th>Tydz. ${x.week}</th><td>${E(x.text)}</td></tr>`).join('')}</table>`;
-    return { html: `${F.head('Twój plan', { sub: E(r.plan.name) })}
+    return { html: `${F.head('Twój plan', { back: 'wzBack', sub: E(r.plan.name) })}
       <section class="card cut"><h3>${ic('sparkles', 18)} Dlaczego ten plan</h3><div class="wz-why">${r.why.map(t => `<p>${t}</p>`).join('')}</div></section>
       ${dayHtml}${cardioHtml ? `<h3 class="sec">Cardio (opcjonalnie)</h3>${cardioHtml}` : ''}
       ${r.adv ? `<section class="card cut"><h3>${ic('heart', 18)} Cardio w tygodniu</h3><p class="small">Po zmianach: ok. <b>${F.CARDIO.eq(r.adv.acts)} min</b> umiarkowanego cardio tygodniowo (zakres przy Twoim celu: ${r.adv.band[0]}–${r.adv.band[1]} min; zalecenie WHO: 150–300 min).${r.adv.acts.some(a => !F.CARDIO.T[a.t][2]) ? ' Aktywności poza siłownią (np. pływanie, rolki) liczę do tej sumy, ale nie wstawiam ich do planu.' : ''}</p><p class="dim small">Cardio po treningu możesz w trakcie oznaczyć jako „Zrobię później” — dopiszesz je w domu, a trening zostanie przeliczony.</p></section>` : ''}
@@ -259,6 +259,6 @@
       ${nutrition(r)}
       ${r.notes.length ? `<section class="card cut"><h3>${ic('info', 18)} Uwagi</h3><ul class="tips">${r.notes.map(n => `<li>${E(n)}</li>`).join('')}</ul></section>` : ''}
       <p class="dim small pad">Przy bólu przerwij ćwiczenie. Na pierwszym treningu dobierz ciężary: pierwszą serię zrób lekko, a kolejne tak, by zostawał zaplanowany zapas powtórzeń. Od drugiego treningu aplikacja podpowiada ciężar sama.</p>
-      <div class="wz-spacer"></div><div class="wz-bar"><button class="btn primary full" data-a="wzSave">Zapisz plan</button><button class="btn ghost" data-a="wzBack">Zmień odpowiedzi</button><button class="btn ghost" data-a="wzAgain">${ic('repeat', 16)} Inna wersja</button></div>` };
+      <div class="wz-spacer"></div><div class="wz-bar"><button class="btn primary full" data-a="wzSave">Zapisz plan</button><button class="btn ghost" data-a="wzBack">${ic('chevron-left', 16)} Wstecz</button><button class="btn ghost" data-a="wzAgain">${ic('repeat', 16)} Inna wersja</button></div>` };
   }
 })();

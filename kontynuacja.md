@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.29.1** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.29.2** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,11 @@ Stan na 21 listopada 2026. Wersja **1.29.1** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.29.2 — Wstecz w kreatorze (22.11.2026)
+- Zgłoszenie właściciela: po wejściu w podgląd planu z kreatora nie dało się wrócić. Teraz: strzałka Wstecz w nagłówku podglądu (wraca do wyboru podziału, odpowiedzi zostają) i przycisk „Wstecz” zamiast „Zmień odpowiedzi”; w krokach kreatora strzałka w nagłówku cofa o krok (na pierwszym kroku wychodzi). `F.head` przyjmuje `back: 'nazwaAkcji'`.
+- Zasada: każdy ekran, w który się wchodzi, ma Wstecz (sprawdzone automatem na 18 trasach; zakładki dolnego paska i arkusze z × są wyjątkiem).
+- Usunięte „ok.” z opisu „Dlaczego ten plan” (objętość, zakres powtórzeń, RIR, odciążenie, powrót po przerwie, cardio).
 
 ## Audyt v1.29.1 (22.11.2026)
 - Automaty: skrypt `audit.js` (scratchpad) — 25 tras × pusty/pełny × 320 px i Pixel 7: błędy JS, „undefined/NaN”, zastrzeżenia, angielskie słowa, poziomy scroll, wychodzące/ucięte elementy, obrazki, przyciski bez etykiety; `sheets.js` — 15 arkuszy na 320 px; crawl; testy czatu (3184 sformułowania + efekty); calc 27/27.

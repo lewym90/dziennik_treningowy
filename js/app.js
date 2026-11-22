@@ -11,7 +11,7 @@
   F.rankImg = (i, s = 64) => `<img class="rk-em" src="assets/rank/${i}.webp" width="${s}" height="${s}" alt="">`;
 
   /* ---------- helpers widoku ---------- */
-  const head = (title, o = {}) => `<header class="ph">${o.back ? `<button class="ibtn back" data-a="back" aria-label="Wstecz">${ic('chevron-left', 24)}</button>` : ''}<div class="ph-t"><h1>${title}</h1>${o.sub ? `<p>${o.sub}</p>` : ''}</div><div class="ph-r">${o.right || ''}</div></header>`;
+  const head = (title, o = {}) => `<header class="ph">${o.back ? `<button class="ibtn back" data-a="${typeof o.back === 'string' ? o.back : 'back'}" aria-label="Wstecz">${ic('chevron-left', 24)}</button>` : ''}<div class="ph-t"><h1>${title}</h1>${o.sub ? `<p>${o.sub}</p>` : ''}</div><div class="ph-r">${o.right || ''}</div></header>`;
   F.head = head;
   const EMPTY = { 'clipboard-list': 0, history: 1, 'chart-line': 2, ruler: 3, camera: 4, search: 5 };
   const empty = (icon, title, text, cta) => `<div class="empty">${EMPTY[icon] != null ? `<img src="assets/empty/${EMPTY[icon]}.webp" width="130" height="130" alt="">` : ic(icon, 40)}<h3>${title}</h3><p>${text}</p>${cta || ''}</div>`;
