@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.29.0** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.29.1** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,15 @@ Stan na 21 listopada 2026. Wersja **1.29.0** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## Audyt v1.29.1 (22.11.2026)
+- Automaty: skrypt `audit.js` (scratchpad) — 25 tras × pusty/pełny × 320 px i Pixel 7: błędy JS, „undefined/NaN”, zastrzeżenia, angielskie słowa, poziomy scroll, wychodzące/ucięte elementy, obrazki, przyciski bez etykiety; `sheets.js` — 15 arkuszy na 320 px; crawl; testy czatu (3184 sformułowania + efekty); calc 27/27.
+- Naprawione: 320 px — przewijanie w poziomie w historii ćwiczenia (krótsze nazwy wykresów: 1RM / Ciężar / Objętość / Powtórzenia), nazwy ćwiczeń nachodzące na przyciski w edytorze planu (przyciski przechodzą do drugiej linii), ucięty ciężar w panelu serii (mniejsza czcionka i przyciski ≤374 px), kolory w jednym rzędzie, wyśrodkowane przyciski w pustych stanach.
+- Spójność: „deload” → „odciążenie” wszędzie w interfejsie; „Max” → „Maks.”; usunięte „ok.” przy liczbach liczonych przez aplikację (cytaty z badań bez zmian), „oszacuję” → „wyliczę”, rozmiar modułów importu 11,5 MB; kropka po XP w randze; „0,4 MB” zamiast „0.4 MB”; spacja w stopce Ustawień.
+- Planer podejść (Narzędzia): punkty IPF GL + DOTS i Wilks; podpowiedź kieruje do Ustawienia → Profil (zamiast nieistniejącego miejsca w Siła). Karta Zawody jest w Postępy → Siła — poprawione opisy w czacie.
+- Kopia zapasowa zawiera teraz podopiecznych trybu trenera (`clients`), przywracanie je scala (nowszy plik wygrywa).
+- Zdjęcia techniki offline: od razu komunikat zamiast białego pola.
+- Przyciski −/+ celu tygodniowego mają etykiety dla czytników ekranu.
 
 ## v1.29.0 — czat: polecenia i wiedza o całej aplikacji (22.11.2026)
 - Nowy `js/ask2.js` (ładowany po ask.js i tour.js, w CORE). Owija `F.ask`: najpierw rozmowa (układanie planu), potem polecenia, potem mapa aplikacji (FEAT, ~75 funkcji: tytuł, gdzie jest, jak działa, przyciski), na końcu stary czat. `F.ask` może zwrócić Promise (zapis do bazy) — `send()` w ask.js robi `await`.

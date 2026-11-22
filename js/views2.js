@@ -147,7 +147,7 @@
     <section class="card cut"><h3>Treningi w tygodniu <small class="dim">cel ${F.S.settings.weeklyGoal}</small></h3>${F.chart.bars(wk.map((w, i) => ({ label: F.fmtDateShort(w.start).split(' ')[0], value: w.count, tip: `Tydzień od ${F.fmtDate(w.start)}: ${w.count} tr.`, hl: i === wk.length - 1 })), { labelEvery: 3, values: it => it.value })}</section>
     <section class="card cut"><h3>Podział partii <small class="dim">ostatnie 30 dni</small></h3>${mus.length ? F.chart.hbars(mus) : '<p class="dim">Brak treningów w ostatnich 30 dniach.</p>'}</section>
     ${F.progressHtml()}
-    <section class="card cut rank"><div class="rank-top">${F.rankImg(rk.i, 72)}<div class="grow"><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Do rangi ${rk.next}: ${F.fmtNum(rk.toNext, 0)} XP` : 'Maksymalna ranga.'} Punkty zdobywasz za tonaż, serie, treningi i rekordy.</p></section>
+    <section class="card cut rank"><div class="rank-top">${F.rankImg(rk.i, 72)}<div class="grow"><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Do rangi ${rk.next}: ${F.fmtNum(rk.toNext, 0)} XP.` : 'Maksymalna ranga.'} Punkty zdobywasz za tonaż, serie, treningi i rekordy.</p></section>
     ${achHtml}
     ${top.length ? `<h3 class="sec">Najczęściej trenowane</h3><div class="exlist">${top.map(([id, c]) => { const ex = exOf(id); return ex ? `<a class="exrow" href="#/ex/${E(id)}">${F.mDot(ex.muscle)}<span><b>${E(ex.name)}</b><small>${c} treningów</small></span>${ic('chevron-right', 16)}</a>` : ''; }).join('')}</div>` : ''}`;
   }
@@ -209,7 +209,7 @@
   F.bind.tplate = el => { T.plate = el.value; F.$('#t-plate').innerHTML = plateCalc(); };
   F.bind.tbar = el => { const v = F.fromDisp(num(el.value)); if (v > 0) { F.S.settings.bar = v; F.saveSettings(); } F.$('#t-plate').innerHTML = plateCalc(); };
   function oneRM() {
-    const w = F.fromDisp(num(T.oneW)), r = parseInt(T.oneR); if (!w || !r) return '<p class="dim">Podaj ciężar i liczbę powtórzeń, a oszacuję maksymalny ciężar na jedno powtórzenie.</p>';
+    const w = F.fromDisp(num(T.oneW)), r = parseInt(T.oneR); if (!w || !r) return '<p class="dim">Podaj ciężar i liczbę powtórzeń, a wyliczę maksymalny ciężar na jedno powtórzenie.</p>';
     const ep = F.e1rm(w, r), br = r < 37 ? w * 36 / (37 - r) : ep, est = (ep + br) / 2;
     const rows = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50].map(p => `<div class="rm"><span>${p}%</span><b>${F.fwu(est * p / 100)}</b><em>${p === 100 ? '1' : Math.max(1, Math.round((est / (est * p / 100) - 1) * 30))} powt.</em></div>`).join('');
     return `<div class="big-n">${F.fw(est)} <small>${F.unit()}</small></div><p class="dim small">Wyliczone wzorami Epleya i Brzyckiego${r > 12 ? '. Najdokładniej działa do 12 powtórzeń — do testu wybierz cięższą serię' : ''}.</p><div class="rmgrid">${rows}</div>`;
@@ -226,7 +226,7 @@
   V.settings = () => {
     const s = F.S.settings; const rk = F.rank(); const t = F.totals();
     const sw = (k, label, sub) => `<label class="sw"><span><b>${label}</b>${sub ? `<small>${sub}</small>` : ''}</span><input type="checkbox" data-b="set" data-k="${k}" ${s[k] ? 'checked' : ''}><i></i></label>`;
-    const step = (k, label, val, unit, min, max, st) => `<div class="stp"><span><b>${label}</b></span><div class="num"><button data-a="setStep" data-k="${k}" data-d="${-st}" data-min="${min}" data-max="${max}">${ic('minus', 16)}</button><output>${val}${unit ? ' ' + unit : ''}</output><button data-a="setStep" data-k="${k}" data-d="${st}" data-min="${min}" data-max="${max}">${ic('plus', 16)}</button></div></div>`;
+    const step = (k, label, val, unit, min, max, st) => `<div class="stp"><span><b>${label}</b></span><div class="num"><button data-a="setStep" data-k="${k}" data-d="${-st}" data-min="${min}" data-max="${max}" aria-label="Mniej">${ic('minus', 16)}</button><output>${val}${unit ? ' ' + unit : ''}</output><button data-a="setStep" data-k="${k}" data-d="${st}" data-min="${min}" data-max="${max}" aria-label="Więcej">${ic('plus', 16)}</button></div></div>`;
     const accents = [['ember', 'Żar', '#ff4b1f', '#ff9a1f'], ['crimson', 'Karmin', '#ff2a55', '#ff6a3d'], ['gold', 'Złoto', '#e0a100', '#ffd34d'], ['ice', 'Lód', '#3db8ff', '#7a5cff']];
     return {
       html: `${F.head('Ustawienia', { back: 1 })}
@@ -253,8 +253,8 @@
         <button class="lrow" data-a="expRestore">${ic('upload', 20)}<span><b>Przywróć z kopii</b><small>Plik JSON z FORGE</small></span></button>
         <button class="lrow" data-a="persist">${ic('lock', 20)}<span><b>Chroń dane przed czyszczeniem</b><small id="stor">Prośba o trwałe przechowywanie w przeglądarce</small></span></button>
         <button class="lrow danger" data-a="wipe">${ic('trash-2', 20)}<span><b>Usuń wszystkie dane</b><small>Nieodwracalne. Najpierw zrób kopię.</small></span></button></section>
-      <p class="about">FORGE ${F.APPVER} ·Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
-      after: () => { if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(e => { const el = F.$('#stor'); if (el) el.textContent = `Zajęte: ${(e.usage / 1048576).toFixed(1)} MB · dotknij, aby zabezpieczyć dane`; }); }
+      <p class="about">FORGE ${F.APPVER} · Zdjęcia i opisy ćwiczeń: Free Exercise DB (domena publiczna). · Dane trzymane wyłącznie na Twoim urządzeniu. Bez kont, bez chmury, bez limitów.</p>`,
+      after: () => { if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(e => { const el = F.$('#stor'); if (el) el.textContent = `Zajęte: ${F.fmtNum(e.usage / 1048576, 1)} MB · dotknij, aby zabezpieczyć dane`; }); }
     };
   };
   F.act.doBackupBtn = () => F.doBackup().then(() => F.render(true));

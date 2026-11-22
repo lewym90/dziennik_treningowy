@@ -121,7 +121,7 @@
       <button class="importcard cut" data-a="impHist"><div>${ic('file-spreadsheet', 28)}</div><p><b>Importuj historię treningów (CSV)</b><small>Strong, Hevy, FitNotes i podobne. Zachowasz całą dotychczasową historię i rekordy.</small></p>${ic('chevron-right', 20)}</button>
       <button class="importcard cut" data-a="impBackup"><div>${ic('upload', 28)}</div><p><b>Przywróć kopię FORGE</b><small>Plik JSON z kopii zapasowej lub wyeksportowany plan.</small></p>${ic('chevron-right', 20)}</button>
       <h3 class="sec">Praca bez internetu</h3>
-      <section class="card cut"><p class="dim small">Moduły rozpoznawania tekstu i PDF (ok. 11 MB) są częścią aplikacji i pobierają się przy pierwszym użyciu. Możesz pobrać je teraz, żeby import działał także offline na siłowni.</p><button class="btn ghost wide" data-a="impOffline" id="imp-off">${ic('download', 18)} Pobierz moduły offline</button></section>`,
+      <section class="card cut"><p class="dim small">Moduły rozpoznawania tekstu i PDF (11,5 MB) są częścią aplikacji i pobierają się przy pierwszym użyciu. Możesz pobrać je teraz, żeby import działał także offline na siłowni.</p><button class="btn ghost wide" data-a="impOffline" id="imp-off">${ic('download', 18)} Pobierz moduły offline</button></section>`,
       after: root => {
         const dz = F.$('#drop', root); if (!dz) return;
         ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('over'); }));

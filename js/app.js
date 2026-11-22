@@ -400,11 +400,11 @@
     const ex = exOf(id); if (!ex) return { html: head('Ćwiczenie', { back: 1 }) + empty('dumbbell', 'Nie znaleziono ćwiczenia', 'To ćwiczenie zostało usunięte.') };
     const hist = F.exHistory(id); const p = F.PR[id]; const m = F.ui.exMetric;
     const isT = ex.type === 'time', isB = ex.type === 'br';
-    const metrics = isT ? [['dur', 'Czas']] : isB ? [['reps', 'Powtórzenia'], ['vol', 'Objętość']] : [['e1', '1RM (wyliczony)'], ['w', 'Max ciężar'], ['vol', 'Objętość'], ['reps', 'Powtórzenia']];
+    const metrics = isT ? [['dur', 'Czas']] : isB ? [['reps', 'Powtórzenia'], ['vol', 'Objętość']] : [['e1', '1RM'], ['w', 'Ciężar'], ['vol', 'Objętość'], ['reps', 'Powtórzenia']];
     const mk = metrics.find(x => x[0] === m) ? m : metrics[0][0];
     const best = {}; hist.forEach(h => { const v = h[mk]; if (best[mk] == null || v > best[mk]) best[mk] = v; });
     let prevMax = -1; const pts = hist.map(h => { const v = h[mk]; const isPR = v > prevMax && prevMax >= 0; if (v > prevMax) prevMax = v; const fv = mk === 'dur' ? F.fmtDur(v) : (mk === 'reps' ? v : mk === 'vol' || mk === 'w' || mk === 'e1' ? F.fw(v) + ' ' + F.unit() : v); return { x: h.ts, y: (mk === 'w' || mk === 'e1' || mk === 'vol') ? F.toDisp(v) : v, pr: isPR, tip: `${F.fmtDate(h.ts)}: ${fv}` }; });
-    const cards = isT ? [['Najdłuższy czas', p ? F.fmtDur(p.dur) : '–']] : isB ? [['Max powtórzeń', p ? p.reps : '–']] : [['Max ciężar', p && p.w ? F.fwtu(p.w, ex) : '–'], ['Najlepsze 1RM', p && p.e1 ? F.fwu(p.e1) : '–'], ['Najcięższa seria (obj.)', p && p.vol ? F.fwu(p.vol) : '–'], ['Max powtórzeń', p ? p.reps : '–']];
+    const cards = isT ? [['Najdłuższy czas', p ? F.fmtDur(p.dur) : '–']] : isB ? [['Maks. powtórzeń', p ? p.reps : '–']] : [['Maks. ciężar', p && p.w ? F.fwtu(p.w, ex) : '–'], ['Najlepsze 1RM', p && p.e1 ? F.fwu(p.e1) : '–'], ['Najcięższa seria (obj.)', p && p.vol ? F.fwu(p.vol) : '–'], ['Maks. powtórzeń', p ? p.reps : '–']];
     // tabela rep max
     let rmTable = ''; if (p && !isT && !isB && Object.keys(p.repAt).length) {
       const rows = []; for (let r = 1; r <= 12; r++) if (p.repAt[r]) rows.push(`<div class="rm"><span>${r} powt.</span><b>${F.fwu(p.repAt[r])}</b></div>`);

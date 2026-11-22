@@ -122,7 +122,7 @@
   const compSum = () => {
     const C = F.ui.tools.comp || {}; const sex = sexKey(), bw = F.latestBW(); let total = 0, ok = true;
     ['squat', 'bench', 'deadlift'].forEach(id => { const t = F.fromDisp(num(C[id])); if (!t) ok = false; else total += roundC(t); });
-    return ok ? `<div class="tiles two"><div class="tile cut"><span class="tl">Suma (3× udane)</span><b class="tv sm">${F.fwu(total)}</b></div>${sex && bw ? `<div class="tile cut"><span class="tl">DOTS / Wilks</span><b class="tv sm">${F.fmtNum(F.dots(total, bw, sex), 0)} / ${F.fmtNum(F.wilks(total, bw, sex), 0)}</b></div>` : `<div class="tile cut"><span class="tl">DOTS / Wilks</span><small>Uzupełnij płeć i wagę w Postępy → Siła</small></div>`}</div>` : '';
+    return ok ? `<div class="tiles two"><div class="tile cut"><span class="tl">Suma (3× udane)</span><b class="tv sm">${F.fwu(total)}</b></div>${sex && bw ? `<div class="tile cut"><span class="tl">Punkty IPF GL</span><b class="tv sm">${F.fmtNum(F.ipfGL(total, bw, sex), 1)}</b></div>` : `<div class="tile cut"><span class="tl">Punkty</span><small>Uzupełnij płeć w Ustawienia → Profil i wpisz wagę na ekranie Dziś</small></div>`}</div>${sex && bw ? `<p class="dim small">DOTS ${F.fmtNum(F.dots(total, bw, sex), 1)} · Wilks ${F.fmtNum(F.wilks(total, bw, sex), 1)} · masa ciała ${F.fwu(bw)}</p>` : ''}` : '';
   };
   F.bind.tcomp = el => { F.ui.tools.comp[el.dataset.id] = el.value; const a = F.$('#att-' + el.dataset.id); if (a) a.innerHTML = attHtml(el.dataset.id); const s = F.$('#comp-sum'); if (s) s.innerHTML = compSum(); };
 
@@ -231,7 +231,7 @@
     const chips = (arr, cls) => arr.filter(m => F.MUSCLES[m]).map(m => `<span class="mchip ${cls}" style="--mc:${F.MUSCLE_COLORS[m] || '#888'}">${F.MUSCLES[m]}</span>`).join('');
     let media = '';
     if (ex.img) media = `<div class="tech-img one"><img src="${ex.img}" alt="${E(ex.name)}"></div>`;
-    else if (i && i.d) media = `<div class="tech-img n${i.n}">${Array.from({ length: Math.min(2, i.n) }, (_, k) => `<img crossorigin="anonymous" loading="lazy" decoding="async" data-d="${E(i.d)}" data-n="${k}" src="${IMG1(i.d, k)}" alt="${E(ex.name)} — ${k ? 'koniec' : 'start'} ruchu">`).join('')}<em class="tech-off">Zdjęcia pobiorą się po połączeniu z internetem.</em></div>`;
+    else if (i && i.d) media = `<div class="tech-img n${i.n}${navigator.onLine === false ? ' off' : ''}">${Array.from({ length: Math.min(2, i.n) }, (_, k) => `<img crossorigin="anonymous" loading="lazy" decoding="async" data-d="${E(i.d)}" data-n="${k}" src="${IMG1(i.d, k)}" alt="${E(ex.name)} — ${k ? 'koniec' : 'start'} ruchu">`).join('')}<em class="tech-off">Zdjęcia pobiorą się po połączeniu z internetem.</em></div>`;
     const tips = ex.tip ? String(ex.tip).split(/\n+/).filter(Boolean) : ((i && i.t) || []);
     const yt = `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' technika')}`;
     return `${F.exArt(id)}${media}<div class="tech-m"><div><small>Główne</small><div class="mchips">${chips(mu.p, 'p')}</div></div>${mu.s.length ? `<div><small>Pomocnicze</small><div class="mchips">${chips(mu.s, 's')}</div></div>` : ''}</div>
@@ -246,18 +246,18 @@
      ===================================================================== */
   F.deloadBanner = () => {
     const s = F.S.settings;
-    if (F.deloadOn()) return `<div class="banner hot"><div>${ic('shield', 20)}</div><p><b>Tydzień deload do ${F.fmtDateShort(s.deloadUntil)}</b><br><small>Połowa serii, ten sam ciężar, duży zapas powtórzeń. Regeneruj się.</small></p><button class="btn sm ghost" data-a="deloadStop">Zakończ</button></div>`;
+    if (F.deloadOn()) return `<div class="banner hot"><div>${ic('shield', 20)}</div><p><b>Odciążenie do ${F.fmtDateShort(s.deloadUntil)}</b><br><small>Połowa serii, ten sam ciężar, duży zapas powtórzeń. Regeneruj się.</small></p><button class="btn sm ghost" data-a="deloadStop">Zakończ</button></div>`;
     const adv = F.deloadAdvice(); if (!adv || (s.deloadDismiss || 0) > Date.now() - 7 * DAY) return '';
-    return `<div class="banner"><div>${ic('zap', 20)}</div><p><b>Rozważ tydzień deload</b><br><small>${E(adv.why)}.</small></p><button class="btn sm primary" data-a="deloadStart">Włącz</button><button class="ibtn" data-a="deloadDismiss" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
+    return `<div class="banner"><div>${ic('zap', 20)}</div><p><b>Rozważ tydzień odciążenia</b><br><small>${E(adv.why)}.</small></p><button class="btn sm primary" data-a="deloadStart">Włącz</button><button class="ibtn" data-a="deloadDismiss" aria-label="Ukryj">${ic('x', 18)}</button></div>`;
   };
-  F.act.deloadStart = async () => { F.S.settings.deloadUntil = Date.now() + 7 * DAY; F.S.settings.lastDeload = Date.now(); await F.saveSettings(); F.toast('Deload włączony na 7 dni: połowa serii, ten sam ciężar', 'hot', 3500); F.render(true); };
-  F.act.deloadStop = async () => { F.S.settings.deloadUntil = 0; await F.saveSettings(); F.toast('Deload zakończony'); F.render(true); };
+  F.act.deloadStart = async () => { F.S.settings.deloadUntil = Date.now() + 7 * DAY; F.S.settings.lastDeload = Date.now(); await F.saveSettings(); F.toast('Odciążenie włączone na 7 dni: połowa serii, ten sam ciężar', 'hot', 3500); F.render(true); };
+  F.act.deloadStop = async () => { F.S.settings.deloadUntil = 0; await F.saveSettings(); F.toast('Odciążenie zakończone'); F.render(true); };
   F.act.deloadDismiss = async () => { F.S.settings.deloadDismiss = Date.now(); await F.saveSettings(); F.render(true); };
   F.progressHtml = () => {
     const st = F.stagnating(); const dl = F.deloadOn();
     const list = st.slice(0, 5).map(x => `<a class="exrow" href="#/ex/${E(x.exId)}">${F.mDot(exOf(x.exId).muscle)}<span><b>${E(F.exName(x.exId))}</b><small>${x.stuck} ${F.plur(x.stuck, 'trening', 'treningi', 'treningów')} bez nowego rekordu 1RM</small></span>${ic('chevron-right', 16)}</a>`).join('');
     return `<section class="card cut"><h3>${ic('chart-line', 18)} Progresja</h3>
-      ${st.length ? `<p class="dim small">Ćwiczenia wielostawowe, w których od 3+ treningów nie ma postępu. Aplikacja zasugeruje ciężar −10% (reset), a gdy takich ćwiczeń jest więcej — tydzień deload.</p><div class="exlist">${list}</div>` : `<p class="dim small">Brak stagnacji w ćwiczeniach wielostawowych. Postęp idzie.</p>`}
-      <div class="btn-row">${dl ? `<button class="btn ghost grow" data-a="deloadStop">${ic('x', 18)} Zakończ deload (do ${F.fmtDateShort(F.S.settings.deloadUntil)})</button>` : `<button class="btn ghost grow" data-a="deloadStart">${ic('shield', 18)} Włącz tydzień deload</button>`}</div></section>`;
+      ${st.length ? `<p class="dim small">Ćwiczenia wielostawowe, w których od 3+ treningów nie ma postępu. Aplikacja zasugeruje ciężar −10% (reset), a gdy takich ćwiczeń jest więcej — tydzień odciążenia.</p><div class="exlist">${list}</div>` : `<p class="dim small">Brak stagnacji w ćwiczeniach wielostawowych. Postęp idzie.</p>`}
+      <div class="btn-row">${dl ? `<button class="btn ghost grow" data-a="deloadStop">${ic('x', 18)} Zakończ odciążenie (do ${F.fmtDateShort(F.S.settings.deloadUntil)})</button>` : `<button class="btn ghost grow" data-a="deloadStart">${ic('shield', 18)} Włącz tydzień odciążenia</button>`}</div></section>`;
   };
 })();

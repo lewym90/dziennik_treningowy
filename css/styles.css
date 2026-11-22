@@ -974,3 +974,9 @@ body.kbd .sdk.on{padding-bottom:10px}
 .cli-e{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:14px;border-top:1px solid var(--line,rgba(255,255,255,.06))}.cli-e b{font-weight:600;text-align:right}
 .warn-t{color:var(--warn,#f5a524)}
 .pu-adv{margin-top:10px}.pu-adv summary{cursor:pointer;color:var(--dim,#9aa);font-size:14px;padding:6px 0}.pu-adv .fld{margin-top:8px}
+/* audyt 1.29.1: wąskie ekrany */
+.pi-top{flex-wrap:wrap}.pi-n{flex:1 1 150px}.pi-top .mini-btns{margin-left:auto}
+.pi-n b{overflow-wrap:anywhere}
+.accents{grid-template-columns:repeat(4,minmax(0,1fr))}
+.empty .btn-row{justify-content:center;flex-wrap:wrap}
+@media (max-width:374px){.sd-f{grid-template-columns:34px 1fr 34px}.sd-f input{font-size:23px}.sd-row{gap:8px}.sd-rest{gap:12px}.sd-ring{width:76px;height:76px}}

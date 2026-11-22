@@ -77,7 +77,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.29.0';
+  F.APPVER = '1.29.1';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
@@ -292,10 +292,10 @@
       // brak historii: ewentualnie % 1RM z innych źródeł nie istnieje — zwracamy null
       return null;
     }
-    if (ex.type === 'time') { const mx = Math.max(...last.sets.map(s => s.r || 0)); return dl ? { w: 0, r: mx, note: 'Deload: bez progresji' } : { w: 0, r: mx + 5, note: 'Dołóż 5 s' }; }
+    if (ex.type === 'time') { const mx = Math.max(...last.sets.map(s => s.r || 0)); return dl ? { w: 0, r: mx, note: 'Odciążenie: bez progresji' } : { w: 0, r: mx + 5, note: 'Dołóż 5 s' }; }
     const sets = last.sets.filter(s => s.t !== 'd'); if (!sets.length) return null;
     const top = sets.reduce((a, s) => (s.w || 0) >= (a.w || 0) ? s : a, sets[0]);
-    if (ex.type === 'br') return dl ? { w: 0, r: top.r || 0, note: 'Deload: utrzymaj' } : { w: 0, r: (top.r || 0) + 1, note: '+1 powtórzenie' };
+    if (ex.type === 'br') return dl ? { w: 0, r: top.r || 0, note: 'Odciążenie: utrzymaj' } : { w: 0, r: (top.r || 0) + 1, note: '+1 powtórzenie' };
     const incr = opts.inc > 0 ? opts.inc : F.stepFor(ex);
     // % 1RM z planu
     if (opts.pct > 0) {
@@ -389,7 +389,7 @@
     app: 'FORGE', version: 1, exported: new Date().toISOString(),
     settings: F.S.settings, exercises: [...F.S.ex.values()], plans: F.S.plans, sessions: F.S.sessions, bodyweight: F.S.bw, measures: F.S.measures
   });
-  F.exportFull = async (withPhotos = true) => { const o = F.exportAll(); o.version = 2; if (withPhotos) o.photos = await F.dbAll('photos'); return o; };
+  F.exportFull = async (withPhotos = true) => { const o = F.exportAll(); o.version = 2; if (withPhotos) o.photos = await F.dbAll('photos'); try { const c = await F.kvGet('clients'); if (c && c.length) o.clients = c; } catch (e) { } return o; };
   F.exportCSV = () => {
     const rows = [['Data', 'Nazwa treningu', 'Czas trwania (min)', 'Ćwiczenie', 'Partia', 'Seria', 'Typ serii', 'Ciężar (kg)', 'Powtórzenia / sekundy', 'RPE', 'Notatka']];
     const esc = v => { v = v == null ? '' : String(v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
@@ -408,6 +408,7 @@
     const [ex, plans, sessions, bw, meas] = await Promise.all([F.dbAll('exercises'), F.dbAll('plans'), F.dbAll('sessions'), F.dbAll('bodyweight'), F.dbAll('measures')]); F.S.measures = meas.sort((a, b) => a.date - b.date);
     F.S.ex = new Map(ex.map(e => [e.id, e])); F.S.plans = plans.sort((a, b) => (a.order || 0) - (b.order || 0) || a.created - b.created);
     F.S.sessions = sessions.sort((a, b) => b.start - a.start); F.S.bw = bw.sort((a, b) => a.date - b.date); F.rebuild();
+    if (Array.isArray(data.clients) && data.clients.length) { const cur = mode === 'replace' ? [] : ((await F.kvGet('clients')) || []); data.clients.forEach(c => { const i = cur.findIndex(x => x.id === c.id); if (i >= 0) { if ((c.made || 0) >= (cur[i].made || 0)) cur[i] = c; } else cur.push(c); }); await F.kvSet('clients', cur); if (F.cliReset) F.cliReset(); }
     if (F.ui) F.ui.photos = null;
     return { sessions: (data.sessions || []).length, plans: (data.plans || []).length, photos: (data.photos || []).length };
   };
