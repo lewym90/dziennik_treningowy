@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.29.2** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.29.3** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,10 @@ Stan na 21 listopada 2026. Wersja **1.29.2** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.29.3 — kreator pamięta wybory po cofnięciu (22.11.2026)
+- Zgłoszenie (nagranie): po cofnięciu do kroku Cel i powrocie krok Cardio pokazywał zaznaczoną opcję, ale „Dalej” mówił „Wybierz, co robimy z cardio”. Przyczyny: stuknięcie tego samego celu kasowało wybór cardio (`wzGoal` — teraz tylko przy zmianie celu) i walidacja nie uznawała opcji pokazanej jako zaznaczona domyślnie (teraz ją przyjmuje).
+- Test `wzt.js`: 5 celów × szybki/zaawansowany — przejście do planu, cofnięcie do początku i ponowne przejście bez dotykania odpowiedzi: 10/10.
 
 ## v1.29.2 — Wstecz w kreatorze (22.11.2026)
 - Zgłoszenie właściciela: po wejściu w podgląd planu z kreatora nie dało się wrócić. Teraz: strzałka Wstecz w nagłówku podglądu (wraca do wyboru podziału, odpowiedzi zostają) i przycisk „Wstecz” zamiast „Zmień odpowiedzi”; w krokach kreatora strzałka w nagłówku cofa o krok (na pierwszym kroku wychodzi). `F.head` przyjmuje `back: 'nazwaAkcji'`.
