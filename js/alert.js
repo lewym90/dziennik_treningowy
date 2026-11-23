@@ -110,9 +110,8 @@
   };
   // zegar z dokładnością do ułamka sekundy, nawet gdy przeglądarka spowolni interwał
   function armEnd() { clearTimeout(endTimer); if (!F.rest) return; endTimer = setTimeout(() => { if (F.rest) F.tickRest(); }, Math.max(0, F.rest.end - Date.now()) + 30); }
-  // aplikacja na wierzchu tuż przed końcem: sygnał gra sama, więc anulujemy powiadomienie z serwera (bez dubla)
-  const _tick = F.tickRest;
-  F.tickRest = () => { if (F.rest && !pSkipSent && pcfg() && !document.hidden && document.hasFocus() && F.rest.end - Date.now() < 2200) { pSkipSent = true; pushCancel(); } _tick(); };
+  // v1.37.0: koniec przerwy przychodzi z serwera zawsze — także gdy aplikacja jest na ekranie (tak samo jak ostrzeżenie „za 30 s”).
+  // Odwołanie tylko przy „Pomiń przerwę” (restStop(false) → pushCancel).
   // zgoda na powiadomienia przy włączeniu opcji w ustawieniach
   document.addEventListener('change', e => { const t = e.target; if (t && t.dataset && t.dataset.k === 'notifRest' && t.checked) { F._askedNotif = false; ensurePermission(); } });
 })();

@@ -112,11 +112,14 @@
   function bindPager() {
     const el = F.$('#wk-pager'); if (!el) return; const n = pagesOf().length; if (F.ui.wkId !== D().id) { F.ui.wkId = D().id; const f = pagesOf().findIndex(p => { const c = pageSets(p); return c.done < c.all; }); F.ui.wkPage = f >= 0 ? f : 0; }
     F.ui.wkPage = Math.max(0, Math.min(F.ui.wkPage || 0, n)); el.scrollLeft = F.ui.wkPage * el.clientWidth; updProg();
-    let t = 0; el.addEventListener('scroll', () => { const k = Math.round(el.scrollLeft / el.clientWidth); if (k !== F.ui.wkPage) { F.ui.wkPage = k; F.ui.sel = null; updProg(); F.refreshSetDock(); F.haptic(6); } clearTimeout(t); t = setTimeout(hideHint, 200); }, { passive: true });
+    let t = 0; el.addEventListener('scroll', () => { if (pgLock) return; const k = Math.round(el.scrollLeft / el.clientWidth); if (k !== F.ui.wkPage) { F.ui.wkPage = k; F.ui.sel = null; updProg(); F.refreshSetDock(); F.haptic(6); } clearTimeout(t); t = setTimeout(hideHint, 200); }, { passive: true });
     if (!F.S.settings.swipeSeen && n > 1) { const h = F.$('#wk-hint'); if (h) h.hidden = false; }
   }
   const hideHint = () => { if (F.ui.wkPage > 0 && !F.S.settings.swipeSeen) { F.S.settings.swipeSeen = true; F.saveSettings(); const h = F.$('#wk-hint'); if (h) h.hidden = true; } };
-  addEventListener('resize', () => { const el = F.$('#wk-pager'); if (el) el.scrollLeft = (F.ui.wkPage || 0) * el.clientWidth; });
+  // obrót telefonu / zmiana rozmiaru: zostajemy na tej samej karcie (bez „środka dwóch kart”) — przewijanie w trakcie obrotu nie zmienia strony
+  let pgLock = 0, pgLockT = 0;
+  const holdPage = () => { const k = F.ui.wkPage || 0; pgLock = 1; const fix = () => { const el = F.$('#wk-pager'); if (el && el.clientWidth) el.scrollLeft = k * el.clientWidth; }; fix(); requestAnimationFrame(fix); [120, 300, 600].forEach(t => setTimeout(fix, t)); clearTimeout(pgLockT); pgLockT = setTimeout(() => { fix(); pgLock = 0; }, 700); };
+  addEventListener('resize', holdPage); addEventListener('orientationchange', holdPage);
   document.addEventListener('focusin', e => { if (e.target.closest && e.target.closest('.wk-slide') && e.target.matches('input,textarea')) document.body.classList.add('kbd'); });
   document.addEventListener('focusout', () => { setTimeout(() => { if (!document.activeElement || !document.activeElement.matches('input,textarea')) document.body.classList.remove('kbd'); }, 60); });
   /* ---------- lista ćwiczeń: skok do karty, zmiana kolejności, dodawanie ---------- */
@@ -190,7 +193,10 @@
       const rc = 2 * Math.PI * 40;
       el.className = 'sdk on rest';
       el.innerHTML = `<div class="sd-rest"><button class="sd-ring" data-a="restFull" aria-label="Duży stoper"><svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" class="rg-bg" stroke-width="8" fill="none"/><circle cx="48" cy="48" r="40" class="rd-fg" data-rest-ring stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${rc}" transform="rotate(-90 48 48)"/></svg><b data-rest-time>0:00</b></button>
-        <p><span>Przerwa</span>${n ? `<b>Następna: ${n.e.sets[n.j].t === 'w' ? 'rozgrzewka' : 'seria ' + setNo(n.e, n.j) + ' z ' + workN(n.e)}</b><small>${E(n.ex.name || '')} · ${short(n.ex, n.e, n.e.sets[n.j])}</small>` : '<b>Ostatnia seria za Tobą</b>'}</p></div>
+        ${(() => { const pg = curPage(), other = n && pg && (n.i < pg.st || n.i > pg.en);
+          if (!n) return '<p class="sd-nx"><span>Przerwa</span><b>Ostatnia seria za Tobą</b><small>Po przerwie podsumowanie treningu</small></p>';
+          if (other) { const ns = n.e.sets[n.j], tw = ns && ns.t !== 'w' && ns.w ? ' · ' + short(n.ex, n.e, ns) : ''; return `<p class="sd-nx"><span>Następne ćwiczenie</span><b>${E(n.ex.name || '')}</b><small>${ns && ns.t === 'w' ? 'rozgrzewka' : 'Seria ' + setNo(n.e, n.j) + ' z ' + workN(n.e)}${tw}</small></p>`; }
+          return `<p><span>Przerwa</span><b>Następna: ${n.e.sets[n.j].t === 'w' ? 'rozgrzewka' : 'seria ' + setNo(n.e, n.j) + ' z ' + workN(n.e)}</b><small>${E(n.ex.name || '')} · ${short(n.ex, n.e, n.e.sets[n.j])}</small></p>`; })()}</div>
         <div class="sd-btns"><button class="btn ghost" data-a="restAdd" data-s="30">+30 s</button><button class="btn primary" data-a="restSkip">${ic('skip-forward', 18)} Pomiń przerwę</button></div>
         ${ls && ls.done ? `<p class="sd-tip">Zapisano: ${short(exOf(le.exId) || { type: 'wr' }, le, ls)} · <button class="linkbtn" data-a="undoChk">Cofnij</button></p>` : ''}`;
       F.tickRest(); return;
@@ -300,7 +306,11 @@
     F.tickRest();
   };
   F.act.restSkipClose = () => { F.restStop(false); F.closeSheet(true); };
-  const _orc = F.onRestChange; F.onRestChange = () => { if (_orc) _orc(); if (!F.rest && F.$('.full-rest')) F.closeSheet(true); };
+  // koniec przerwy (także „Pomiń przerwę”) po ostatniej serii ćwiczenia: ekran sam przechodzi na następne ćwiczenie (albo podsumowanie)
+  const advanceAfterRest = () => { const d = D(); if (!d || !F.$('#wk-pager')) return; const ps = pagesOf(), k = F.ui.wkPage || 0, p = ps[k], lc = F.ui.lastChk; if (!p || !lc || lc.i < p.st || lc.i > p.en) return;
+    const c = pageSets(p); if (!c.all || c.done < c.all) return; const nk = ps.findIndex((q, ix) => ix > k && pageSets(q).done < pageSets(q).all); const all = ps.every(q => { const x = pageSets(q); return x.done >= x.all; });
+    if (nk > k) goPage(nk, true); else if (all) goPage(ps.length, true); };
+  const _orc = F.onRestChange; F.onRestChange = () => { if (_orc) _orc(); if (!F.rest && F.$('.full-rest')) F.closeSheet(true); if (!F.rest) setTimeout(advanceAfterRest, 250); };
 
   /* ---------- edycja danych treningu ---------- */
   let dt = 0; const persist = () => { clearTimeout(dt); dt = setTimeout(() => F.saveDraft(), 350); };
@@ -354,6 +364,7 @@
     const nb = F.$(`#ssr-${g.start}-${j} .ck`); if (nb) nb.classList.add('pop');
     const pr = res.filter(x => x[1].prs && x[1].prs.length); if (!pr.length && nb) F.burstAt(nb, 12, .6);
     pr.forEach(([k, r], n) => setTimeout(() => celebrate(r.prs, exOf(d.exercises[k].exId), r.s, nb), n * 3400));
+    if (res.length) F.ui.lastChk = { i: res[res.length - 1][0], j }; // przejście po ostatniej rundzie i „Cofnij” w panelu przerwy dotyczą tej superserii
     const stt = wkStats(); let rs = 0; for (let k = g.start; k <= g.end; k++) rs = Math.max(rs, exRest(d.exercises[k], exOf(d.exercises[k].exId)));
     if (F.S.settings.autoRest && stt.done < stt.all) F.restStart(rs, F.ssName(g.size) + ' ' + g.L);
     else if (stt.done === stt.all) F.toast(ic('flag', 16) + ' Wszystkie serie zaliczone. Zakończ trening.', 'hot');

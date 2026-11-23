@@ -170,3 +170,6 @@
   };
   setInterval(() => { const d = F.S.draft; if (!d) return; const s = F.fmtDur((Date.now() - d.start) / 1000); F.$$('[data-wtime]').forEach(el => el.textContent = s); }, 1000);
 })();
+
+// telefon w poziomie: iOS nie pozwala aplikacji z ekranu początkowego zablokować obrotu, więc zamiast rozjechanego widoku plansza
+(function () { const add = () => { if (document.getElementById('rot')) return; const d = document.createElement('div'); d.id = 'rot'; d.setAttribute('role', 'alert'); d.innerHTML = (window.icon ? window.icon('smartphone', 44) : '') + '<b>Obróć telefon pionowo</b><small>FORGE działa w pionie. Blokadę obrotu włączysz w Centrum sterowania.</small>'; document.body.appendChild(d); }; if (document.body) add(); else document.addEventListener('DOMContentLoaded', add); })();

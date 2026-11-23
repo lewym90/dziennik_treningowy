@@ -1031,3 +1031,10 @@ body.kbd .wk2 .wk-slide>.wk-art{min-height:0;flex:0 0 0}
 .xt-n{padding:8px 14px}
 .sd-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.sd-f{min-width:0}.sd-f label{min-width:0}.sd-f small{overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .hero.cd .hero-k{display:flex;align-items:center;gap:6px}
+/* v1.37.0 — iOS 26, aplikacja z ekranu początkowego: gdy dokument nie jest wyższy niż ekran, elementy przyklejone do dołu kończą się ~safe-area-top nad krawędzią. Dokument co najmniej wysokości ekranu (na poprawnych urządzeniach min() = widoczna wysokość, nic się nie przewija). */
+@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}
+.sd-rest p.sd-nx>span{color:var(--a2);font:700 12px var(--fd);letter-spacing:.1em;text-transform:uppercase}
+.sd-rest p.sd-nx>b{font:700 21px/1.15 var(--fd);color:var(--tx);margin:2px 0}
+.sd-rest p.sd-nx>small{color:var(--tx2)}
+#rot{display:none}
+@media (orientation:landscape) and (max-height:520px) and (pointer:coarse){#rot{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;background:#07080b;color:var(--tx)}#rot svg{color:var(--a1);transform:rotate(90deg)}#rot b{font:700 22px var(--fd)}#rot small{color:var(--tx2);max-width:420px}}

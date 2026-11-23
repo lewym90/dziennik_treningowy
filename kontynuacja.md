@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.36.1** (cardio jutro na ekranie Dziś i w czacie; ćwiczenia jednorącz: seria = obie strony w tonażu; karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.37.0** (trening: pełny ekran na iOS 26, przejście do następnego ćwiczenia po przerwie, obrót, koniec przerwy z serwera; cardio jutro na ekranie Dziś i w czacie; ćwiczenia jednorącz: seria = obie strony w tonażu; karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,13 @@ Stan na 23 listopada 2026. Wersja **1.36.1** (cardio jutro na ekranie Dziś i w 
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.37.0 — trening: pełny ekran, następne ćwiczenie, obrót, powiadomienie (23.11.2026)
+- Czarny pas pod panelem serii (iOS 26, aplikacja z ekranu początkowego): gdy dokument nie jest wyższy niż ekran, elementy `position:fixed; bottom:0` kończą się ~safe-area-top nad krawędzią. Na Dziś niewidoczne (długa strona), w treningu (`body.in-workout{overflow:hidden}`) widoczne. Poprawka: `@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}` (na poprawnych urządzeniach = widoczna wysokość). Źródło: PR ErenDenizK/dizey #155, Apple Dev Forums 799216. NIE proponować „pasa w kolorze” — właściciel chce pełny ekran.
+- Koniec przerwy: alert.js nie odwołuje już powiadomienia z serwera, gdy aplikacja jest na ekranie (wcześniej `tickRest` → `pushCancel` 2,2 s przed końcem). Odwołanie tylko przy „Pomiń przerwę”.
+- Obrót: iOS nie obsługuje `orientation` z manifestu ani `screen.orientation.lock` (caniuse). `holdPage` (resize/orientationchange): przez 0,7 s przewijanie nie zmienia strony, scrollLeft = strona × szerokość (kilka prób). W poziomie na telefonie (`orientation:landscape and max-height:520px and pointer:coarse`) plansza `#rot` „Obróć telefon pionowo” (ui.js).
+- Przejście (decyzja właściciela: dopiero po końcu przerwy): w przerwie po ostatniej serii ćwiczenia/superserii panel „NASTĘPNE ĆWICZENIE” + nazwa + „Seria 1 z N · ciężar×powt.” (`.sd-nx`); po ostatniej serii treningu „Ostatnia seria za Tobą / Po przerwie podsumowanie”. Koniec przerwy (także „Pomiń”) → `advanceAfterRest` (onRestChange): gdy ostatnio zaliczona seria (`F.ui.lastChk`) jest na bieżącej karcie i karta skończona → `goPage` na następną kartę z niezaliczonymi seriami albo podsumowanie. Ręczne przewinięcie w przerwie / „Cofnij” → bez przejścia. `ssCheck` ustawia `F.ui.lastChk` (wcześniej „Zapisano/Cofnij” pokazywały poprzednie ćwiczenie).
+- Sprawdzone automatem (393×852, dotyk): zwykłe ćwiczenie (pominięta i naturalnie skończona przerwa), Cofnij, ręczne przewinięcie w przerwie, superseria, ostatnie ćwiczenie → podsumowanie, obrót tam i z powrotem na karcie 2.
 
 ## v1.36.1 — następny trening uwzględnia cardio (23.11.2026)
 - Zgłoszenie: w poniedziałek po treningu ekran Dziś pokazywał „Następny trening: Śr — Dół 1”, choć na wtorek jest cardio (niebieska kropka). Karta cardio była tylko w dzień cardio (`cardioToday`).
