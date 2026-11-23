@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.34.0** (prostsza karta ćwiczenia: jedna linijka celu, zapas przy powtórzeniach; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.35.0** (karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,12 @@ Stan na 23 listopada 2026. Wersja **1.34.0** (prostsza karta ćwiczenia: jedna l
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.35.0 — układ karty ćwiczenia (23.11.2026)
+- Zgłoszenie: po uproszczeniu karta wyglądała pusto (wolne miejsce nad panelem serii), kafel „Dziś” nieładny. Prośba: gdy starczy miejsca, obie grafiki (sprzęt i mięśnie) jedna pod drugą.
+- Slajd treningu (`.wk2 .wk-slide`) to kolumna flex: grafika (`.wk-art`) wypełnia wolne miejsce (min. clamp(120px,21vh,190px)), reszta bez rozciągania. Dolny margines slajdu = rzeczywista wysokość panelu serii (`--dockh`, ResizeObserver na `#set-dock`; zapamiętana największa wysokość — panel przerwy jest wyższy — żeby grafika nie skakała).
+- `F.artFit()` (body.js, wołane w `after` widoku treningu): grafika ze sprzętem ≥190 px wysokości → klasa `stk`: dwa panele (sprzęt 1.15fr, mięśnie 1fr), czarne tło, cienka ramka, miękkie krawędzie obrazka (mask). Poniżej — dotychczasowy układ z miniaturą mięśni (przełączanie stuknięciem tylko w tym trybie). Sprawdzone: 393×852 i 393×793 (≈ iPhone z paskiem stanu) → dwa panele, także w czasie przerwy; 375×667 i 320×568 → miniatura.
+- Kafel celu `.xt`: „DZIŚ 4 × 7 · 20 kg na hantlę” w jednej linii, pod spodem „Ostatnio 20 kg × 7, 6, 6, 6 · +1 powtórzenie”, notatka (rozgrzewka) jako stopka kafla.
 
 ## v1.34.0 — prostsza karta ćwiczenia (23.11.2026)
 - Zgłoszenie: karta miała cel 3 razy (kafel, podpowiedź, panel), dwa różne zapasy (blok „3”, notatka „2–3”), podpowiedź każącą samemu dokładać powtórzenia, plakietkę ×2, przycisk „Zajęte”, pasek bloku. Decyzje właściciela: ŻADNEJ oceny serii (szybki zapis), ramka objaśnienia nad planem usunięta, tydzień bloku raz przy starcie.

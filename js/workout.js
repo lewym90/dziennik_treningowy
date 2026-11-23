@@ -98,11 +98,11 @@
   // jedna linijka celu: „Dziś 4 × 60 kg × 7”, pod spodem co było ostatnio i co się zmieniło
   const WHY = { 'Spróbuj +1 powtórzenie': '+1 powtórzenie', 'Dołóż ciężar': 'więcej ciężaru' };
   const targetTile = (e, ex, sug, i) => { const isT = ex.type === 'time', isB = ex.type === 'br'; const n = e.sets.filter(s => s.t !== 'w').length; const m = F.wm(e.exId); const t = tgtR(e, sug);
-    let big; if (sug) big = isT ? `${n} × ${F.fmtDur(sug.r)}` : isB ? `${n} × ${sug.r} powt.` : `${n} × ${m === 2 ? '2× ' : ''}${F.fw(sug.w / m)} ${F.unit()} × ${sug.r}`; else if (t && !isT) big = `${n} × ${t.r} powt.`; else big = e.target && e.target.reps ? `${n} × ${isT ? F.fmtDur(+e.target.reps || 0) : E(e.target.reps)}` : '–';
+    let big; if (sug) big = isT ? `${n} × ${F.fmtDur(sug.r)}` : isB ? `${n} × ${sug.r} powt.` : `${n} × ${sug.r} · ${F.fw(sug.w / m)} ${F.unit()}${m === 2 ? `<small> ${ex.equip === 'Hantle' ? 'na hantlę' : 'na stronę'}</small>` : ''}`; else if (t && !isT) big = `${n} × ${t.r} powt.`; else big = e.target && e.target.reps ? `${n} × ${isT ? F.fmtDur(+e.target.reps || 0) : E(e.target.reps)}` : '–';
     const why = sug ? (sug.load ? (/Dołóż/.test(sug.note) ? 'więcej ciężaru' : 'ten sam ciężar') : WHY[sug.note] || '') : '';
-    const L0 = F.LAST[e.exId]; const ws = L0 ? L0.sets.filter(x => x.t !== 'w') : []; const lt = !L0 ? '' : isT || isB || new Set(ws.map(x => x.w || 0)).size > 1 ? lastTxt(e, ex) : `${m === 2 ? '2× ' : ''}${F.fw((ws[0] || {}).w / m || 0)} ${F.unit()} × ${ws.map(x => x.r).join(', ')}`;
+    const L0 = F.LAST[e.exId]; const ws = L0 ? L0.sets.filter(x => x.t !== 'w') : []; const lt = !L0 ? '' : isT || isB || new Set(ws.map(x => x.w || 0)).size > 1 ? lastTxt(e, ex) : `${F.fw((ws[0] || {}).w / m || 0)} ${F.unit()} × ${ws.map(x => x.r).join(', ')}`;
     const sub = L0 ? `Ostatnio ${lt}${why ? ' · ' + why : ''}` : 'Pierwszy raz';
-    return `<div class="xc-2 one"><button class="${sug ? 'hot' : ''}" ${sug ? `data-a="applySug" data-i="${i}"` : ''}><small>Dziś</small><b>${big}</b><small>${sub}</small></button></div>`; };
+    const nt = cleanNote(e.note); return `<div class="xt"><button class="xt-b ${sug ? 'hot' : ''}" ${sug ? `data-a="applySug" data-i="${i}"` : ''}><span class="xt-r"><span class="xt-k">Dziś</span><b class="xt-v">${big}</b></span><small class="xt-s">${sub}</small></button>${nt ? `<p class="xt-n">${ic('flame', 14)} ${E(nt)}</p>` : ''}</div>`; };
   /* ---------- strony: jedna karta = jedno ćwiczenie albo cała superseria / obwód ---------- */
   const pagesOf = () => { const d = D(), inf = F.ssInfo(d.exercises), out = []; let i = 0; while (i < d.exercises.length) { const g = inf[i]; if (g && g.pos === 0) { out.push({ st: g.start, en: g.end }); i = g.end + 1; } else { out.push({ st: i, en: i }); i++; } } return out; };
   const slides = () => { const d = D(); return pagesOf().map((p, k) => { const ids = d.exercises.slice(p.st, p.en + 1).map(e => e.exId); return `<div class="wk-slide" data-pg="${k}">${F.exArt(ids)}${p.en > p.st ? ssCard(p.st, p.en) : card(p.st)}</div>`; }).join(''); };
@@ -261,7 +261,6 @@
       <div class="sx" id="sx-${i}">${chips(i)}</div>
       ${targetTile(e, ex, sug, i)}
       ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}
-      ${cleanNote(e.note) ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(cleanNote(e.note))}</p>` : ''}
 
 </section>`;
   }
@@ -280,7 +279,7 @@
         <label class="fld"><span>Notatka do treningu</span><textarea data-b="wnote" rows="2" placeholder="Samopoczucie, sen, uwagi…">${E(d.note || '')}</textarea></label>
         <button class="btn ghost wide danger-t" data-a="wkCancel">${ic('trash-2', 18)} Anuluj trening</button></div></div>
       <div class="wk-hint" id="wk-hint" hidden>${ic('chevron-left', 16)} Przesuń palcem w lewo: następne ćwiczenie</div></div><div id="set-dock" class="sdk"></div>`,
-      after: () => { bindPager(); F.refreshWorkoutRest(); F.wakeLock(); if (!d.exercises.some(e => e.sets.some(x => x.done))) setTimeout(() => F.feelAsk && F.feelAsk(), 400); }
+      after: () => { bindPager(); F.artFit && F.artFit(); F.refreshWorkoutRest(); F.wakeLock(); if (!d.exercises.some(e => e.sets.some(x => x.done))) setTimeout(() => F.feelAsk && F.feelAsk(), 400); }
     };
   };
 

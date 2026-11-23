@@ -63,5 +63,12 @@
     const cv = F.bodyCv(view, colors, { f: view, dim: .62 }), eq = !Array.isArray(ids) || ids.length === 1 ? eqOf(Array.isArray(ids) ? ids[0] : ids) : -1;
     return eq >= 0 ? `<div class="wk-art eq" data-a="artSwap" role="button" aria-label="Przełącz sprzęt i mięśnie"><img src="assets/eq/${eq}.webp" alt="" loading="lazy"><div class="ma">${cv}</div></div>` : `<div class="wk-art">${cv}</div>`;
   };
-  F.act.artSwap = b => b.classList.toggle('mus');
+  F.act.artSwap = b => { if (!b.classList.contains('stk')) b.classList.toggle('mus'); };
+  // gdy na grafikę zostaje dość miejsca (wolna przestrzeń nad panelem serii), sprzęt i mięśnie stoją jedna pod drugą
+  let artRO = null;
+  F.artFit = () => { const wk = document.querySelector('.wk2'), dk = document.getElementById('set-dock');
+    // wolne miejsce kończy się tam, gdzie zaczyna się panel serii: dolny margines slajdu = rzeczywista wysokość panelu
+    const dockFit = () => { if (!wk || !dk || !dk.classList.contains('on')) return; const h = dk.offsetHeight; if (h > (F._dockH || 0) || h < (F._dockH || 0) - 120) F._dockH = h; wk.style.setProperty('--dockh', F._dockH + 'px'); }; // największa wysokość panelu (seria/przerwa), żeby grafika nie skakała
+    dockFit(); if (window.ResizeObserver && dk) { if (F._dockRO) F._dockRO.disconnect(); F._dockRO = new ResizeObserver(dockFit); F._dockRO.observe(dk); }
+    const as = [...document.querySelectorAll('.wk2 .wk-art.eq')]; const fit = a => a.classList.toggle('stk', a.clientHeight >= 190); as.forEach(fit); if (!window.ResizeObserver) return; if (artRO) artRO.disconnect(); artRO = new ResizeObserver(en => en.forEach(x => fit(x.target))); as.forEach(a => artRO.observe(a)); };
 })();
