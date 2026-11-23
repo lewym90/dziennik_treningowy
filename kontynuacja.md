@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.35.0** (karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.36.0** (ćwiczenia jednorącz: seria = obie strony w tonażu; karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,13 @@ Stan na 23 listopada 2026. Wersja **1.35.0** (karta ćwiczenia: grafiki sprzętu
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.36.0 — ćwiczenia jednorącz: seria = obie strony (23.11.2026)
+- Zgłoszenie: wiosłowanie hantlą jednorącz (jedna hantla, prawa ręka, potem lewa, potem „Zalicz serię”) liczyło w tonażu jedną stronę (30 kg × 8 = 240 kg zamiast 480). Właściciel: NIE pokazywać „kg na hantlę” / „2×” przy jednej hantli — myli.
+- core.js `F.uni(ex)`: `row_db`, `curl_con`, `kickback`, `glute_kick` + biblioteka po nazwie/aliasie (one arm, single arm, one leg, single leg, jednorącz, jedną ręką/nogą, na jednej nodze); wyjątek `bulgar` (dwie hantle). Nadpisanie: `settings.uni[id]` (bez UI). 67 ćwiczeń.
+- Zapis = ciężar tej jednej hantli/strony (bez zmian w historii, 1RM i progresji — na stronę). `F.setVolume` i praca w kcal (`setWork`) × 2. `F.x2` = false dla `F.uni` (ćwiczenia jednorącz z biblioteki z hantlami były błędnie ×2).
+- Migracja `settings.migUni1` (raz, po migawce autoSnap): ćwiczenia jednorącz z biblioteki z hantlami, które dotąd liczyły się jako dwie hantle (`F.wasX2Uni`), mają zapisany ciężar podzielony przez 2 (sesje, plany, szkic). `row_db`, `curl_con`, `kickback` były już na jedną hantlę — bez zmian w danych.
+- Karta: kafel „Dziś 2 × 9 · 30 kg · każda strona”; panel serii „kg · 1 hantla”. Panel: kolumny `minmax(0,1fr)` + ucinanie zbyt długich etykiet.
 
 ## v1.35.0 — układ karty ćwiczenia (23.11.2026)
 - Zgłoszenie: po uproszczeniu karta wyglądała pusto (wolne miejsce nad panelem serii), kafel „Dziś” nieładny. Prośba: gdy starczy miejsca, obie grafiki (sprzęt i mięśnie) jedna pod drugą.

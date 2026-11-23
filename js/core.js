@@ -75,9 +75,15 @@
     F.S.measures = (meas || []).sort((a, b) => a.date - b.date);
     F.S.settings = { ...F.DEFAULT_SETTINGS, ...(set || {}) };
     F.S.draft = draft || null;
+    // v1.36.0: ćwiczenia jednorącz z biblioteki (jedna hantla) były zapisywane jak dwie hantle (suma) → zapis = ciężar tej jednej hantli
+    if (!F.S.settings.migUni1) { try { const hit = id => F.wasX2Uni(F.S.ex.get(id)); const half = st => st.forEach(x => { if (x.w) x.w = x.w / 2; });
+      F.S.sessions.forEach(se => { let ch = 0; (se.exercises || []).forEach(e => { if (hit(e.exId)) { half(e.sets || []); ch = 1; } }); if (ch) F.dbPut('sessions', se).catch(() => { }); });
+      F.S.plans.forEach(p => { let ch = 0; (p.days || []).forEach(d => (d.items || []).forEach(i => { if (hit(i.exId) && i.w) { i.w = i.w / 2; ch = 1; } })); if (ch) F.dbPut('plans', p).catch(() => { }); });
+      if (F.S.draft) { let ch = 0; (F.S.draft.exercises || []).forEach(e => { if (hit(e.exId)) { half(e.sets || []); ch = 1; } }); if (ch) F.saveDraft(); }
+      F.S.settings.migUni1 = 1; F.saveSettings(); } catch (e) { console.warn('migUni', e); } }
     F.rebuild();
   };
-  F.APPVER = '1.35.0';
+  F.APPVER = '1.36.0';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
@@ -107,7 +113,14 @@
   /* Ciężar „na sztukę / na stronę”: w danych zawsze zapisujemy SUMĘ (stąd historia, tonaż i rekordy bez zmian),
      a przy ćwiczeniach z hantlami i jednostronnych wpisujemy i pokazujemy jedną sztukę (2 × 10 kg). */
   const X2_OFF = new Set(['row_db', 'pullover', 'tri_over', 'curl_con', 'kickback', 'sumo_sq']); // domyślnie jedna hantla
-  F.x2 = id => { const ex = id && typeof id === 'object' ? id : F.S.ex.get(id); if (!ex || (ex.type !== 'wr' && ex.type !== 'bwr')) return false; const o = (F.S.settings.x2 || {})[ex.id]; if (o != null) return !!o; return ex.equip === 'Hantle' && !X2_OFF.has(ex.id); };
+  /* Ćwiczenia jednorącz / jednonóż (jedna hantla, jedna strona naraz): wpisujesz ciężar tej jednej hantli, seria = obie strony,
+     więc tonaż i praca (kcal) liczą się razy dwa; historia, 1RM i progresja — na jedną stronę. */
+  const UNI = new Set(['row_db', 'curl_con', 'kickback', 'glute_kick']);
+  const UNI_NOT = new Set(['bulgar']); // przysiad bułgarski: dwie hantle w rękach, zostaje jak wyciskanie hantli
+  const UNI_RE = /one[- ]arm|single[- ]arm|one[- ]leg|single[- ]leg|jednorącz|jedną ręką|jedną nogą|jedna noga|na jednej nodze/i;
+  F.uni = id => { const ex = id && typeof id === 'object' ? id : F.S.ex.get(id); if (!ex || (ex.type !== 'wr' && ex.type !== 'bwr')) return false; const o = (F.S.settings.uni || {})[ex.id]; if (o != null) return !!o; return UNI.has(ex.id) || (!UNI_NOT.has(ex.id) && UNI_RE.test(ex.name + ' ' + (ex.alias || ''))); };
+  F.x2 = id => { const ex = id && typeof id === 'object' ? id : F.S.ex.get(id); if (!ex || (ex.type !== 'wr' && ex.type !== 'bwr')) return false; const o = (F.S.settings.x2 || {})[ex.id]; if (o != null) return !!o; return ex.equip === 'Hantle' && !X2_OFF.has(ex.id) && !F.uni(ex); };
+  F.wasX2Uni = ex => ex && ex.equip === 'Hantle' && (ex.type === 'wr' || ex.type === 'bwr') && !X2_OFF.has(ex.id) && (F.S.settings.x2 || {})[ex.id] == null && F.uni(ex);
   F.wm = id => F.x2(id) ? 2 : 1;
   F.fwt = (kg, id) => F.wm(id) === 2 ? '2×' + F.fw(kg / 2) : F.fw(kg);
   F.fwtu = (kg, id) => F.fwt(kg, id) + ' ' + F.unit();
@@ -151,7 +164,7 @@
   F.setVolume = (ex, s, ts) => {
     if (!ex || !s.r) return 0;
     if (ex.type === 'time') return 0;
-    return F.effLoad(ex, s, ts) * s.r;
+    return F.effLoad(ex, s, ts) * s.r * (F.uni(ex) ? 2 : 1); // jednorącz: seria = obie strony
   };
   F.sessionVolume = sess => { let v = 0; (sess.exercises || []).forEach(e => { const ex = F.S.ex.get(e.exId); e.sets.forEach(s => { if (isWork(s)) v += F.setVolume(ex, s, sess.start); }); }); return v; };
   F.sessionSets = sess => (sess.exercises || []).reduce((a, e) => a + e.sets.filter(isWork).length, 0);

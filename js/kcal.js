@@ -42,7 +42,7 @@
     m += bw * (SEG[ex.id] || 0);
     if (m <= 0) return 0;
     const rom = ROM_ID[ex.id] || ROM[ex.muscle] || .45;
-    return m * 9.81 * rom * reps;
+    return m * 9.81 * rom * reps * (F.uni && F.uni(ex) ? 2 : 1); // jednorącz: seria = obie strony
   }
   const calFactor = () => { const a = F.S.settings.kcalCal; return a && a.length ? clamp(a.reduce((x, y) => x + y, 0) / a.length, .5, 2) : 1; };
 
