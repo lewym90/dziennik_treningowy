@@ -80,16 +80,24 @@
     const ws = F.startOfWeek(Date.now()); const wk = F.weekCounts(1)[0]; const goal = s.weeklyGoal;
     const byDay = {}; F.S.sessions.forEach(x => { byDay[F.dayKey(x.start)] = (byDay[F.dayKey(x.start)] || 0) + 1; });
     const todayK = F.dayKey(Date.now());
-    const strip = ['P', 'W', 'Ś', 'C', 'P', 'S', 'N'].map((l, i) => { const ts = ws + i * 864e5, k = F.dayKey(ts), tr = byDay[k]; return `<div class="wd ${tr ? 'tr' : ''} ${k === todayK ? 'today' : ''} ${ts > Date.now() ? 'fut' : ''}"><span>${l}</span><i>${tr ? ic('check', 14) : new Date(ts).getDate()}</i></div>`; }).join('');
+    // plan tygodnia: trening siłowy (obwódka) i osobne sesje cardio (serduszko)
+    const plK = new Set((F.calQueue ? F.calQueue(8) : []).map(x => x.key)), cdK = new Set((F.cardioQueue ? F.cardioQueue(7, ws) : []).filter(x => !x.done && x.key >= todayK).map(x => x.key));
+    const strip = ['P', 'W', 'Ś', 'C', 'P', 'S', 'N'].map((l, i) => { const ts = ws + i * 864e5, k = F.dayKey(ts), tr = byDay[k]; return `<div class="wd ${tr ? 'tr' : ''} ${k === todayK ? 'today' : ''} ${ts > Date.now() && !plK.has(k) && !cdK.has(k) ? 'fut' : ''}"><span>${l}</span><i>${tr ? ic('check', 14) : new Date(ts).getDate()}</i><b class="st-m">${!tr && plK.has(k) ? '<em class="st-s" aria-label="trening siłowy"></em>' : ''}${!tr && cdK.has(k) ? '<em class="st-c" aria-label="cardio"></em>' : ''}</b></div>`; }).join('');
+    const ct = F.cardioToday ? F.cardioToday() : null, q0 = F.calQueue ? F.calQueue(1)[0] : null, strToday = q0 && q0.key === todayK;
+    const cdMin = dd => Math.round((+(dd.items[0] || {}).reps || 0) / 60);
     // hero
     let hero;
     if (d) {
       const done = d.exercises.reduce((a, e) => a + e.sets.filter(x => x.done).length, 0);
       hero = `<section class="hero cut live"><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} serii zaliczonych</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
+    } else if (ct && !strToday) {
+      hero = `<section class="hero cut cd"><div class="hero-k">${ic('heart', 14)} Dziś cardio</div><h2>${E(ct.day.name)}</h2>
+        <p class="hero-m"><span>${ic('timer', 15)} ${cdMin(ct.day)} min</span><span>${ic('heart', 15)} osobna sesja</span></p>
+        <button class="forge-btn" data-a="startDay" data-p="${ct.plan.id}" data-d="${ct.day.id}"><span>${ic('play', 20)} Zacznij cardio</span></button>${nx ? `<p class="hero-n">Następny trening siłowy: <b>${E(nx.day.name)}</b>${q0 ? ' — ' + F.calWhen(q0.ts) : ''}</p>` : ''}</section>`;
     } else if (nx) {
-            hero = `<section class="hero cut"><div class="hero-k">Następny trening</div><h2>${E(nx.day.name)}</h2>
+            hero = `<section class="hero cut"><div class="hero-k">${strToday ? 'Dziś' : 'Następny trening'}</div><h2>${E(nx.day.name)}</h2>
         <p class="hero-m"><span>${ic('calendar', 15)} Dzień ${nx.di + 1} z ${nx.plan.days.length}</span><span>${ic('timer', 15)} ${estMin(nx.day)} min</span><span>${ic('dumbbell', 15)} ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
-        <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button></section>`;
+        <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button>${ct ? `<button class="hero-cd" data-a="startDay" data-p="${ct.plan.id}" data-d="${ct.day.id}">${ic('heart', 16)} Dziś też cardio: ${E(ct.day.name)} · ${cdMin(ct.day)} min</button>` : ''}</section>`;
     } else {
       hero = `<section class="hero cut"><div class="hero-k">Zacznij od zera</div><h2>Pora wykuć plan</h2><p class="hero-m">Ułóż plan w kreatorze, weź gotowy plan startowy albo wgraj ten, którego używasz dotąd (PDF lub zrzut ekranu).</p>
         <div class="btn-row"><a class="btn primary" href="#/wizard" data-a="newWizard">${ic('sparkles', 18)} Kreator planu</a><a class="btn ghost" href="#/plans">${ic('clipboard-list', 18)} Plany</a></div></section>`;
@@ -113,7 +121,7 @@
         <a class="qa-i cut" href="#/tools">${F.gly(9, 26)}<span>Narzędzia</span></a>
         <button class="qa-i cut" data-a="bwSheet">${F.gly(11, 26)}<span>Wpisz wagę</span></button>
       </div>
-      <section class="card cut week" data-a="goCal" role="button" aria-label="Otwórz kalendarz"><div class="week-top"><div><h3>Ten tydzień</h3><p class="dim">${wk.count} z ${goal} treningów</p><span class="wk-cal">${ic('calendar', 15)} Kalendarz ${ic('chevron-right', 15)}</span></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div></section>
+      <section class="card cut week" data-a="goCal" role="button" aria-label="Otwórz kalendarz"><div class="week-top"><div><h3>Ten tydzień</h3><p class="dim">${wk.count} z ${goal} treningów</p><span class="wk-cal">${ic('calendar', 15)} Kalendarz ${ic('chevron-right', 15)}</span></div>${F.chart.ring(Math.min(1, wk.count / goal), 64, 7, `<b>${wk.count}<small>/${goal}</small></b>`)}</div><div class="strip">${strip}</div>${cdK.size ? '<div class="strip-l"><span><i class="st-s"></i>siłowy</span><span><i class="st-c"></i>cardio</span></div>' : ''}</section>
       <div class="tiles">
         <div class="tile cut"><span class="tl">${ic('flame', 16)} Seria tygodni</span><b class="tv" data-count="${F.weekStreak()}">0</b><small>cel ${goal}×/tydz.</small></div>
         <div class="tile cut"><span class="tl">${ic('weight', 16)} Tonaż w tygodniu</span><b class="tv" data-count="${F.toDisp(wk.vol) >= 10000 ? F.toDisp(wk.vol) / 1000 : F.toDisp(wk.vol)}" data-dec="${F.toDisp(wk.vol) >= 10000 ? 1 : 0}" data-suf="${F.toDisp(wk.vol) >= 10000 ? ' t' : ' ' + F.unit()}">0</b><small>łącznie ${F.fmtVol(t.vol)}</small></div>
@@ -154,7 +162,7 @@
         <p class="pc-m">${tag ? `<span>${E(tag)}</span>` : ''}<span>${cur.days.length} ${F.plur(cur.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
         <div class="pc-row"><span class="dim">Następny</span><b>${E(nd.name.replace(/^(Pn|Wt|Śr|Cz|Pt|So|Nd) — /, ''))}</b>${when ? `<em>${E(when)}</em>` : ''}</div>
         ${(() => { const b = F.blockInfo && F.blockInfo(cur); if (!b) return ''; return b.over ? `<button class="pc-row" data-a="blockSum"><span class="dim">Blok</span><b>Zakończony</b><em>podsumowanie</em></button>` : `<div class="pc-row pc-blk"><span class="dim">Blok</span><b>Tydzień ${b.week} z ${b.weeks}${b.deload ? ' · odciążenie' : ` · zapas ${b.rir} powt.`}</b><i class="pc-bar"><i style="width:${(b.week / b.weeks * 100).toFixed(0)}%"></i></i></div>`; })()}
-        ${wd.length ? `<button class="pc-row pc-days" data-a="calDays"><span class="dim">Dni</span><b>${wd.map(i => F.WD_SHORT[i]).join(' · ')}</b><em>zmień</em></button>` : ''}
+        ${wd.length ? `<button class="pc-row pc-days" data-a="calDays"><span class="dim">Dni</span><b>${wd.map(i => F.WD_SHORT[i]).join(' · ')}</b><em>zmień</em></button>` : ''}${F.cardioWd && F.cardioWd(cur).length ? `<button class="pc-row pc-days" data-a="calDays"><span class="dim">Cardio</span><b>${F.cardioWd(cur).map(i => F.WD_SHORT[i]).join(' · ')}</b><em>zmień</em></button>` : ''}
         ${d ? `<a class="forge-btn" href="#/workout"><span>${ic('play', 20)} Wróć do treningu</span></a>` : `<button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button>`}</section>`;
     }
     const others = F.S.plans.filter(p => p !== cur);

@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.29.4** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.30.0** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,13 @@ Stan na 21 listopada 2026. Wersja **1.29.4** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.30.0 — osobne sesje cardio w kalendarzu i na ekranie Dziś (23.11.2026)
+- Zgłoszenie: osobne sesje cardio (dni planu „Cardio: …”, `cardioOnly`) były widoczne tylko w planie. Teraz mają własne dni tygodnia: `settings.cal.cwd` albo automatycznie (`cardioWd`: najpierw dni bez siłowni, rozłożone równo; gdy brak wolnych — dni siłowe). `F.cardioQueue(days, from)`: k-ta sesja tygodnia = k-ty dzień cardio planu; zrobione = sesja tego dnia z dniem cardio. `F.cardioToday()`.
+- Ekran Dziś: w dzień cardio bez siłowni — karta „Dziś cardio” z „Zacznij cardio” + „Następny trening siłowy: … — jutro”; w dzień z oboma — przycisk „Dziś też cardio” pod kartą treningu. Pasek tygodnia: kropki (pomarańczowa = siłowy, różowa = cardio) z legendą.
+- Kalendarz (Historia): różowe dni cardio z kropką, sekcja „Cardio” pod kolejką, arkusz dnia z „Zacznij teraz: Cardio…”; „Dni treningowe” mają drugi wiersz „Osobne sesje cardio”. Karta aktualnego planu: wiersz „Cardio: Pn · Śr · Nd”.
+- Sesja cardio zrobiona dziś nie przesuwa już treningu siłowego na jutro (`calQueue.doneToday` liczy tylko sesje siłowe).
+- Czat: „zacznij cardio”, „co mam dziś” dopisuje cardio, opis funkcji zaktualizowany.
 
 ## v1.29.4 — aktualizacja nie może zapisać starych plików (22.11.2026)
 - Właściciel po aktualizacji do 1.29.3 nadal widział błąd kreatora. Przyczyna: GitHub Pages wysyła pliki z `cache-control: max-age=600`, a instalacja nowego service workera (`addAll(CORE)`) mogła pobrać stary plik z pamięci przeglądarki i zapisać go pod nową wersją. Teraz instalacja pobiera CORE z `cache: 'reload'` (zawsze z serwera). Sprawdzone: świeża instalacja ma w pamięci poprawiony wizard.js.
