@@ -107,7 +107,7 @@
   F.GUIDE = A;
   // grafiki: assets/guide/<id>.webp dla nowych artykułów, starsze mają pliki numerowane 0–13
   const OLD = ['start', 'volume', 'reps', 'progress', 'cardio', 'rest', 'pyramid', 'splits', 'technique', 'pain', 'recovery', 'protein', 'beginner', 'myths'];
-  const HAS = new Set(['warmup', 'time', 'goals', 'supp', 'groups', 'meet']);
+  const HAS = new Set(['warmup', 'time', 'goals', 'supp', 'groups', 'meet', 'order']);
   const IMG = a => OLD.includes(a.id) ? `assets/guide/${OLD.indexOf(a.id)}.webp` : HAS.has(a.id) ? `assets/guide/${a.id}.webp` : '';
 
   const srcHtml = ids => { const seen = [...new Set(ids)].map(k => F.KB.src[k]).filter(Boolean); return seen.length ? `<h3 class="sec">Źródła</h3><section class="card cut"><ol class="srcs">${seen.map(s => `<li><a href="${E(s.u)}" target="_blank" rel="noopener">${E(s.t)}</a><small>${E(s.a)} (${s.y}), ${E(s.j)} · ${E(s.k)}</small></li>`).join('')}</ol></section>` : ''; };
