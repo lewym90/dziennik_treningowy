@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.30.3** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.31.0** (kolejność ćwiczeń w kreatorze oparta na badaniach), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,15 @@ Stan na 21 listopada 2026. Wersja **1.30.3** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.31.0 — kolejność ćwiczeń w kreatorze oparta na badaniach (23.11.2026)
+- Zgłoszenie właściciela: w planie z kreatora (Góra/Dół, priorytety klatka/barki/plecy) wiosłowanie stało w dniu dołu między RDL a uginaniem nóg — kolejność wyglądała na przypadkową. Diagnoza: sortowanie działało tylko przy priorytetach i limicie czasu; poza tym zostawała kolejność szablonu + ćwiczenia dokładane na koniec (np. hip thrust po brzuchu, prostowanie nóg przed wejściami). Automat na 18 792 dniach planów: 12 776 par „izolowane przed wielostawowym”, 7 422 z nich na ten sam mięsień (wstępne zmęczenie).
+- `F.PLN.orderDay(items, prioM)` w planner.js, stosowane do każdego dnia każdego planu (po wszystkich korektach objętości): 1) boje celu Siła (`sq_main`, `bench_main`, `dl_main`, `ohp_main`), 2) ciężkie wielostawowe (`main`), 3) pomocnicze wielostawowe (`sec`; izolowane z puli, które są wielostawowe — 2,5), 4) izolowane. W grupie: partie priorytetowe, potem wielkość partii (nogi → klatka/plecy → barki → ręce → łydki → przedramiona → brzuch), remis = kolejność szablonu. Superserie jako całość. Wynik automatu: 0 par izolowane-przed-wielostawowym poza superseriami (1 510 w superseriach mieszanych przy krótkim czasie — świadomy wyjątek, opisany), boje zawsze pierwsze. Czas dni bez zmian (2 520 dni: średnio 57,70 vs 57,69 min, tyle samo przekroczeń).
+- Ćwiczenie partii priorytetowej dołożone w dniu innej partii ma dopisek „partia priorytetowa: dodatkowe serie w tym dniu”. „Dlaczego ten plan”: nowe akapity Kolejność i Objętość (wyjaśniają limit serii na sesję i dokładanie w innym dniu).
+- Źródła (sprawdzone w PubMed, streszczenia): Simão 2012 (Sports Med), Simão 2010 (JSSM), Spineti 2010 (JSCR), Assumpção 2013 (Clin Physiol Funct Imaging), Avelar 2019 (APNM), Tomeleri 2020 (JSCR), Brandão 2020 (JSCR), Augustsson 2003 (JSCR), Hermann 2026 (IJES). Fakty: `orderPrio`, `preEx`, `orderHyp` (razem 70 źródeł, 54 fakty).
+- Porady i nauka: nowy artykuł `order` „Kolejność ćwiczeń w treningu” (bez grafiki — `HAS` w guide.js uzupełnić, gdy będzie `assets/guide/order.webp`). Artykuł „Progresja…” odsyła do niego.
+- Czat: „kolejność ćwiczeń”, „od największych do najmniejszych”, „czym zacząć trening” → orderPrio+preEx+orderHyp; „wstępne zmęczenie”, „biceps przed plecami” → preEx+orderPrio; „dlaczego w dniu nóg wiosłowanie” → nowa pozycja FEAT `prioDay`; „zmień/przestaw kolejność” → Edycja planu. Naprawione: „wiek”/„płeć” w odpowiedzi o profilu łapały „najwiękSZYCH” i „PLECami”; krótkie polecenie z trafieniem w funkcję aplikacji nie spada już do wyszukiwania w poradach.
+- Plany zapisane wcześniej się nie zmieniają — nowa kolejność po ponownym przejściu kreatora.
 
 ## v1.30.3 — usuwanie ćwiczeń w podglądzie planu z kreatora (23.11.2026)
 - Prośba właściciela: przed zapisem planu z kreatora można nie tylko zamienić, ale też usunąć ćwiczenie (× obok ⇄). W dniu zostaje min. 1 ćwiczenie; superseria z jednym ćwiczeniem przestaje być superserią; czas dnia przeliczany. Pasek „Usunięte: … — Przywróć ostatnie” (`wzDel`, `wzUndoDel`, `res.removed`).
