@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.36.0** (ćwiczenia jednorącz: seria = obie strony w tonażu; karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.36.1** (cardio jutro na ekranie Dziś i w czacie; ćwiczenia jednorącz: seria = obie strony w tonażu; karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,11 @@ Stan na 23 listopada 2026. Wersja **1.36.0** (ćwiczenia jednorącz: seria = obi
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.36.1 — następny trening uwzględnia cardio (23.11.2026)
+- Zgłoszenie: w poniedziałek po treningu ekran Dziś pokazywał „Następny trening: Śr — Dół 1”, choć na wtorek jest cardio (niebieska kropka). Karta cardio była tylko w dzień cardio (`cardioToday`).
+- Ekran Dziś (`home`): najbliższa sesja cardio (`cardioQueue(14)`, niezrobiona, po dziś) przed następnym siłowym → karta „Jutro — cardio” / „Czwartek — cardio” z „Zacznij cardio teraz” i linią „Następny trening siłowy: … — środa”. Karta siłowa: „Następny trening · Środa”; „Dzień X z N” liczy tylko dni siłowe.
+- Czat (`H.next`, `H.week`): wspólna kolejka siłowe + cardio (`allQ`); „co mam jutro/dziś”, „następny trening”, „co mam w czwartek” odpowiadają cardio z przyciskiem „Zacznij cardio”; „kiedy trenuję w tym tygodniu”: „2 treningi siłowe i 3 sesje cardio” + lista. Poprawione „Środę, 25 listopada” → „Środa, 25 listopada”.
 
 ## v1.36.0 — ćwiczenia jednorącz: seria = obie strony (23.11.2026)
 - Zgłoszenie: wiosłowanie hantlą jednorącz (jedna hantla, prawa ręka, potem lewa, potem „Zalicz serię”) liczyło w tonażu jedną stronę (30 kg × 8 = 240 kg zamiast 480). Właściciel: NIE pokazywać „kg na hantlę” / „2×” przy jednej hantli — myli.

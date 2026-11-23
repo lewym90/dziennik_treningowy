@@ -262,10 +262,17 @@
     return { html: `<p>${tired.length ? `Odpoczywają: <b>${tired.map(mName).join(', ')}</b>. Gotowe: ${ready.map(mName).join(', ') || 'brak'}.` : 'Wszystkie partie są gotowe do pracy.'}</p>${tired.length ? rows(tired.slice(0, 6).map(m => ({ i: F.mDot(m), l: cap(mName(m)), v: st(m) }))) : ''}`, acts: [{ l: 'Mapa regeneracji', i: 'activity', href: '#/stats', a: 'askRegen' }], chips: ['Co mam dziś?', 'Czy mogę dziś trenować nogi?'] };
   };
 
+  // siłowe i osobne sesje cardio razem, po kolei (w ten sam dzień najpierw siłowy)
+  const allQ = days => { const tk = F.dayKey(Date.now()); const a = F.calQueue ? F.calQueue(days) : []; const b = F.cardioQueue ? F.cardioQueue(days).filter(x => !x.done && x.key >= tk) : []; return [...a, ...b].sort((x, y) => x.ts - y.ts || (x.cardio ? 1 : 0) - (y.cardio ? 1 : 0)); };
+  const cdMin = d => Math.round((+((d.items || [])[0] || {}).reps || 0) / 60);
+  const whenOf = ts => { const k = F.dayKey(ts); return k === F.dayKey(Date.now()) ? 'dziś' : k === F.dayKey(Date.now() + DAY) ? 'jutro' : `${WD[new Date(ts).getDay()]}, ${dd(ts)}`; };
+  const cardioAns = (x, q, pre) => { const ns = q.find(y => !y.cardio && y.ts >= x.ts); const w = whenOf(x.ts);
+    return { html: `<p>${pre || ''}${cap(w)}: <b>cardio</b> — ${E(x.day.name.replace(/^Cardio:\s*/, ''))}, ${cdMin(x.day)} min (osobna sesja).${ns ? ` Następny trening siłowy: <b>${E(ns.day.name)}</b> — ${whenOf(ns.ts)}.` : ''}</p>`, acts: [{ l: 'Zacznij cardio', i: 'play', a: 'startDay', d: { p: x.plan.id, d: x.day.id } }, { l: 'Kalendarz', i: 'calendar', href: '#/calendar' }], chips: ['Kiedy trenuję w tym tygodniu?', 'Co mam dziś?'] }; };
   H.next = c => {
-    const q = F.calQueue ? F.calQueue(21) : []; const nx = F.nextWorkout && F.nextWorkout();
+    const q = F.calQueue ? F.calQueue(21) : []; const nx = F.nextWorkout && F.nextWorkout(); const aq = allQ(21);
     if (!nx) return { html: '<p>Nie masz planu treningowego. Ułóż go w kreatorze albo wybierz gotowy.</p>', acts: [{ l: 'Kreator planu', i: 'sparkles', href: '#/wizard' }, { l: 'Plany', i: 'clipboard-list', href: '#/plans' }] };
     const tk = F.dayKey(Date.now()), tm = /\bjutro\b/.test(N(c.q)); let q0 = q[0];
+    { const first = tm ? aq.find(x => x.key === F.dayKey(Date.now() + DAY)) : aq[0]; if (first && first.cardio) { const sameDay = q.find(x => x.key === first.key); if (!sameDay) return cardioAns(first, aq, /\bdzis\b/.test(N(c.q)) && first.key !== tk ? 'Na dziś nic więcej nie masz w planie. ' : ''); } }
     if (tm) { q0 = q.find(x => x.key === F.dayKey(Date.now() + DAY)); if (!q0) { const nn = q.find(x => x.key > F.dayKey(Date.now() + DAY)); return { html: `<p>Jutro masz dzień wolny od treningu.${nn ? ` Następny: <b>${E(nn.day.name)}</b>, ${dd(nn.ts)}.` : ''}</p>`, chips: ['Czy mogę dziś trenować nogi?', 'Ile treningów w tym tygodniu?'] }; } }
     const day = q0 ? q0.day : nx.day; const when = q0 ? (q0.key === tk ? 'dziś' : q0.key === F.dayKey(Date.now() + DAY) ? 'jutro' : `${WD[new Date(q0.ts).getDay()]}, ${dd(q0.ts)}`) : 'najbliższy';
     const est = F.PLN && F.PLN.estMin ? F.PLN.estMin(day.items) : 0;
@@ -372,14 +379,16 @@
   };
   const WDS = ['niedziel', 'poniedzial', 'wtor', 'srod', 'czwart', 'piat', 'sobot'];
   H.week = c => {
-    const q = F.calQueue ? F.calQueue(21) : []; if (!q.length) return H.plan(c);
+    const q = allQ(21); if (!q.length) return H.plan(c);
     const n = c.n, wi = WDS.findIndex(w => new RegExp('\\b' + w).test(n));
     if (wi >= 0) { const hit = q.find(x => new Date(x.ts).getDay() === wi); if (!hit) { const days = [...new Set(q.slice(0, 7).map(x => new Date(x.ts).getDay()))].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map(d => WD[d]); return { html: `<p>W ${WDG[wi]} nie masz treningu. Trenujesz w: ${days.join(', ')}.</p>`, chips: ['Kiedy trenuję w tym tygodniu?', 'Jaki mam plan?'] }; }
-      return { html: `<p>${cap(WDG[wi])}, ${dd(hit.ts)}: <b>${E(hit.day.name)}</b>.</p>${rows(hit.day.items.slice(0, 9).map(i => { const ex = F.S.ex.get(i.exId); return { i: F.mDot(ex && ex.muscle), l: E(ex ? ex.name : i.exId), v: `${i.sets}×${i.reps}` }; }))}`, acts: [{ l: 'Kalendarz', i: 'calendar', href: '#/calendar' }], chips: ['Kiedy trenuję w tym tygodniu?', 'Co mam dziś?'] }; }
+      if (hit.cardio) return cardioAns(hit, q);
+      return { html: `<p>${cap(WD[wi])}, ${dd(hit.ts)}: <b>${E(hit.day.name)}</b>.${(() => { const cd = q.find(x => x.cardio && x.key === hit.key); return cd ? ` Tego dnia także cardio: ${E(cd.day.name.replace(/^Cardio:\s*/, ''))}, ${cdMin(cd.day)} min.` : ''; })()}</p>${rows(hit.day.items.slice(0, 9).map(i => { const ex = F.S.ex.get(i.exId); return { i: F.mDot(ex && ex.muscle), l: E(ex ? ex.name : i.exId), v: `${i.sets}×${i.reps}` }; }))}`, acts: [{ l: 'Kalendarz', i: 'calendar', href: '#/calendar' }], chips: ['Kiedy trenuję w tym tygodniu?', 'Co mam dziś?'] }; }
     const end = /nastepn|przyszl/.test(n) ? F.startOfWeek(Date.now()) + 2 * WK : F.startOfWeek(Date.now()) + WK, from = /nastepn|przyszl/.test(n) ? F.startOfWeek(Date.now()) + WK : 0;
     const list = q.filter(x => x.ts < end && x.ts >= from); const tk = F.dayKey(Date.now());
     if (!list.length) { const nn = q.find(x => x.ts >= end); return { html: `<p>${from ? 'W przyszłym tygodniu' : 'Do końca tygodnia'} nie masz już treningów w planie.${nn ? ` Następny: <b>${E(nn.day.name)}</b> — ${WD[new Date(nn.ts).getDay()]}, ${dd(nn.ts)}.` : ''}</p>`, chips: ['Kiedy trenuję w przyszłym tygodniu?', 'Co mam dziś?'] }; }
-    return { html: `<p>${from ? 'W przyszłym tygodniu' : 'Do końca tego tygodnia'}: ${list.length} ${F.plur(list.length, 'trening', 'treningi', 'treningów')}.</p>${rows(list.map(x => ({ l: `${cap(x.key === tk ? 'dziś' : WD[new Date(x.ts).getDay()])} <small>${dd(x.ts)}</small>`, v: E(x.day.name) })))}`, acts: [{ l: 'Kalendarz', i: 'calendar', href: '#/calendar' }], chips: [from ? 'Kiedy trenuję w tym tygodniu?' : 'Kiedy trenuję w przyszłym tygodniu?', 'Co mam dziś?'] };
+    const ns = list.filter(x => !x.cardio).length, nc = list.length - ns;
+    return { html: `<p>${from ? 'W przyszłym tygodniu' : 'Do końca tego tygodnia'}: ${ns} ${F.plur(ns, 'trening siłowy', 'treningi siłowe', 'treningów siłowych')}${nc ? ` i ${nc} ${F.plur(nc, 'sesja cardio', 'sesje cardio', 'sesji cardio')}` : ''}.</p>${rows(list.map(x => ({ l: `${cap(x.key === tk ? 'dziś' : WD[new Date(x.ts).getDay()])} <small>${dd(x.ts)}</small>`, v: x.cardio ? `Cardio · ${cdMin(x.day)} min` : E(x.day.name) })))}`, acts: [{ l: 'Kalendarz', i: 'calendar', href: '#/calendar' }], chips: [from ? 'Kiedy trenuję w tym tygodniu?' : 'Kiedy trenuję w przyszłym tygodniu?', 'Co mam dziś?'] };
   };
 
   // ---- odciążenie: czy już czas ----

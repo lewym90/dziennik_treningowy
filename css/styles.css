@@ -1030,3 +1030,4 @@ body.kbd .wk2 .wk-slide>.wk-art{min-height:0;flex:0 0 0}
 .xt-r{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.xt-b{padding:11px 14px 10px}
 .xt-n{padding:8px 14px}
 .sd-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.sd-f{min-width:0}.sd-f label{min-width:0}.sd-f small{overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.hero.cd .hero-k{display:flex;align-items:center;gap:6px}
