@@ -72,6 +72,9 @@ export async function runDue(now = Date.now()) {
   for (const [id, dev] of Object.entries(db.devices)) {
     const p = dev.pre;
     if (p && p.at <= now) { delete dev.pre; touch(); if (p.at >= now - cfg.lateMs && !(dev.timer && dev.timer.at <= now) && await sendTo(id, dev, p)) sent++; }
+    // podsumowanie tygodnia (niedziela wieczorem): osobny termin, nie koliduje z przerwami; może się spóźnić najwyżej 6 godzin
+    const w = dev.week;
+    if (w && w.at <= now) { delete dev.week; touch(); if (w.at >= now - 6 * 3600000 && await sendTo(id, dev, w)) sent++; }
     const t = dev.timer;
     if (!t || t.at > now) continue;
     delete dev.timer; delete dev.pre; touch();
@@ -158,6 +161,14 @@ export async function handle(method, url, headers, body, now = Date.now(), ip = 
     if (pre >= 5 && pre < sec - 2) dev.pre = { at: dev.timer.at - pre * 1000, title: str(body.preTitle || `Za ${pre} s koniec przerwy`, 80), body: str(body.preBody || 'Przygotuj się do kolejnej serii.', 200), tag: 'forge-rest', url: './#/workout' };
     touch(); saveDb();
     return [200, { ok: true, at: dev.timer.at }];
+  }
+  if (method === 'POST' && route === '/week') {
+    // termin jako znacznik czasu (telefon liczy niedzielę 19:00 w swojej strefie); off — wyłącz
+    if (body.off) { if (dev.week) { delete dev.week; touch(); saveDb(); } return [200, { ok: true }]; }
+    const at = Math.round(+body.at);
+    if (!Number.isFinite(at) || at <= now || at > now + 8 * 864e5) return [400, { error: 'zły termin' }];
+    dev.week = { at, title: str(body.title || 'Twój tydzień w FORGE', 80), body: str(body.body || '', 200), tag: 'forge-week', url: './#/stats' };
+    touch(); saveDb(); return [200, { ok: true, at }];
   }
   if (method === 'POST' && route === '/cancel') { if (dev.timer || dev.pre) { delete dev.timer; delete dev.pre; touch(); saveDb(); } return [200, { ok: true }]; }
   if (method === 'POST' && route === '/unsubscribe') { delete db.devices[id]; touch(); saveDb(); return [200, { ok: true }]; }

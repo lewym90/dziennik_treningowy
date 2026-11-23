@@ -23,8 +23,14 @@
   };
   // podstawowa przemiana materii, Mifflin–St Jeor (kcal/dobę)
   F.bmr = p => p.bf ? 370 + 21.6 * p.bw * (1 - p.bf / 100) /* Katch–McArdle: dokładniejszy, gdy znasz % tkanki tłuszczowej */ : 10 * p.bw + 6.25 * p.height - 5 * p.age + (p.sex === 'f' ? -161 : 5);
-  const PAL = { 1: ['Siedzący tryb życia', 1.2], 2: ['Lekko aktywny', 1.375], 3: ['Umiarkowanie aktywny', 1.55], 4: ['Bardzo aktywny', 1.725] };
-  // dzienne zapotrzebowanie BEZ treningów (PAL dotyczy codziennych zajęć); treningi dolicza się osobno
+  // współczynnik aktywności (PAL) dla dnia BEZ treningów — treningi dolicza się osobno z zapisanych sesji.
+  // 1,4 — siedzący tryb życia (Normy żywienia dla populacji Polski 2024, za EFSA; dolna granica przedziału FAO/WHO/UNU 2004: 1,40–1,69);
+  // 1,55 — siedząca praca z codziennym chodzeniem (FAO/WHO/UNU 2004: przykład 1,53, siedzący 1,55);
+  // 1,75 — aktywny tryb życia, praca w ruchu (FAO/WHO/UNU 2004: przykład 1,76, przedział 1,70–1,99);
+  // 2,0 — bardzo aktywny, praca fizyczna (Normy 2024 / EFSA: 2,0; FAO: przedział 2,00–2,40).
+  const PAL = { 1: ['Siedząca praca, mało ruchu', 1.4, 'biurko, dojazd autem, prawie bez spacerów'], 2: ['Siedząca praca, trochę ruchu', 1.55, 'biurko, ale codziennie spacer albo dojazd pieszo lub rowerem'], 3: ['Dużo na nogach', 1.75, 'praca stojąca lub w ruchu: sklep, magazyn, gastronomia'], 4: ['Praca fizyczna', 2.0, 'budowa, ciężka praca fizyczna przez większość dnia'] };
+  F.PAL = PAL;
+  F.palOpts = v => Object.entries(PAL).map(([k, x]) => `<option value="${k}" ${String(v) === k ? 'selected' : ''}>${x[0]} — ${x[2]}</option>`).join('');
   F.tdee = p => p.activity && PAL[p.activity] ? F.bmr(p) * PAL[p.activity][1] : 0;
 
   /* ---------- praca mechaniczna serii ---------- */
@@ -102,7 +108,7 @@
     const hasAdv = s.bf || s.hrRest || s.hrMax;
     return `<div class="prof"><div class="seg tiny sx"><button class="${s.sex === 'm' ? 'on' : ''}" data-a="setSex" data-v="m">Mężczyzna</button><button class="${s.sex === 'f' ? 'on' : ''}" data-a="setSex" data-v="f">Kobieta</button></div>
       <div class="two"><label class="fld"><span>Wzrost (cm)</span><input data-b="prof" data-k="height" inputmode="numeric" value="${s.height || ''}" placeholder="178"></label><label class="fld"><span>Wiek (lata)</span><input data-b="prof" data-k="age" inputmode="numeric" value="${F.ageNow() || ''}" placeholder="35"><small class="dim">Co roku sam dodam rok.</small></label></div>
-      <label class="fld"><span>Aktywność w ciągu dnia (poza treningiem)</span><select data-b="prof" data-k="activity"><option value="">— wybierz —</option>${opt({ 1: 'Siedząca praca, mało ruchu', 2: 'Lekka — trochę chodzenia', 3: 'Umiarkowana — dużo na nogach', 4: 'Wysoka — praca fizyczna' }, s.activity)}</select></label>
+      <label class="fld"><span>Aktywność w ciągu dnia (poza treningiem)</span><select data-b="prof" data-k="activity"><option value="">— wybierz —</option>${F.palOpts(s.activity)}</select><small class="dim">Opisz zwykły dzień bez treningu — treningi doliczam osobno.</small></label>
       <label class="fld"><span>Doświadczenie w treningu siłowym</span><select data-b="prof" data-k="exp"><option value="">— wybierz —</option>${opt({ beg: 'Początkujący (do roku)', mid: 'Średniozaawansowany (1–3 lata)', adv: 'Zaawansowany (3+ lata regularnie)' }, s.exp)}</select></label>
       <details class="adv" ${hasAdv ? 'open' : ''}><summary class="dim small">Dodatkowe dane (opcjonalne, zwiększają dokładność)</summary>
         <div class="two"><label class="fld"><span>Tkanka tłuszczowa (%)</span><input data-b="prof" data-k="bf" inputmode="decimal" value="${s.bf || ''}" placeholder="np. 18"></label><label class="fld"><span>Tętno spoczynkowe</span><input data-b="prof" data-k="hrRest" inputmode="numeric" value="${s.hrRest || ''}" placeholder="np. 60"></label></div>

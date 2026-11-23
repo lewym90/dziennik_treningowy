@@ -22,6 +22,16 @@ await m.handle('POST', '/timer', {}, { deviceId: ID, token, sec: 20 }, t0);
 assert.equal(await m.runDue(t0 + 20000 + 120000), 0, 'przestarzały timer pomijany');
 r = await m.handle('POST', '/timer', {}, { deviceId: ID, token, sec: 99999 }); assert.equal(r[0], 400);
 r = await m.handle('POST', '/test', {}, { deviceId: ID, token }); assert.equal(r[0], 200);
+// podsumowanie tygodnia: osobny termin, przerwa go nie kasuje, anulowanie przerwy też nie
+{ const n0 = sentLog.length; const W = t0 + 5 * 864e5;
+  r = await m.handle('POST', '/week', {}, { deviceId: ID, token, at: W, body: '3 treningi' }, t0); assert.equal(r[0], 200);
+  r = await m.handle('POST', '/week', {}, { deviceId: ID, token, at: t0 + 9 * 864e5 }, t0); assert.equal(r[0], 400, 'najwyżej 8 dni naprzód');
+  await m.handle('POST', '/timer', {}, { deviceId: ID, token, sec: 30 }, t0); await m.handle('POST', '/cancel', {}, { deviceId: ID, token }, t0);
+  assert.equal(await m.runDue(W - 1000), 0); assert.equal(await m.runDue(W + 500), 1); assert.equal(sentLog[sentLog.length - 1].tag, 'forge-week'); assert.equal(sentLog[sentLog.length - 1].body, '3 treningi');
+  assert.equal(await m.runDue(W + 5000), 0, 'tylko raz');
+  await m.handle('POST', '/week', {}, { deviceId: ID, token, at: W + 864e5 }, t0); await m.handle('POST', '/week', {}, { deviceId: ID, token, off: 1 }, t0); assert.equal(await m.runDue(W + 2 * 864e5), 0, 'wyłączone');
+  await m.handle('POST', '/week', {}, { deviceId: ID, token, at: W + 864e5 }, t0); assert.equal(await m.runDue(W + 864e5 + 7 * 3600000), 0, 'za późno — pominięte');
+  console.log('OK: podsumowanie tygodnia'); }
 m.setSender(async () => { throw Object.assign(new Error('gone'), { statusCode: 410 }); });
 await m.handle('POST', '/timer', {}, { deviceId: ID, token, sec: 1 }, t0); await m.runDue(t0 + 2000);
 assert.equal(Object.keys(m.getDb().devices).length, 0, 'wygasłe urządzenie usunięte');

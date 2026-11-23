@@ -77,11 +77,27 @@
   F.act.pushTest = async () => { const c = pcfg(); if (!c) return; try { await papi(c, '/test', { deviceId: c.deviceId }); F.toast('Wysłano. Za chwilę powinno przyjść powiadomienie.'); } catch (e) { F.toast(e.message || 'Nie udało się wysłać'); } };
   F.act.pushOff = async () => { const c = pcfg(); pset(null); try { if (c) await papi(c, '/unsubscribe', { deviceId: c.deviceId }); } catch (e) { } try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) { } F.toast('Rozłączono'); F.render(true); };
   F.pushOn = () => !!pcfg();
+  // ---- podsumowanie tygodnia: w niedzielę o 19:00 (czas telefonu) serwer wysyła jedno zdanie o tygodniu ----
+  // tekst liczymy w telefonie przy każdym starcie aplikacji i po każdym treningu, więc obejmuje wszystko zapisane przed niedzielą 19:00
+  const weekText = () => {
+    const ws = F.startOfWeek(Date.now()), pw = ws - 7 * 864e5; const cur = F.S.sessions.filter(x => x.start >= ws), prev = F.S.sessions.filter(x => x.start >= pw && x.start < ws);
+    if (!cur.length) return null; const vol = a => a.reduce((t, x) => t + F.sessionVolume(x), 0); const v = vol(cur), v0 = vol(prev); const prs = cur.reduce((t, x) => t + ((x.prs || []).length), 0);
+    const n = cur.length, parts = [`${n} ${F.plur(n, 'trening', 'treningi', 'treningów')}`];
+    if (v > 0) parts.push(`tonaż ${F.fmtVol(v)}${v0 > 0 ? ` (${v >= v0 ? '+' : '−'}${Math.abs(Math.round((v - v0) / v0 * 100))}% do poprzedniego tygodnia)` : ''}`);
+    if (prs) parts.push(`${prs} ${F.plur(prs, 'rekord', 'rekordy', 'rekordów')}`);
+    return parts.join(' · ') + '.';
+  };
+  F.weekPush = async () => {
+    const c = pcfg(); if (!c || !navigator.onLine) return; const now = new Date(); const t = new Date(now); t.setHours(19, 0, 0, 0); t.setDate(t.getDate() + ((7 - t.getDay()) % 7)); if (t <= now) t.setDate(t.getDate() + 7);
+    const txt = F.S.settings.weekPush === false ? null : weekText(); const ws = F.startOfWeek(Date.now()); if (t.getTime() - ws > 7 * 864e5) return; // niedziela przyszłego tygodnia — nic jeszcze nie ma
+    try { await papi(c, '/week', txt ? { deviceId: c.deviceId, at: t.getTime(), title: 'Twój tydzień w FORGE', body: txt } : { deviceId: c.deviceId, off: 1 }, 'POST', true); } catch (e) { }
+  };
+  F.act.weekPushSet = b => { F.S.settings.weekPush = b.dataset.v === '1'; F.saveSettings(); F.weekPush(); F.render(true); };
   F.pushHtml = () => {
     const c = pcfg(), ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const warn = ios && !standalone() ? `<p class="dim small" style="color:var(--a1)">Na iPhonie powiadomienia działają tylko z aplikacji dodanej do ekranu początkowego (Safari → Udostępnij → Do ekranu początkowego), otwartej stamtąd.</p>` : '';
     return `<section class="card cut"><div class="stp"><span><b>Powiadomienia z serwera</b><small>Zalecane. Koniec przerwy dociera przez Apple/Google, także przy zablokowanym telefonie. Nie rusza muzyki.</small></span><span class="chip ${c ? 'on' : ''}" style="flex:none;white-space:nowrap">${c ? 'Włączone' : 'Wyłączone'}</span></div>${warn}
-      ${c ? `<div class="btn-row"><button class="btn ghost" data-a="pushTest">Wyślij test</button><button class="btn ghost" data-a="pushOff">Rozłącz</button></div>`
+      ${c ? `<div class="btn-row"><button class="btn ghost" data-a="pushTest">Wyślij test</button><button class="btn ghost" data-a="pushOff">Rozłącz</button></div><label class="sw"><span><b>Podsumowanie tygodnia</b><small>w niedzielę o 19:00: liczba treningów, tonaż i rekordy</small></span><input type="checkbox" data-a="weekPushSet" data-v="${F.S.settings.weekPush === false ? '1' : '0'}" ${F.S.settings.weekPush === false ? '' : 'checked'}><i></i></label>`
       : `<button class="btn primary wide" data-a="pushConnect">${window.icon('bell', 18)} Włącz powiadomienia</button><p class="dim small">Telefon zapyta o zgodę na powiadomienia — wybierz „Zezwól”.</p>
         <details class="pu-adv"><summary>Własny serwer</summary><label class="fld"><span>Adres serwera</span><input id="pu-url" value="${F.esc(DEF_URL)}" inputmode="url" autocapitalize="off" autocorrect="off"></label><label class="fld"><span>Kod połączenia (jeśli serwer go wymaga)</span><input id="pu-code" autocapitalize="off" autocorrect="off" placeholder="zostaw puste"></label></details>`}</section>`;
   };

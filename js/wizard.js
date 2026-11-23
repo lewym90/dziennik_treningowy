@@ -36,7 +36,7 @@
       days: days && days.length ? [...new Set(days)].sort((x, y) => x - y) : [0, 2, 4], time: [0, 30, 45, 60, 75, 90, 120].includes(z.time) ? z.time : 60,
       equip: equip && equip.length ? equip : [...EQ_ALL], bench: z.bench !== false, rack: z.rack !== false, preset: PRESET[z.preset] ? z.preset : (equip && equip.length ? '' : 'gym'),
       cAct: (arr(z.cAct, x => F.CARDIO.valid(x)) || []).map(x => ({ t: x.t, n: x.n, m: x.m, i: x.i, plan: !!x.plan && !!F.CARDIO.T[x.t][2], place: x.place === 'sep' ? 'sep' : 'after' })), cNow: typeof z.cNow === 'boolean' ? z.cNow : null, cChoice: typeof z.cChoice === 'string' ? z.cChoice : '', cAddType: F.CARDIO.T[z.cAddType] ? z.cAddType : '', scheme: z.scheme === 'pyr' ? 'pyr' : '', cPlaceNew: z.cPlaceNew === 'after' || z.cPlaceNew === 'sep' ? z.cPlaceNew : '',
-      inj: arr(z.inj, x => P.INJ[x]) || [], avoid: arr(z.avoid, str) || [], fav: arr(z.fav, str) || [], split: 'auto', sleep: [1, 2, 3].includes(s.sleep) ? s.sleep : 0, bw: p.bwKnown ? p.bw : ''
+      warm: typeof z.warm === 'boolean' ? z.warm : null, inj: arr(z.inj, x => P.INJ[x]) || [], avoid: arr(z.avoid, str) || [], fav: arr(z.fav, str) || [], split: 'auto', sleep: [1, 2, 3].includes(s.sleep) ? s.sleep : 0, bw: p.bwKnown ? p.bw : ''
     };
   };
   F.wz = null; const Z = () => F.wz || (F.wz = { step: 'intro', w: defaults(), res: null, variant: 0, bwEdit: null, quick: !F.S.sessions.length && !F.S.plans.length });
@@ -67,7 +67,7 @@
         <label class="fld"><span>Wzrost (cm)</span><input data-b="prof" data-k="height" inputmode="numeric" value="${s.height || ''}" placeholder="178"></label></div>
       <div class="two"><label class="fld"><span>Masa ciała (${u})</span><input data-b="wzBw" inputmode="decimal" value="${w.bw === '' ? '' : F.fw(w.bw)}" placeholder="80"></label>
         <label class="fld"><span>% tłuszczu (opc.)</span><input data-b="prof" data-k="bf" inputmode="decimal" value="${s.bf || ''}" placeholder="np. 18"></label></div>
-      <label class="fld"><span>Aktywność w ciągu dnia (poza treningiem)</span><select data-b="prof" data-k="activity"><option value="">— wybierz —</option>${[[1, 'Siedząca praca, mało ruchu'], [2, 'Lekka — trochę chodzenia'], [3, 'Umiarkowana — dużo na nogach'], [4, 'Wysoka — praca fizyczna']].map(([k, t]) => `<option value="${k}" ${s.activity === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="fld"><span>Aktywność w ciągu dnia (poza treningiem)</span><select data-b="prof" data-k="activity"><option value="">— wybierz —</option>${F.palOpts(s.activity)}</select></label>
       <h4 class="lbl">Ile średnio śpisz?</h4><div class="chips" id="wz-sleep">${chip(w.sleep === 1, 'wzSet', 'data-k="sleep" data-v="1" data-n="1"', 'poniżej 6 h')}${chip(w.sleep === 2, 'wzSet', 'data-k="sleep" data-v="2" data-n="1"', '6–7 h')}${chip(w.sleep === 3, 'wzSet', 'data-k="sleep" data-v="3" data-n="1"', '7 h i więcej')}</div>
       </section>`; },
     exp: () => { const w = Z().w, n = F.S.sessions.length; return `<section class="card cut"><h3>${ic('dumbbell', 18)} Doświadczenie</h3>
@@ -112,7 +112,9 @@
       <h4 class="lbl">Dostosuj</h4>
       ${EQ_ALL.map(k => `<label class="sw"><span><b>${EQ_L[k]}</b></span><input type="checkbox" data-b="wzEq" data-k="${k}" ${w.equip.includes(k) ? 'checked' : ''}><i></i></label>`).join('')}
       <label class="sw"><span><b>Ławka (płaska / regulowana)</b></span><input type="checkbox" data-b="wzFlag" data-k="bench" ${w.bench ? 'checked' : ''}><i></i></label>
-      <label class="sw"><span><b>Stojak do przysiadów i wyciskania</b><small>bez stojaka pominę ciężkie ćwiczenia ze sztangą</small></span><input type="checkbox" data-b="wzFlag" data-k="rack" ${w.rack ? 'checked' : ''}><i></i></label></section>`; },
+      <label class="sw"><span><b>Stojak do przysiadów i wyciskania</b><small>bez stojaka pominę ciężkie ćwiczenia ze sztangą</small></span><input type="checkbox" data-b="wzFlag" data-k="rack" ${w.rack ? 'checked' : ''}><i></i></label></section>
+      <section class="card cut" id="wz-warm"><h3>${ic('flame', 18)} Rozgrzewka</h3><p class="small">Dodać do planu serie rozgrzewkowe z wyliczonym ciężarem?</p>
+      <div class="wz-opts">${opt(w.warm === true, 'wzWarm', 'data-v="1"', 'Tak, wylicz mi je', 'przed pierwszym ćwiczeniem na każdą partię: 2–3 lżejsze serie tego samego ćwiczenia')}${opt(w.warm === false, 'wzWarm', 'data-v="0"', 'Nie, rozgrzewam się po swojemu', 'np. rowerek, bieżnia albo własne serie — nie dodam nic do planu')}</div></section>`; },
     limits: () => { const w = Z().w; const nm = id => E(P.exName(id)); const list = (arr, act) => arr.length ? `<div class="chips">${arr.map(id => `<button class="chip on" data-a="${act}" data-id="${id}">${nm(id)} ✕</button>`).join('')}</div>` : ''; return `<section class="card cut"><h3>${ic('shield', 18)} Ograniczenia i preferencje</h3>
       <h4 class="lbl">Bolące lub kontuzjowane miejsca</h4><div class="chips">${Object.entries(P.INJ).map(([k, t]) => chip(w.inj.includes(k), 'wzInj', `data-v="${k}"`, t)).join('')}</div>
       <p class="dim small">Pominę ćwiczenia, które obciążają te miejsca. Przy bólu przerwij ćwiczenie i skonsultuj się z lekarzem lub fizjoterapeutą.</p>
@@ -206,6 +208,7 @@
   F.act.wzScheme = b => { Z().w.scheme = b.dataset.v; rerender(); };
   F.act.wzCPN = b => { Z().w.cPlaceNew = b.dataset.v; rerender(); };
   F.act.wzCType = b => { Z().w.cAddType = b.dataset.v; rerender(); };
+  F.act.wzWarm = b => { Z().w.warm = b.dataset.v === '1'; rerender(); };
   F.act.wzPrev = () => { const z = Z(); z.step = STEPS[Math.max(0, cur() - 1)]; window.scrollTo(0, 0); rerender(); };
   const validate = () => { const z = Z(), w = z.w, s = F.S.settings;
     const R = (m, sel) => [m, sel];
@@ -215,7 +218,7 @@
       case 'exp': if (!w.exp) return R('Wybierz poziom doświadczenia', '.wz-opts'); if (w.active === null) return R('Odpowiedz, czy trenujesz regularnie', '#wz-active'); return null;
       case 'cardio': if (w.cNow === null) return R('Odpowiedz, czy teraz robisz cardio', '#wz-cnow'); if (w.cNow && !w.cAct.length) return R('Dodaj aktywność albo wybierz „Nie robię”', '#wz-cacts'); if (w.cNow && w.cAct.some(a => !F.CARDIO.valid(a))) return R('Uzupełnij dane aktywności (razy w tygodniu i minuty)', '.cact'); { const ad = F.cardioAdvice(wFull()); if (ad.status === 'low' && !w.cChoice && ad.chosen) w.cChoice = ad.chosen.id; if (ad.status === 'low' && !w.cChoice) return R('Wybierz, co robimy z cardio', '.cadv'); } return null;
       case 'sched': if (!w.days.length) return R('Wybierz co najmniej jeden dzień', '#wz-days'); return null;
-      case 'equip': if (!w.equip.length && !w.bench) return R('Zaznacz dostępny sprzęt lub wybierz „Tylko masa ciała”', '.wz-opts'); return null;
+      case 'equip': if (!w.equip.length && !w.bench) return R('Zaznacz dostępny sprzęt lub wybierz „Tylko masa ciała”', '.wz-opts'); if (w.warm === null) return R('Wybierz, czy dodać serie rozgrzewkowe', '#wz-warm'); return null;
       default: return null; } };
   F.act.wzNext = async () => {
     const z = Z(); const err = validate(); if (err) { F.toast(err[0], 'err'); const el = document.querySelector(err[1]); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('need'); setTimeout(() => el.classList.remove('need'), 1800); } return; }
@@ -225,7 +228,7 @@
     const prev = z.step; z.step = STEPS[cur() + 1]; window.scrollTo(0, 0);
     try { rerender(); } catch (e) { console.error(e); z.step = prev; F.toast('Coś poszło nie tak — spróbuj ponownie', 'err'); }
   };
-  const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav, cAct: w.cAct, cNow: w.cNow, cChoice: w.cChoice, cAddType: w.cAddType, cPlaceNew: w.cPlaceNew, scheme: w.scheme, special: wFull().special }; F.saveSettings(); };
+  const storeAnswers = () => { const w = Z().w, s = F.S.settings; s.exp = w.exp; s.sleep = w.sleep; s.wiz = { warm: w.warm, exp: w.exp, goal: w.goal, prio: w.prio, cardioMin: w.cardioMin, cardioAdd: w.cardioAdd, cardioPref: w.cardioPref, days: w.days, time: w.time, equip: w.equip, bench: w.bench, rack: w.rack, preset: w.preset, inj: w.inj, avoid: w.avoid, fav: w.fav, cAct: w.cAct, cNow: w.cNow, cChoice: w.cChoice, cAddType: w.cAddType, cPlaceNew: w.cPlaceNew, scheme: w.scheme, special: wFull().special }; F.saveSettings(); };
   F.act.wzBack = () => { Z().res = null; rerender(); };
   F.act.wzAgain = () => { const z = Z(); z.variant++; z.res = gen(z.variant); window.scrollTo(0, 0); rerender(); };
   F.act.wzSave = async () => { const z = Z(); if (!z.res) return; const plan = z.res.plan; await F.savePlan(plan); F.setCurPlan(plan.id); F.wz = null; F.toast('Zapisano plan: ' + E(plan.name), 'hot'); F.go('#/plan/' + plan.id); };

@@ -59,3 +59,9 @@ Dodatkowo: przebudowa nawigacji — aplikacja ma być schludna i intuicyjna, bez
 - Usuwanie przez czat: zablokowane — czat tylko prowadzi na miejsce, gdzie się usuwa.
 - Stała zasada: każda nowa funkcja aplikacji = wpis w mapie aplikacji czatu (FEAT w js/ask2.js) + polecenie, jeśli ma sens.
 - Wdrożone w v1.29.0.
+
+## Audyt 23.11.2026 — decyzje
+- Funkcje: 1 rozgrzewka z wyliczonym ciężarem — tak, ale jako pytanie w kreatorze i przełącznik w planie (ktoś woli rowerek/bieżnię); 2 przypomnienie o treningu — nie; 3 dziennik błędów — nie; 4 trwałe dane — tak; 5 testy w repo — tak; 6 skróty z ikony — nie; 7 podsumowanie tygodnia — tak.
+- Wygląd: 8 system ruchu — tak, domyślnie Pełne; 9–10 przejścia i morfing — tak; 11 gest wstecz — nie (karty treningu przesuwa się palcem); 12–18 — tak; 19 pulsujące mięśnie (bez nowych grafik) — tak.
+- Żywienie: 20 dane produktów ze źródłem — tak; 21 współczynniki aktywności — „zrób idealnie” (FAO + polskie normy); 22–31 — tak. Wszystko po polsku, bez błędów.
+- Wdrożone w v1.38.0.

@@ -467,7 +467,7 @@
     const startW = startWOf;
     const plan = {
       id: F.uid(), created: Date.now(), name: `${({ hyp: 'Masa', str: 'Siła', sculpt: 'Rzeźba', endur: 'Wytrzymałość', health: 'Zdrowie' })[goal] || F.PLN.GOALS[goal][0]} — ${sp.n.replace(/ \(.*\)/, '')}`,
-      meta: { gen: 2, goal, exp, prio: prioM, split: splitId, weekdays: w.days, time: w.time, inj: w.inj, meso: KB.meso[exp], rest: { main: KB.restOf(goal, exp, 'main', restO), sec: KB.restOf(goal, exp, 'sec', restO), iso: KB.restOf(goal, exp, 'iso', restO) } },
+      meta: { gen: 2, goal, exp, warm: !!w.warm, prio: prioM, split: splitId, weekdays: w.days, time: w.time, inj: w.inj, meso: KB.meso[exp], rest: { main: KB.restOf(goal, exp, 'main', restO), sec: KB.restOf(goal, exp, 'sec', restO), iso: KB.restOf(goal, exp, 'iso', restO) } },
       days: days.map((d, di) => ({ id: F.uid(), name: dayLabel(w.days[di], d.name), items: d.items.map((i, ii) => { const reps = repsFor(d, i.role); const wk = i.m && F.S.ex.get(i.exId).type !== 'time' ? startW(i.exId, reps, rirB[i.role]) : 0; const pyr = w.scheme === 'pyr' && !w.cautious && !w.special && i.role === 'main' && i.sets >= 3 && ['hyp', 'str', 'sculpt'].includes(goal); const note = noteOf(i, ii, d.items, tplMsOf(d.tid), { rir: rirB, cautious: !!w.cautious, prio: prioM, pyr, wk }); const it = { id: F.uid(), exId: i.exId, sets: i.sets, reps, rest: restOf(i), role: i.role, w: wk, note }; if (i.ss) it.ss = i.ss; if (pyr) it.scheme = 'pyr'; return it; }) }))
     };
     plan.days.forEach(d => { F.cleanSS(d.items); const inf = F.ssInfo(d.items); d.items.forEach((it, k) => { const g = inf[k]; if (g) { const mx = Math.max(...d.items.slice(g.start, g.end + 1).map(x => x.rest || 0)); it.rest = mx; } }); });

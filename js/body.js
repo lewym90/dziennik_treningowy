@@ -22,7 +22,26 @@
       o[k + 3] = Math.min(255, v * 1800);
     }
     g.putImageData(out, 0, 0); cv.classList.add('in');
+    // pulsowanie pracujących mięśni: druga klatka z jaśniejszymi mięśniami głównymi, przenikana z pierwszą
+    if (cv.dataset.pulse) {
+      const pri = [null]; ORDER.forEach(n => pri.push(colors[n] === 'a1'));
+      const o2 = new Uint8ClampedArray(o); for (let y = 0; y < r[3]; y++) for (let x = 0; x < r[2]; x++) { const s = ((y + r[1]) * d.w + x + r[0]) * 4, k = (y * r[2] + x) * 4; if (pri[d.id[s]]) { for (let c = 0; c < 3; c++) o2[k + c] = Math.min(255, o[k + c] * 1.32 + 34); } }
+      const mk = data => { const c = document.createElement('canvas'); c.width = r[2]; c.height = r[3]; c.getContext('2d').putImageData(new ImageData(data, r[2], r[3]), 0, 0); return c; };
+      cv._pA = mk(o); cv._pB = mk(o2); PULSE.add(cv); if (!praf) praf = requestAnimationFrame(ploop);
+    }
   }
+  const PULSE = new Set(); let praf = 0, plast = 0;
+  function ploop(t) {
+    praf = 0; if (document.hidden) return; const on = F.motionOn && F.motionOn(); const step = t - plast >= 33; if (step) plast = t;
+    PULSE.forEach(cv => {
+      if (!cv.isConnected) { PULSE.delete(cv); return; } if (!step) return;
+      const g = cv.getContext('2d'), a = on ? 0.5 - 0.5 * Math.cos(t / 2600 * 2 * Math.PI) : 0;
+      if (!on && cv._pStill) return; cv._pStill = !on;
+      g.clearRect(0, 0, cv.width, cv.height); g.drawImage(cv._pA, 0, 0); if (a > .01) { g.globalAlpha = a; g.drawImage(cv._pB, 0, 0); g.globalAlpha = 1; }
+    });
+    if (PULSE.size) praf = requestAnimationFrame(ploop);
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && PULSE.size && !praf) praf = requestAnimationFrame(ploop); });
   const scan = () => document.querySelectorAll('canvas.bodyc:not([data-done])').forEach(c => { c.dataset.done = '1'; paint(c); });
   let q = 0; new MutationObserver(() => { if (!q) q = requestAnimationFrame(() => { q = 0; scan(); }); }).observe(document.documentElement, { childList: true, subtree: true });
 
@@ -34,7 +53,7 @@
     for (const [dx, dy] of [[0, 0], [8, 0], [-8, 0], [0, 8], [0, -8]]) { const id = d.id[((y + dy) * d.w + x + dx) * 4]; if (id) { F.act.musTap({ dataset: { m: ORDER[id - 1] } }); return; } }
   });
 
-  F.bodyCv = (view, colors, o = {}) => `<canvas class="bodyc ${o.cls || ''}" data-v="${view}" data-c="${E(JSON.stringify(colors || {}))}"${o.f ? ` data-f="${o.f}"` : ''}${o.dim ? ` data-dim="${o.dim}"` : ''}${o.tap ? ' data-tap="1"' : ''} aria-hidden="true"></canvas>`;
+  F.bodyCv = (view, colors, o = {}) => `<canvas class="bodyc ${o.cls || ''}" data-v="${view}" data-c="${E(JSON.stringify(colors || {}))}"${o.f ? ` data-f="${o.f}"` : ''}${o.dim ? ` data-dim="${o.dim}"` : ''}${o.tap ? ' data-tap="1"' : ''}${o.pulse ? ' data-pulse="1"' : ''} aria-hidden="true"></canvas>`;
 
   // sprzęt do ćwiczenia: dokładnie przypisany albo dobrany po nazwie i rodzaju sprzętu
   // Zasada: grafika tylko wtedy, gdy pokazuje dokładnie ten sprzęt, na którym robi się ćwiczenie. Inaczej zostają same mięśnie.
@@ -60,7 +79,7 @@
     const armsOnly = pri.every(n => ['biceps', 'triceps', 'forearms'].includes(n)); const score = v => pri.filter(n => VIEWS[n].includes(v)).length;
     let view = armsOnly ? 'ar' : VIEWS[pri[0]][0]; if (!armsOnly) ['fu', 'bu', 'lf', 'lb'].forEach(v => { if (score(v) > score(view)) view = v; });
     const colors = {}; sec.forEach(n => { if (ORDER.includes(n)) colors[n] = 'a2'; }); pri.forEach(n => { colors[n] = 'a1'; });
-    const cv = F.bodyCv(view, colors, { f: view, dim: .62 }), eq = !Array.isArray(ids) || ids.length === 1 ? eqOf(Array.isArray(ids) ? ids[0] : ids) : -1;
+    const cv = F.bodyCv(view, colors, { f: view, dim: .62, pulse: 1 }), eq = !Array.isArray(ids) || ids.length === 1 ? eqOf(Array.isArray(ids) ? ids[0] : ids) : -1;
     return eq >= 0 ? `<div class="wk-art eq" data-a="artSwap" role="button" aria-label="Przełącz sprzęt i mięśnie"><img src="assets/eq/${eq}.webp" alt="" loading="lazy"><div class="ma">${cv}</div></div>` : `<div class="wk-art">${cv}</div>`;
   };
   F.act.artSwap = b => { if (!b.classList.contains('stk')) b.classList.toggle('mus'); };

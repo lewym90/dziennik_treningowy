@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.37.0** (trening: pełny ekran na iOS 26, przejście do następnego ćwiczenia po przerwie, obrót, koniec przerwy z serwera; cardio jutro na ekranie Dziś i w czacie; ćwiczenia jednorącz: seria = obie strony w tonażu; karta ćwiczenia: grafiki sprzętu i mięśni jedna pod drugą, gdy jest miejsce; kafel „Dziś”; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.38.0** (audyt: żywienie przebudowane — współczynnik aktywności wg FAO i polskich norm, korekta kalorii z trendu masy, jadłospis na 7 dni z przepisami, zamienniki, wykluczenia, lista zakupów, woda/błonnik/witamina D, bezpieczna redukcja; animacje i przejścia między ekranami z ustawieniem Pełne/Oszczędne; serie rozgrzewkowe z planu; podsumowanie tygodnia w niedzielę; testy scenariuszy w repo), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -17,6 +17,8 @@ Stan na 23 listopada 2026. Wersja **1.37.0** (trening: pełny ekran na iOS 26, p
 - Po każdym wydaniu: podnieść `F.APPVER` w `js/core.js` i `VERSION` w `sw.js`, nowe pliki dodać do `CORE` w `sw.js`, uruchomić testy, wypchnąć i **sprawdzić, że GitHub Pages naprawdę opublikował nową wersję** (`curl …/sw.js`). Raz build Pages się anulował i poprawka nie dotarła do ludzi.
 
 ## Testy
+- `bash tests/run.sh` — wszystko naraz (obliczenia, scenariusze w przeglądarce, serwer).
+- `node tests/e2e.test.js` — scenariusze: trening, rozgrzewka, żywienie, przejścia, ekrany, czat.
 - `node tests/calc.test.js` — 27 testów obliczeń (1RM, tonaż, kalendarz i przenoszenie, regeneracja, stagnacja, cele). Wymaga Playwright.
 - `cd server && npm test` — testy serwera powiadomień (w tym ostrzeżenie przed końcem przerwy).
 
@@ -73,6 +75,32 @@ Stan na 23 listopada 2026. Wersja **1.37.0** (trening: pełny ekran na iOS 26, p
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.38.0 — audyt: żywienie, animacje, rozgrzewka, testy (23.11.2026)
+Decyzje właściciela do audytu (numery z propozycji): 1 tak (ale jako pytanie w kreatorze i przełącznik w planie), 2 nie, 3 nie, 4 tak, 5 tak, 6 nie, 7 tak, 8 tak (domyślnie Pełne), 9–10 tak, 11 nie (karty treningu przesuwa się palcem), 12–20 tak, 21 „zrób idealnie”, 22–31 tak.
+- **Żywienie — nowy `js/nutrition.js`** (wycięte z coach.js; `F.nutPlan`, `F.mealPlan(np, n, opt, seed)` — `opt` to `true/false` jak dawniej albo `{ ex, sw, day }`, `F.nutTrend`, `F.nutOpts`).
+  - Produkty: 51 pozycji, wartości z USDA SR28 / FoodData Central SR Legacy (numer NDB w komentarzu; węglowodany przyswajalne = „by difference” minus błonnik), polski nabiał (skyr, twaróg chudy i półtłusty, kefir) — typowe wartości z etykiet. Naprawiony twaróg (wcześniej wartości amerykańskiego cottage cheese: 11 g białka zamiast ok. 18 g). Baza USDA sklonowana w scratchpadzie (`maxsu/usda-sr28`, skrypt `lit/sr.py`).
+  - Współczynnik aktywności (dzień bez treningu, treningi doliczane osobno): 1,4 / 1,55 / 1,75 / 2,0 — Normy żywienia dla populacji Polski 2024 (PAL 1,4/1,6/1,8/2,0 za EFSA) i FAO/WHO/UNU 2004 (siedzący 1,40–1,69, przykład 1,53; aktywny 1,70–1,99, przykład 1,76). `F.PAL`, `F.palOpts` w kcal.js (Ustawienia, kreator). Wcześniej 1,2/1,375/1,55/1,725 bez źródła.
+  - Treningi: średnia z 28 dni albo od pierwszego treningu (min. 7 dni), zamiast zawsze /28.
+  - Tłuszcz 30% (Normy 2024: 30–40%, przy małej aktywności 20–30%; EFSA 20–35%); gdy węglowodany < dolnej granicy g/kg (Thomas 2016: 3–5 przy < ok. godziny ruchu dziennie, 5–7 przy ok. godzinie) — tłuszcz obniżany, nie poniżej 20%.
+  - Białko: główne posiłki min. 0,4 g/kg (Schoenfeld i Aragon 2018), reszta według kalorii; drugi przebieg dokłada brakujące białko. Przy redukcji (białko ≥ 25% kcal) najpierw potrawy z gęstym źródłem białka.
+  - Progi: brak nadwyżki od BMI 30 (WHO, wcześniej 27 bez źródła); minimum = podstawowa przemiana materii (usunięte 1200/1500 bez źródła).
+  - Korekta z trendu masy (karta „Tempo zmian masy” w redukcji i na masie): regresja z wpisów wagi z ≤ 28 dni po ostatniej zmianie trybu/korekcie, min. 4 pomiary z 14 dni; cel redukcja 0,5–1%/tydz. (Helms 2014), masa 0,25–0,5% (Iraki 2019); przycisk „Zastosuj” ±150 kcal (`settings.nut.adj`, `adjAt`, maks. ±750), najwyżej co 2 tygodnie.
+  - Jadłospis na 7 dni (`nut.day`, `nut.seed`), 6 śniadań, 15 obiadów/kolacji, 8 przekąsek; kroki przygotowania; nazwa potrawy zostaje, jeśli zamieniony składnik nie występuje w nazwie. Wykluczenia (`nut.ex`: mięso, ryby, nabiał, jajka, gluten, orzechy; `nut.veg` dalej działa). Zamienniki (stuknięcie w produkt, ta sama grupa, ilość na to samo białko/tłuszcz/kalorie, `nut.sw`). Lista zakupów 1/3/7 dni (kasze na sucho z przelicznikiem kcal USDA, strączki: sucha albo z puszki), Udostępnij/Kopiuj.
+  - Karta „Woda, błonnik, witamina D” (EFSA 2010 + Normy 2024: 2,0/2,5 l, 25 g; Płudowski 2023: 1000–2000 j.m.). Karta „Bezpieczna redukcja” (IOC REDs 2023), wyróżniona przy spadku > 1%/tydz.
+  - Sprawdzone: 5 profili × 64 kombinacje wykluczeń × 3/4/5 posiłków × 7 dni — kalorie ±5%, białko ≥ 90% celu, 0,4 g/kg w każdym głównym posiłku, 0 wykluczonych produktów.
+- Wiedza: 12 nowych źródeł (Frankenfield 2005, FAO 2004, Normy 2024, Schoenfeld i Aragon 2018, Trommelen 2023, Thomas 2016, EFSA woda/tłuszcze/węglowodany 2010, Mountjoy 2023, Płudowski 2023, USDA), nowe fakty `pal`, `protMeal`, `carbKg`, `fatRange`, `fibre`, `water`, `vitD`, `reds`, `nutAdj`, `foodData`. Porady: 3 nowe artykuły `energy`, `protmeal`, `carbfat` (bez grafik — czekają na grafiki od właściciela; po wgraniu dopisać id do `HAS` w guide.js). Czat: trasy wiedzy, „Jak liczę” w odpowiedzi o kaloriach, jadłospis z wykluczeniami z pytania, FEAT: lista zakupów, zamienniki, wykluczenia, korekta kalorii, animacje, podsumowanie tygodnia; polecenia „wyłącz animacje”, „wyłącz/dodaj serie rozgrzewkowe”.
+- **Animacje — `js/motion.js`** + blok CSS „ruch v1.38”: `settings.motion` (`full` domyślnie / `low`), `F.motionOn()`, klasa `html.motion-low`; ograniczanie ruchu w systemie wyłącza wszystko.
+  - Przejścia między ekranami: View Transitions tylko przy zmianie adresu (`F.navRender` z `hashchange`; bezpośrednie `F.render()` dalej synchroniczne). Kierunek: zakładki w lewo/prawo, głębiej/wstecz, trening od dołu. Pasek zakładek ma własną nazwę (stoi w miejscu). `F.tabOf(hash)`, `F.afterRender` (hooki po renderze).
+  - Morfing: `data-vt` na źródle (karta planu, aktualny plan, artykuł, trening w historii, karta „Następny trening”), `data-vt-src` w środku, `data-vt-dst` na celu (`F.head(..., { vt: 1 })`, `.art-im`, `.wk-h`).
+  - Zmiana zakresu/filtra na ekranie z wykresem: `F.renderMorph` (wrapper `F.render` w main.js przy `keepScroll`).
+  - Seria: `.sxc.just` (wypełnienie od dołu, rysowany ptaszek), liczby −/+ przewijane; przerwa: płynny pierścień, ostatnie 10 s `.sd-ring.fin`, koniec `.sdk.flash`; rekord: pełnoekranowy `.pr-moment` (w trybie Oszczędne zostaje stary baner); podsumowanie: kolejne elementy, licznik, mapa mięśni treningu z „przeciągnięciem”.
+  - Dziś: wejście kaskadą raz dziennie (`localStorage forge-intro`), powolne „oddychanie” zdjęcia w karcie, błysk na przycisku. Wykresy rysują się po wjechaniu na ekran, podpowiedź podąża za palcem. Okienka: sprężyste wejście, zamykanie przeciągnięciem w dół. Pasek zakładek: przesuwany wskaźnik (`F.movePill`, pasek przebudowywany tylko przy zmianie stanu treningu).
+  - Mięśnie na karcie ćwiczenia pulsują (body.js: druga klatka z jaśniejszymi mięśniami głównymi, przenikanie ~30 kl./s, `data-pulse`).
+- **Rozgrzewka**: kreator (krok Sprzęt) wymaga odpowiedzi „Tak, wylicz mi je / Nie, rozgrzewam się po swojemu” (`wiz.warm`, `plan.meta.warm`); w edycji planu przełącznik. Start treningu: pierwsze ćwiczenie dnia 50%×8, 70%×5, 85%×2; pierwsze na kolejną partię 60%×5, 80%×3; bez izolowanych, masy ciała, czasu i superserii; zaokrąglenie do kroku, sztanga min. gryf. Ręczne „Dodaj rozgrzewkę” zostaje.
+- **Dane**: `navigator.storage.persist()` przy każdym starcie, aż przeglądarka się zgodzi (wcześniej tylko po pierwszym treningu).
+- **Podsumowanie tygodnia**: `F.weekPush()` (alert.js) po starcie i po każdym treningu wysyła `/week` z terminem najbliższej niedzieli 19:00 i tekstem (treningi, tonaż z porównaniem, rekordy); 0 treningów → `off`. Przełącznik w Ustawieniach (karta powiadomień, `settings.weekPush`). **Serwer**: nowa trasa `/week` (osobne pole `dev.week`, tag `forge-week`, spóźnienie do 6 h). **Wymaga aktualizacji VPS** poleceniem z instalatora.
+- **Testy w repo**: `tests/e2e.test.js` (trening, rozgrzewka, żywienie we wszystkich kombinacjach, przejścia i rekord, wszystkie ekrany, czat) i `tests/run.sh` (obliczenia + scenariusze + serwer). Uruchamiać przed każdym wydaniem: `NODE_PATH=/opt/npm-tools/node_modules bash tests/run.sh`. Wynik przy wydaniu: 27/27, 85/85, serwer OK.
 
 ## v1.37.0 — trening: pełny ekran, następne ćwiczenie, obrót, powiadomienie (23.11.2026)
 - Czarny pas pod panelem serii (iOS 26, aplikacja z ekranu początkowego): gdy dokument nie jest wyższy niż ekran, elementy `position:fixed; bottom:0` kończą się ~safe-area-top nad krawędzią. Na Dziś niewidoczne (długa strona), w treningu (`body.in-workout{overflow:hidden}`) widoczne. Poprawka: `@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}` (na poprawnych urządzeniach = widoczna wysokość). Źródło: PR ErenDenizK/dizey #155, Apple Dev Forums 799216. NIE proponować „pasa w kolorze” — właściciel chce pełny ekran.

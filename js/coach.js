@@ -1,4 +1,4 @@
-/* FORGE — trener w telefonie: raport tygodnia i korekty planu (#/report) oraz żywienie (#/nutrition). */
+/* FORGE — trener w telefonie: raport tygodnia i korekty planu (#/report). Żywienie: js/nutrition.js. */
 (function () {
   const F = window.F; const ic = (n, s, c) => window.icon(n, s, c); const E = F.esc; const V = F.views;
   const DAY = 864e5, WK = 7 * DAY;
@@ -111,93 +111,4 @@
       <p class="dim small pad">Korekty to propozycje oparte na Twoich zapisanych treningach — decyzja zawsze należy do Ciebie. Przy bólu lub chorobie skonsultuj się ze specjalistą.</p>` };
   };
 
-  /* ---------- żywienie (punkt 5) ---------- */
-  // wartości na 100 g produktu (surowego, chyba że podano inaczej), przybliżone: [kcal, białko, węgle, tłuszcz]
-  const FOOD = {
-    oats: ['Płatki owsiane', 370, 13, 60, 7], rice: ['Ryż biały (ugotowany)', 130, 2.7, 28, 0.3], potato: ['Ziemniaki (ugotowane)', 77, 2, 17, 0.1], bread: ['Chleb razowy', 250, 9, 45, 3], pasta: ['Makaron (ugotowany)', 158, 6, 31, 1],
-    chicken: ['Pierś z kurczaka (surowa)', 120, 22.5, 0, 2.6], turkey: ['Pierś z indyka (surowa)', 110, 22, 0, 2], beef: ['Chuda wołowina (surowa)', 135, 21, 0, 5], salmon: ['Łosoś (surowy)', 208, 20, 0, 13], cod: ['Dorsz (surowy)', 82, 18, 0, 0.7],
-    egg: ['Jajka', 143, 12.6, 0.7, 9.5], skyr: ['Skyr naturalny', 63, 11, 4, 0.2], cottage: ['Twaróg półtłusty', 98, 11, 3.4, 4.3], yogurt: ['Jogurt grecki', 97, 9, 4, 5], milk: ['Mleko 2%', 50, 3.4, 4.8, 2],
-    banana: ['Banan', 89, 1.1, 23, 0.3], apple: ['Jabłko', 52, 0.3, 14, 0.2], berries: ['Owoce jagodowe', 50, 0.7, 12, 0.3], oil: ['Oliwa z oliwek', 884, 0, 0, 100], pb: ['Masło orzechowe', 588, 25, 20, 50], almonds: ['Migdały', 579, 21, 22, 50], veg: ['Warzywa (mieszanka)', 30, 1.8, 5, 0.3],
-    lentils: ['Soczewica (ugotowana)', 116, 9, 20, 0.4], chickpeas: ['Ciecierzyca (ugotowana)', 164, 9, 27, 2.6], tofu: ['Tofu', 76, 8, 1.9, 4.8]
-  };
-  const NUT_T = {
-    bf: [['oats', 'carb'], ['skyr', 'prot'], ['banana', 'fix', 100], ['almonds', 'fat']],
-    bf2: [['bread', 'carb'], ['egg', 'prot'], ['veg', 'fix', 100], ['oil', 'fat']],
-    mainA: [['rice', 'carb'], ['chicken', 'prot'], ['veg', 'fix', 200], ['oil', 'fat']],
-    mainB: [['potato', 'carb'], ['salmon', 'prot'], ['veg', 'fix', 200], ['oil', 'fat']],
-    mainC: [['pasta', 'carb'], ['turkey', 'prot'], ['veg', 'fix', 200], ['oil', 'fat']],
-    mainD: [['rice', 'carb'], ['beef', 'prot'], ['veg', 'fix', 200], ['oil', 'fat']],
-    mainV: [['rice', 'carb'], ['tofu', 'prot'], ['veg', 'fix', 200], ['oil', 'fat']],
-    mainV2: [['pasta', 'carb'], ['lentils', 'prot'], ['veg', 'fix', 200], ['oil', 'fat']],
-    sn: [['cottage', 'prot'], ['apple', 'carb'], ['almonds', 'fat']],
-    sn2: [['yogurt', 'prot'], ['berries', 'carb'], ['pb', 'fat']]
-  };
-  const nutPlan = () => {
-    const s = F.S.settings, nu = s.nut || {}; const p = F.profile(); const age = F.ageNow();
-    if (!p.sexKnown || !age || !p.heightKnown || !p.bwKnown || !s.activity) return { missing: true };
-    if (age < 18) return { block: 'Dla osób poniżej 18. roku życia nie podaję celów kalorycznych ani odchudzania — organizm jest w okresie wzrostu. Porozmawiaj z lekarzem lub dietetykiem.' };
-    if (nu.ed) return { block: 'Przy zaburzeniach odżywiania liczenie kalorii i makroskładników może szkodzić. Nie podaję liczb — omów żywienie z lekarzem, psychologiem lub dietetykiem.' };
-    const tdee = F.tdee(p); let train = 0; try { train = F.kcalTotals(28) / 28; } catch (e) { }
-    const total = tdee + train; const bmi = p.bw / Math.pow(p.height / 100, 2);
-    const mode = nu.mode || ((s.wiz && s.wiz.goal === 'sculpt') ? 'cut' : (s.wiz && s.wiz.goal === 'hyp' && bmi < 27 ? 'bulk' : 'keep'));
-    const preg = (s.wiz && s.wiz.special === 'preg');
-    let k = total, note = '';
-    if (mode === 'cut' && !preg) { const def = Math.min(total * 0.15, 500); k = total - def; note = `Deficyt ${Math.round(def / 10) * 10} kcal (15%, nie więcej niż 500 kcal) — tempo 0,5–1% masy ciała tygodniowo, które lepiej chroni mięśnie.`; }
-    else if (mode === 'bulk' && !preg) { if (bmi >= 27) { k = total; note = 'Przy BMI od 27 nie zalecam nadwyżki — lepiej budować siłę i mięśnie przy zbilansowanej diecie.'; } else { k = total * 1.10; note = 'Nadwyżka 10% (dolna granica zaleceń 10–20%) — celuj w przyrost 0,25–0,5% masy ciała tygodniowo.'; } }
-    else note = 'Utrzymanie masy ciała.';
-    const floor = Math.max(F.bmr(p), p.sex === 'f' ? 1200 : 1500); if (k < floor) { k = floor; note += ' Podniosłem do bezpiecznego minimum.'; }
-    k = Math.round(k / 10) * 10;
-    // masa referencyjna dla białka: przy BMI ≥ 30 licz od masy należnej (BMI 25)
-    const ref = bmi >= 30 ? 25 * Math.pow(p.height / 100, 2) : p.bw;
-    const pLo = round(ref * 1.4), pHi = round(ref * 2.0); const prot = Math.round(mode === 'cut' ? (p.bf ? 2.3 * p.bw * (1 - p.bf / 100) : 2.0 * ref) : 1.7 * ref); const fat = Math.round(k * 0.27 / 9); const carb = Math.max(0, Math.round((k - prot * 4 - fat * 9) / 4));
-    return { k, tdee: Math.round(total), train: Math.round(train), mode, note, prot, pLo, pHi, fat, carb, bmi, refMass: Math.round(ref), floor: Math.round(floor), p };
-  };
-  F.nutPlan = nutPlan;
-  const mealPlan = (np, n, veg, seed) => {
-    const names = n === 3 ? ['Śniadanie', 'Obiad', 'Kolacja'] : n === 4 ? ['Śniadanie', 'Obiad', 'Przekąska', 'Kolacja'] : ['Śniadanie', 'II śniadanie', 'Obiad', 'Przekąska', 'Kolacja'];
-    const share = n === 3 ? [0.28, 0.4, 0.32] : n === 4 ? [0.25, 0.33, 0.12, 0.3] : [0.22, 0.12, 0.3, 0.12, 0.24];
-    const mains = veg ? ['mainV', 'mainV2'] : ['mainA', 'mainB', 'mainC', 'mainD']; let mi = seed;
-    return names.map((nm, i) => {
-      const small = /Przekąska|II śn/.test(nm); const tpl = i === 0 ? (seed % 2 ? 'bf2' : 'bf') : small ? (seed % 2 ? 'sn2' : 'sn') : mains[mi++ % mains.length];
-      const K = np.k * share[i], P = np.prot * share[i], C = np.carb * share[i], Fa = np.fat * share[i]; const T = NUT_T[tpl]; const g = {};
-      let p0 = 0, c0 = 0, f0 = 0; T.forEach(([id, role, fx]) => { if (role === 'fix') { g[id] = fx; const d = FOOD[id]; p0 += d[2] * fx / 100; c0 += d[3] * fx / 100; f0 += d[4] * fx / 100; } });
-      const protId = T.find(t => t[1] === 'prot')[0], carbId = (T.find(t => t[1] === 'carb') || [])[0], fatId = (T.find(t => t[1] === 'fat') || [])[0];
-      const fatIn = (id, x) => FOOD[id][4] * x / 100;
-      // białko: dobierz porcję produktu białkowego
-      const pd = FOOD[protId]; let gp = Math.max(40, (P - p0) / (pd[2] / 100) * 0.9); gp = Math.min(gp, 350); g[protId] = gp; p0 += pd[2] * gp / 100; c0 += pd[3] * gp / 100; f0 += pd[4] * gp / 100;
-      if (carbId) { const cd = FOOD[carbId]; let gc = Math.max(30, (C - c0) / (cd[3] / 100)); gc = Math.min(gc, 450); g[carbId] = gc; p0 += cd[2] * gc / 100; c0 += cd[3] * gc / 100; f0 += cd[4] * gc / 100; }
-      if (fatId) { const fd = FOOD[fatId]; let gf = Math.max(5, (Fa - f0) / (fd[4] / 100)); gf = Math.min(gf, fatId === 'oil' ? 25 : 40); g[fatId] = gf; p0 += fd[2] * gf / 100; c0 += fd[3] * gf / 100; f0 += fd[4] * gf / 100; }
-      if (carbId) { const cd = FOOD[carbId]; const cur = Object.entries(g).reduce((a, [id, x]) => a + FOOD[id][1] * x / 100, 0); g[carbId] = Math.min(450, Math.max(30, g[carbId] + (K - cur) / (cd[1] / 100))); }
-      if (g.egg) g.egg = Math.min(g.egg, 240);
-      const rows = Object.entries(g).map(([id, x]) => { const unit = id === 'egg' ? Math.round(x / 60) : 0; const step = id === 'oil' ? 5 : 10; return { id, name: FOOD[id][0], g: Math.max(step, Math.round(x / step) * step), unit }; });
-      const tot = rows.reduce((a, r) => { const d = FOOD[r.id]; a.k += d[1] * r.g / 100; a.p += d[2] * r.g / 100; a.c += d[3] * r.g / 100; a.f += d[4] * r.g / 100; return a; }, { k: 0, p: 0, c: 0, f: 0 });
-      return { name: nm, rows, tot, target: K };
-    });
-  };
-  F.mealPlan = mealPlan; F.FOOD = FOOD;
-  F.act.nutSet = b => { const s = F.S.settings; s.nut = { ...(s.nut || {}), [b.dataset.k]: b.dataset.n ? +b.dataset.v : b.dataset.v === '1' ? true : b.dataset.v === '0' ? false : b.dataset.v }; F.saveSettings(); F.render(true); };
-  F.act.nutAgain = () => { F.ui.nutSeed = (F.ui.nutSeed || 0) + 1; F.render(true); };
-  V.nutrition = () => {
-    const np = nutPlan(); const s = F.S.settings, nu = s.nut || {}; const head = F.head('Żywienie', { back: 1, sub: 'Kalorie i przykładowy dzień' });
-    if (np.missing) return { html: `${head}<div class="empty"><h3>Uzupełnij dane</h3><p>Do wyliczenia potrzebuję płci, wieku, wzrostu, masy ciała i poziomu aktywności w ciągu dnia. Masę ciała wpiszesz przyciskiem „Wpisz wagę”, resztę w Ustawieniach → Profil.</p><div class="btn-row"><a class="btn primary" href="#/settings">Otwórz profil</a><button class="btn ghost" data-a="bwSheet">Wpisz wagę</button></div></div>` };
-    const ed = `<label class="sw"><span><b>Mam lub miałem(am) zaburzenia odżywiania</b><small>wtedy nie pokażę liczb</small></span><input type="checkbox" data-a="nutSet" data-k="ed" data-v="${nu.ed ? '0' : '1'}" ${nu.ed ? 'checked' : ''}><i></i></label>`;
-    if (np.block) return { html: `${head}<section class="card cut"><p class="small">${E(np.block)}</p>${nu.ed ? ed : ''}</section>` };
-    const n = nu.meals || 4, veg = !!nu.veg, seed = F.ui.nutSeed || 0; const meals = mealPlan(np, n, veg, seed);
-    const chip = (on, k, v, l, num) => `<button class="chip ${on ? 'on' : ''}" data-a="nutSet" data-k="${k}" data-v="${v}" ${num ? 'data-n="1"' : ''}>${l}</button>`;
-    const modeL = { cut: 'Redukcja', keep: 'Utrzymanie', bulk: 'Przyrost' }; const tot = meals.reduce((a, m) => ({ k: a.k + m.tot.k, p: a.p + m.tot.p, c: a.c + m.tot.c, f: a.f + m.tot.f }), { k: 0, p: 0, c: 0, f: 0 });
-    return { html: `${head}
-      <section class="card cut"><h3>${ic('flame', 18)} Twoje zapotrzebowanie</h3>
-        <div class="chips">${['cut', 'keep', 'bulk'].map(m => chip(np.mode === m, 'mode', m, modeL[m])).join('')}</div>
-        <div class="sum-stats nut"><div><small>Cel dzienny</small><b>${F.fmtNum ? F.fmtNum(np.k) : np.k} <em>kcal</em></b></div><div><small>Białko</small><b>${np.prot} g</b></div><div><small>Tłuszcz</small><b>${np.fat} g</b></div><div><small>Węglowodany</small><b>${np.carb} g</b></div></div>
-        <p class="small">${E(np.note)}</p>
-        <p class="dim small">Zapotrzebowanie bez treningu: ${np.tdee - np.train} kcal${np.train ? ` + średnio ${np.train} kcal dziennie z treningów (ostatnie 4 tygodnie)` : ' (w ostatnich 4 tygodniach brak zapisanych treningów do doliczenia)'}. Wzór daje średnią dla osób o Twoim wieku, wzroście, masie i aktywności — po 2–3 tygodniach porównaj z trendem masy ciała i skoryguj o 100–200 kcal.</p>
-        <p class="dim small">Białko: dla większości osób ćwiczących wystarcza 1,4–2,0 g na kg masy ciała (zalecenie ISSN)${np.bmi >= 30 ? `; przy BMI ≥ 30 liczę od masy należnej (${np.refMass} kg)` : ''}, czyli ${np.pLo}–${np.pHi} g dziennie, rozłożone na kilka posiłków po 0,25 g/kg${np.mode === 'cut' ? '. W redukcji podnoszę białko (ISSN: 2,3–3,1 g na kg beztłuszczowej masy ciała przy deficycie)' : ''}. Tłuszcz 27% kalorii, resztę wypełniają węglowodany.</p></section>
-      <section class="card cut"><h3>${ic('layers', 18)} Przykładowy dzień</h3>
-        <div class="chips">${[3, 4, 5].map(x => chip(n === x, 'meals', x, x + (x === 5 ? ' posiłków' : ' posiłki'), 1)).join('')}${chip(veg, 'veg', veg ? '0' : '1', 'Bez mięsa i ryb')}</div>
-        ${meals.map(m => `<div class="meal"><div class="wz-dh"><h4>${m.name}</h4><small class="dim">${Math.round(m.tot.k)} kcal · B ${Math.round(m.tot.p)} g</small></div>${m.rows.map(r => `<div class="meal-r"><span>${E(r.name)}</span><b>${r.id === 'egg' ? r.unit + ' szt.' : r.g + ' g'}</b></div>`).join('')}</div>`).join('')}
-        <p class="small"><b>Razem:</b> ${Math.round(tot.k)} kcal · białko ${Math.round(tot.p)} g · węgle ${Math.round(tot.c)} g · tłuszcz ${Math.round(tot.f)} g.</p>
-        <button class="btn ghost sm" data-a="nutAgain">${ic('repeat', 16)} Inna propozycja</button>
-        <p class="dim small">Wagi produktów surowych, jeśli nie podano inaczej. Zamieniaj produkty na podobne i dopasuj do smaku. Przy chorobach, ciąży, alergiach lub zaburzeniach odżywiania skonsultuj dietę ze specjalistą.</p></section>
-      <section class="card cut">${ed}</section>` };
-  };
 })();

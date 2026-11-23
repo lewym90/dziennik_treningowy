@@ -11,7 +11,7 @@
   F.rankImg = (i, s = 64) => `<img class="rk-em" src="assets/rank/${i}.webp" width="${s}" height="${s}" alt="">`;
 
   /* ---------- helpers widoku ---------- */
-  const head = (title, o = {}) => `<header class="ph">${o.back ? `<button class="ibtn back" data-a="${typeof o.back === 'string' ? o.back : 'back'}" aria-label="Wstecz">${ic('chevron-left', 24)}</button>` : ''}<div class="ph-t"><h1>${title}</h1>${o.sub ? `<p>${o.sub}</p>` : ''}</div><div class="ph-r">${o.right || ''}</div></header>`;
+  const head = (title, o = {}) => `<header class="ph">${o.back ? `<button class="ibtn back" data-a="${typeof o.back === 'string' ? o.back : 'back'}" aria-label="Wstecz">${ic('chevron-left', 24)}</button>` : ''}<div class="ph-t"><h1${o.vt ? ' data-vt-dst' : ''}>${title}</h1>${o.sub ? `<p>${o.sub}</p>` : ''}</div><div class="ph-r">${o.right || ''}</div></header>`;
   F.head = head;
   const EMPTY = { 'clipboard-list': 0, history: 1, 'chart-line': 2, ruler: 3, camera: 4, search: 5 };
   const empty = (icon, title, text, cta) => `<div class="empty">${EMPTY[icon] != null ? `<img src="assets/empty/${EMPTY[icon]}.webp" width="130" height="130" alt="">` : ic(icon, 40)}<h3>${title}</h3><p>${text}</p>${cta || ''}</div>`;
@@ -50,6 +50,7 @@
     [/^#\/workout$/, () => F.views.workout(), 'workout'], [/^#\/import(\?.*)?$/, () => F.views.import(), 'plans'], [/^#\/wizard$/, () => F.views.wizard(), 'plans'], [/^#\/calendar$/, () => F.views.calendar(), 'history'], [/^#\/ask$/, () => F.views.ask(), 'home'], [/^#\/recap$/, () => F.views.recap(), 'stats'], [/^#\/report$/, () => F.views.report(), 'stats'], [/^#\/nutrition$/, () => F.views.nutrition(), 'home'], [/^#\/guide$/, () => F.views.guide(), 'home'], [/^#\/guide\/([^/]+)$/, m => F.views.guideArt(m[1]), 'home'], [/^#\/get\/([A-Za-z0-9_-]+)$/, m => F.views.get(m[1]), 'plans'], [/^#\/clients$/, () => F.views.clients(), 'plans'], [/^#\/client\/([^/]+)$/, m => F.views.client(m[1]), 'plans']
   ];
   let curTab = 'home';
+  F.tabOf = h => { for (const [re, , tab] of routes) if ((h || '#/home').match(re)) return tab; return 'home'; };
   F.render = (keepScroll) => {
     const h = location.hash || '#/home'; const view = F.$('#view'); let out = null;
     for (const [re, fn, tab] of routes) { const m = h.match(re); if (m) { out = fn(m); curTab = tab; break; } }
@@ -61,8 +62,9 @@
     F.$$('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === curTab));
     window.scrollTo(0, sy); F.countUp(view); if (out.after) out.after(view); F.updateDock();
     if (!keepScroll) setTimeout(() => view.classList.remove('enter'), 500);
+    (F.afterRender || []).forEach(f => { try { f(view, curTab, keepScroll); } catch (e) { } });
   };
-  window.addEventListener('hashchange', () => { F.closeSheet(true); F.render(); });
+  window.addEventListener('hashchange', () => { F.closeSheet(true); if (F.navRender) F.navRender(); else F.render(); });
 
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-a]'); if (!t) return; const fn = F.act[t.dataset.a];
@@ -94,13 +96,13 @@
     let hero;
     if (d) {
       const done = d.exercises.reduce((a, e) => a + e.sets.filter(x => x.done).length, 0);
-      hero = `<section class="hero cut live"><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} serii zaliczonych</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
+      hero = `<section class="hero cut live" data-vt><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} serii zaliczonych</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
     } else if (cdFirst) {
       hero = `<section class="hero cut cd"><div class="hero-k">${ic('heart-pulse', 14)} ${ct ? 'Dziś cardio' : `${cap(F.calWhen(cn.ts))} — cardio`}</div><h2>${E(cn.day.name)}</h2>
         <p class="hero-m"><span>${ic('timer', 15)} ${cdMin(cn.day)} min</span><span>${ic('heart-pulse', 15)} osobna sesja</span></p>
         <button class="forge-btn" data-a="startDay" data-p="${cn.plan.id}" data-d="${cn.day.id}"><span>${ic('play', 20)} ${ct ? 'Zacznij cardio' : 'Zacznij cardio teraz'}</span></button>${nx ? `<p class="hero-n">Następny trening siłowy: <b>${E(nx.day.name)}</b>${q0 ? ' — ' + F.calWhen(q0.ts) : ''}</p>` : ''}</section>`;
     } else if (nx) {
-            hero = `<section class="hero cut"><div class="hero-k">${strToday ? 'Dziś' : `Następny trening${q0 ? ' · ' + cap(F.calWhen(q0.ts)) : ''}`}</div><h2>${E(nx.day.name)}</h2>
+            hero = `<section class="hero cut" data-vt><div class="hero-k">${strToday ? 'Dziś' : `Następny trening${q0 ? ' · ' + cap(F.calWhen(q0.ts)) : ''}`}</div><h2>${E(nx.day.name)}</h2>
         <p class="hero-m"><span>${ic('calendar', 15)} Dzień ${strIx >= 0 ? strIx + 1 : nx.di + 1} z ${strDays.length || nx.plan.days.length}</span><span>${ic('timer', 15)} ${estMin(nx.day)} min</span><span>${ic('dumbbell', 15)} ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
         <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button>${ct ? `<button class="hero-cd" data-a="startDay" data-p="${ct.plan.id}" data-d="${ct.day.id}">${ic('heart-pulse', 16)} Dziś też cardio: ${E(ct.day.name.replace(/^Cardio:\s*/, ''))} · ${cdMin(ct.day)} min</button>` : ''}</section>`;
     } else {
@@ -156,14 +158,14 @@
     const cnt = p => p.days.reduce((a, x) => a + x.items.length, 0), G = F.PLN && F.PLN.GOALS, X = F.PLN && F.PLN.EXPS;
     const tagOf = p => { const m = p.meta || {}; return [m.goal && G && G[m.goal] ? G[m.goal][0] : '', m.exp && X && X[m.exp] ? X[m.exp][0].toLowerCase() : ''].filter(Boolean).join(' · '); };
     const card = p => { const n = cnt(p), last = F.S.sessions.find(s => s.planId === p.id);
-      return `<a class="plan cut" href="#/plan/${p.id}"><div class="plan-i">${ic('clipboard-list', 22)}</div><div class="plan-b"><h3>${E(p.name)}</h3><p>${tagOf(p) ? E(tagOf(p)) + ' · ' : ''}${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${last ? ` · ostatnio ${F.relDay(last.start).toLowerCase()}` : ''}</p></div>${ic('chevron-right', 20)}</a>`; };
+      return `<a class="plan cut" href="#/plan/${p.id}" data-vt><div class="plan-i">${ic('clipboard-list', 22)}</div><div class="plan-b"><h3 data-vt-src>${E(p.name)}</h3><p>${tagOf(p) ? E(tagOf(p)) + ' · ' : ''}${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}${last ? ` · ostatnio ${F.relDay(last.start).toLowerCase()}` : ''}</p></div>${ic('chevron-right', 20)}</a>`; };
     let top = '';
     if (cur) {
       const n = cnt(cur), tag = tagOf(cur);
       const q0 = F.calQueue ? F.calQueue(21)[0] : null, wd = F.calWeekdays ? F.calWeekdays(cur) : [];
       const when = q0 ? F.calWhen(q0.ts) : '', nd = q0 ? q0.day : nx.day;
       top = `<section class="plancur cut"><div class="pc-k">${ic('flame', 15)} Aktualny plan</div>
-        <a class="pc-name" href="#/plan/${cur.id}"><h2>${E(cur.name)}</h2></a>
+        <a class="pc-name" href="#/plan/${cur.id}" data-vt><h2 data-vt-src>${E(cur.name)}</h2></a>
         <p class="pc-m">${tag ? `<span>${E(tag)}</span>` : ''}<span>${cur.days.length} ${F.plur(cur.days.length, 'dzień', 'dni', 'dni')} · ${n} ${F.plur(n, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
         <div class="pc-row"><span class="dim">Następny</span><b>${E(nd.name.replace(/^(Pn|Wt|Śr|Cz|Pt|So|Nd) — /, ''))}</b>${when ? `<em>${E(when)}</em>` : ''}</div>
         ${(() => { const b = F.blockInfo && F.blockInfo(cur); if (!b) return ''; return b.over ? `<button class="pc-row" data-a="blockSum"><span class="dim">Blok</span><b>Zakończony</b><em>podsumowanie</em></button>` : `<div class="pc-row pc-blk"><span class="dim">Blok</span><b>Tydzień ${b.week} z ${b.weeks}${b.deload ? ' · odciążenie' : ` · zapas ${b.rir} powt.`}</b><i class="pc-bar"><i style="width:${(b.week / b.weeks * 100).toFixed(0)}%"></i></i></div>`; })()}
@@ -201,7 +203,7 @@
   function planDetail(id) {
     const p = F.planOf(id); if (!p) return { html: head('Plan', { back: 1 }) + empty('clipboard-list', 'Nie znaleziono planu', 'Ten plan został usunięty.') };
     return {
-      html: `${head(E(p.name), { back: 1, sub: `${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')}`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
+      html: `${head(E(p.name), { back: 1, vt: 1, sub: `${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')}`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
       ${(F.nextWorkout() || {}).plan === p ? '' : `<div class="pc-note cut"><p>To nie jest Twój aktualny plan. Następny trening na ekranie Dziś i kalendarz biorą dni z aktualnego planu.</p><button class="btn sm primary" data-a="setCur" data-id="${p.id}">${ic('flame', 16)} Ustaw jako aktualny</button></div>`}
       ${p.days.map((d, di) => `<section class="card cut day"><div class="day-h"><div><span class="dim">Dzień ${di + 1}</span><h3>${E(d.name)}</h3></div><button class="btn sm primary" data-a="startDay" data-p="${p.id}" data-d="${d.id}">${ic('play', 16)} Start</button></div>
         ${d.items.length ? `<ul class="items">${planDetItems(d, p)}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
@@ -231,6 +233,7 @@
     const isCur = (F.nextWorkout() || {}).plan === F.planOf(id);
     F.sheet(`<div class="menu">${isCur ? '' : `<button data-a="setCur" data-id="${id}">${ic('flame', 20)}Ustaw jako aktualny</button>`}<button data-a="planEditGo" data-id="${id}">${ic('pencil', 20)}Edytuj</button><button data-a="planDup" data-id="${id}">${ic('copy', 20)}Duplikuj</button><button data-a="planSend" data-id="${id}">${ic('send', 20)}Wyślij podopiecznemu</button><button data-a="planText" data-id="${id}">${ic('clipboard-paste', 20)}Kopiuj jako tekst</button><button data-a="planJson" data-id="${id}">${ic('file-json', 20)}Eksportuj do pliku</button><button class="danger" data-a="planDel" data-id="${id}">${ic('trash-2', 20)}Usuń plan</button></div>`, { title: 'Plan' });
   };
+  F.bind.pwarm = el => { const st = F.ui.edit; if (!st) return; st.plan.meta = { ...(st.plan.meta || {}), warm: el.checked }; };
   F.act.planEditGo = b => { F.closeSheet(true); F.go('#/plan/' + b.dataset.id + '/edit'); };
   F.act.planDup = async b => { const p = F.planOf(b.dataset.id); const c = JSON.parse(JSON.stringify(p)); c.id = F.uid(); c.name = p.name + ' (kopia)'; c.created = Date.now(); c.days.forEach(d => { d.id = F.uid(); d.items.forEach(i => i.id = F.uid()); }); await F.savePlan(c); F.closeSheet(true); F.toast('Zduplikowano plan'); F.go('#/plan/' + c.id); };
   F.planToText = p => p.days.map(d => { const inf = F.ssInfo(d.items); return d.name + '\n' + d.items.map((i, k) => `- ${inf[k] ? inf[k].tag + '. ' : ''}${exName(i.exId)} ${i.sets}x${i.reps}${i.pct ? ' @' + i.pct + '%' : ''}${i.rest ? ' (przerwa ' + i.rest + 's)' : ''}`).join('\n'); }).join('\n\n');
@@ -248,6 +251,7 @@
       html: `${head(st.isNew ? 'Nowy plan' : 'Edycja planu', { back: 1, right: `<button class="btn sm primary" data-a="planSave">${ic('save', 16)} Zapisz</button>` })}
       <label class="fld"><span>Nazwa planu</span><input data-b="pname" value="${E(p.name)}" maxlength="60"></label>
       ${restBox(p, st.isNew)}
+      <section class="card cut"><label class="sw"><span><b>Serie rozgrzewkowe z wyliczonym ciężarem</b><small>przed pierwszym ćwiczeniem na każdą partię: 2–3 lżejsze serie tego samego ćwiczenia; wyłącz, jeśli rozgrzewasz się po swojemu (np. rowerek, bieżnia)</small></span><input type="checkbox" data-b="pwarm" ${(p.meta || {}).warm ? 'checked' : ''}><i></i></label></section>
       ${p.days.map((d, di) => `<section class="card cut day edit" data-di="${di}">
         <div class="day-h"><label class="fld grow"><span>Dzień ${di + 1}</span><input data-b="dname" data-di="${di}" value="${E(d.name)}" maxlength="50"></label>
         <div class="mini-btns"><button class="ibtn" data-a="dayUp" data-di="${di}" ${di === 0 ? 'disabled' : ''} aria-label="W górę">${ic('arrow-up', 18)}</button><button class="ibtn" data-a="dayDel" data-di="${di}" aria-label="Usuń dzień">${ic('trash-2', 18)}</button></div></div>

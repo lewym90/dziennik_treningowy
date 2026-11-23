@@ -119,6 +119,7 @@
     F.rest = null; persistRest(); clearInterval(restTick); restTick = 0;
     if (finished) { F.beep(F.SND_END); F.haptic([300, 120, 300, 120, 500]); F.toast(ic('timer', 16) + ' Przerwa skończona. Do roboty.', 'hot'); }
     F.updateDock(); if (F.onRestChange) F.onRestChange(); F.releaseNoteTimer();
+    if (finished) { const dk = F.$('#set-dock'); if (dk) { dk.classList.remove('flash'); void dk.offsetWidth; dk.classList.add('flash'); setTimeout(() => dk.classList.remove('flash'), 950); } }
   };
   F.releaseNoteTimer = () => { };
   function persistRest() { if (F.S.draft) { F.S.draft.rest = F.rest; F.saveDraft(); } }
@@ -129,7 +130,7 @@
     const pct = 1 - (F.rest.end - Date.now()) / (F.rest.total * 1000);
     F.$$('[data-rest-time]').forEach(el => el.textContent = F.fmtDur(left));
     F.$$('[data-rest-bar]').forEach(el => el.style.transform = `scaleX(${Math.max(0, 1 - pct)})`);
-    F.$$('[data-rest-ring]').forEach(el => { const c = +el.getAttribute('stroke-dasharray'); el.style.strokeDashoffset = c * pct; });
+    F.$$('[data-rest-ring]').forEach(el => { const c = +el.getAttribute('stroke-dasharray'); el.style.strokeDashoffset = c * pct; const rg = el.closest('.sd-ring'); if (rg) rg.classList.toggle('fin', left <= 10); });
     const warn = F.S.settings.restWarn ?? 30;
     if (warn && !F.rest.warned && left <= warn && left > 3 && F.rest.total >= warn + 10) { F.rest.warned = 1; persistRest(); F.beep(F.SND_WARN); F.haptic([150, 80, 150]); F.toast(ic('timer', 16) + ` Za ${warn} s następna seria. Przygotuj się.`); }
     if (left <= 3 && left !== F._lastTick) { F._lastTick = left; F.beep([[1320, .07]], { soft: 1 }); F.haptic(40); }

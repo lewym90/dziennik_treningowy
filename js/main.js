@@ -7,20 +7,23 @@
     <div class="mid ${F.S.draft ? 'live' : ''}"><button data-a="tab" data-tab="workout" aria-label="${F.S.draft ? 'Wróć do treningu' : 'Rozpocznij trening'}">${ic(F.S.draft ? 'play' : 'flame', 34)}</button></div>
     <button class="t" data-a="tab" data-tab="history" aria-label="Historia">${F.gly(2, 25)}<span>Historia</span></button>
     <button class="t" data-a="tab" data-tab="stats" aria-label="Postępy">${F.gly(3, 25)}<span>Postępy</span></button></div>`;
-  F.drawTabs = () => { const el = F.$('#tabbar'); el.innerHTML = tabs(); const cur = document.body.dataset.route; F.$$('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === cur)); };
-  const _r = F.render; F.render = k => { _r(k); F.drawTabs(); };
+  // pasek budujemy od nowa tylko, gdy zmienia się stan treningu; inaczej przełączamy zakładkę, żeby wskaźnik mógł płynnie przejechać
+  let tbLive = null;
+  F.drawTabs = () => { const el = F.$('#tabbar'); const live = !!F.S.draft; const fresh = live !== tbLive || !el.firstChild; if (fresh) { el.innerHTML = tabs(); tbLive = live; } const cur = document.body.dataset.route; F.$$('#tabbar [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === cur)); if (F.movePill) F.movePill(fresh); };
+  const _r = F.render; F.render = k => { const go = () => { _r(k); F.drawTabs(); }; if (k && F.renderMorph) F.renderMorph(go); else go(); };
 
   F.act.reload = () => location.reload();
 
   async function boot() {
     const t0 = performance.now();
     try { await F.load(); } catch (e) { console.error(e); }
-    F.applyAccent(); F.resumeRest();
+    F.applyAccent(); if (F.applyMotion) F.applyMotion(); F.resumeRest();
     const q = new URLSearchParams(location.search);
     if (!location.hash) location.hash = '#/home';
     F.render();
     if (F.S.draft && !location.hash.startsWith('#/workout')) F.updateDock();
     if (F.tourMaybe && !q.get('a') && !location.hash.startsWith('#/get/')) F.tourMaybe();
+    setTimeout(() => { if (F.weekPush) F.weekPush(); }, 4000);
     // splash
     const sp = F.$('#splash'); const wait = Math.max(0, 1300 - (performance.now() - t0));
     setTimeout(() => F.burst(innerWidth / 2, innerHeight * .45, 40, 1.1), 700);
@@ -37,7 +40,8 @@
       }).catch(() => { });
     }
     // prośba o trwałe przechowywanie po pierwszym zapisanym treningu
-    if (navigator.storage && navigator.storage.persist && F.S.sessions.length) navigator.storage.persist().catch(() => { });
+    // trwałe przechowywanie: przeglądarka nie usunie danych sama przy braku miejsca (prosimy przy każdym starcie, aż się zgodzi)
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(ok => { if (!ok) return navigator.storage.persist(); }).then(ok => { if (ok) F.S.settings.persisted = 1; }).catch(() => { });
   }
   boot();
 })();

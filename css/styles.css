@@ -1038,3 +1038,105 @@ body.kbd .wk2 .wk-slide>.wk-art{min-height:0;flex:0 0 0}
 .sd-rest p.sd-nx>small{color:var(--tx2)}
 #rot{display:none}
 @media (orientation:landscape) and (max-height:520px) and (pointer:coarse){#rot{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;background:#07080b;color:var(--tx)}#rot svg{color:var(--a1);transform:rotate(90deg)}#rot b{font:700 22px var(--fd)}#rot small{color:var(--tx2);max-width:420px}}
+/* żywienie v1.38 */
+.nut-m{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 12px}
+.nut-m>div{display:flex;flex-direction:column;gap:1px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px var(--line)}
+.nut-m small{font-size:11.5px;color:var(--tx2)}.nut-m b{font:700 19px var(--fd);color:var(--tx)}.nut-m em{font-style:normal;font-size:12px;color:var(--tx2)}
+.nut-how,.meal-st{margin:6px 0 10px}
+.nut-how summary,.meal-st summary{list-style:none;display:flex;align-items:center;gap:6px;cursor:pointer;font:600 14px var(--fb);color:var(--a1);padding:6px 0;-webkit-tap-highlight-color:transparent}
+.nut-how summary::-webkit-details-marker,.meal-st summary::-webkit-details-marker{display:none}
+.nut-how summary::after,.meal-st summary::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-left:2px;transition:transform .2s}
+.nut-how[open] summary::after,.meal-st[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+.nut-how .meal-r{padding:5px 0;border-bottom:1px dashed var(--line)}.nut-how .meal-r span{flex:1}
+.meal-t{font:700 15px var(--fd);margin:2px 0 6px;color:var(--tx)}
+.meal-sw{display:flex;align-items:center;gap:8px;width:100%;padding:6px 0;background:none;border:0;color:var(--tx2);font:inherit;font-size:14px;text-align:left;cursor:pointer}
+.meal-sw span{flex:1;min-width:0}.meal-sw b{text-align:right;white-space:normal;max-width:55%}.meal-sw svg{flex:none;color:var(--tx3);opacity:.8}
+.meal-sw:active{background:rgba(255,255,255,.05)}
+.meal-st summary{font-size:13px}.meal-st ol{margin:4px 0 0;padding-left:20px;font-size:13.5px;line-height:1.45;color:var(--tx2)}.meal-st li{margin:3px 0}
+.nut-ex{margin-bottom:8px}.nut-ex .chip{font-size:13px}
+.nut-dh{display:flex;align-items:center;gap:10px;margin:4px 0 6px}.nut-dh .seg{flex:1;margin:0}.nut-dh .seg button{height:34px;font-size:14px;padding:0}
+.shop-h{font:700 12px var(--fb);text-transform:uppercase;letter-spacing:.06em;color:var(--tx2);margin:16px 0 4px}
+.nut-safe.warn{box-shadow:inset 0 0 0 1px rgba(255,190,80,.55)}.warn-t{color:var(--gold)}
+.lnk{background:none;border:0;padding:0;color:var(--a1);font:inherit;text-decoration:underline;cursor:pointer}
+/* ===== ruch v1.38: jeden system czasów i krzywych ===== */
+:root{--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.2,1.25,.35,1);--d1:.16s;--d2:.3s;--d3:.48s}
+/* przejścia między ekranami (View Transitions) */
+#tabbar{view-transition-name:tabbar}
+::view-transition-old(tabbar),::view-transition-new(tabbar){animation:none}::view-transition-old(tabbar){opacity:0}
+::view-transition-old(root),::view-transition-new(root){animation-duration:var(--d3);animation-timing-function:var(--ease);animation-fill-mode:both}
+html[data-vt=fwd]::view-transition-old(root){animation-name:vtOutL}html[data-vt=fwd]::view-transition-new(root){animation-name:vtInR}
+html[data-vt=back]::view-transition-old(root){animation-name:vtOutR;z-index:2}html[data-vt=back]::view-transition-new(root){animation-name:vtInL}
+html[data-vt=left]::view-transition-old(root){animation-name:vtOutL2}html[data-vt=left]::view-transition-new(root){animation-name:vtInR2}
+html[data-vt=right]::view-transition-old(root){animation-name:vtOutR2}html[data-vt=right]::view-transition-new(root){animation-name:vtInL2}
+html[data-vt=up]::view-transition-old(root){animation-name:vtFadeOut}html[data-vt=up]::view-transition-new(root){animation-name:vtUp}
+html[data-vt=down]::view-transition-old(root){animation-name:vtDown;z-index:2}html[data-vt=down]::view-transition-new(root){animation-name:vtFadeIn}
+html[data-vt=fade]::view-transition-old(root){animation:vtFadeOut var(--d2) var(--ease) both}html[data-vt=fade]::view-transition-new(root){animation:vtFadeIn var(--d2) var(--ease) both}
+@keyframes vtInR{from{transform:translateX(42%);opacity:0}}@keyframes vtOutL{to{transform:translateX(-16%);opacity:0;filter:brightness(.6)}}
+@keyframes vtInL{from{transform:translateX(-16%);opacity:0;filter:brightness(.6)}}@keyframes vtOutR{to{transform:translateX(42%);opacity:0}}
+@keyframes vtInR2{from{transform:translateX(14%);opacity:0}}@keyframes vtOutL2{to{transform:translateX(-14%);opacity:0}}
+@keyframes vtInL2{from{transform:translateX(-14%);opacity:0}}@keyframes vtOutR2{to{transform:translateX(14%);opacity:0}}
+@keyframes vtUp{from{transform:translateY(9%) scale(.97);opacity:0}}@keyframes vtDown{to{transform:translateY(9%) scale(.97);opacity:0}}
+@keyframes vtFadeIn{from{opacity:0}}@keyframes vtFadeOut{to{opacity:0}}
+::view-transition-group(morph){animation-duration:var(--d3);animation-timing-function:var(--ease);z-index:5}
+::view-transition-old(morph),::view-transition-new(morph){height:100%;object-fit:cover;overflow:clip;animation-duration:var(--d3);animation-timing-function:var(--ease)}
+html.vt-run .view.enter{animation:none}
+/* pasek zakładek: przesuwany wskaźnik */
+.tb{position:relative}.tb.has-pill button.t.on::before{display:none}
+.tb-pill{position:absolute;left:0;top:0;width:28px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--a2),var(--a1));box-shadow:0 0 10px var(--a1);transition:transform .42s var(--spring),opacity .2s;pointer-events:none}
+.tb button.t svg{transition:transform .3s var(--spring),color .2s}.tb button.t.on svg{transform:translateY(-1px) scale(1.08)}
+/* okienka od dołu: sprężyste wejście, przeciąganie */
+.sheet{transition:transform .46s var(--spring)}.sheet.drag{transition:none}
+/* wykresy: rysowanie, gdy wjadą na ekran */
+.chart:not(.vis) .ln,.chart:not(.vis) .bar,.hbars:not(.vis) .hb-t i,.heat:not(.vis) .hc{animation-play-state:paused}
+.chart:not(.vis) .area{opacity:0}.chart .area{transition:opacity .9s .25s}.chart svg{touch-action:pan-y}
+.chart .pt.on .dot{transform-box:fill-box;transform-origin:center;transform:scale(1.6);transition:transform .2s var(--spring)}
+.chart .tip{transition:left .12s ease-out,top .12s ease-out}
+/* ekran Dziś: wejście kaskadą (raz dziennie) i „oddychające” tło karty */
+.view.intro .hero{animation:introHero .7s var(--ease) both}
+.view.intro .wd{animation:introPop .5s var(--spring) both}.view.intro .wd:nth-child(2){animation-delay:.05s}.view.intro .wd:nth-child(3){animation-delay:.1s}.view.intro .wd:nth-child(4){animation-delay:.15s}.view.intro .wd:nth-child(5){animation-delay:.2s}.view.intro .wd:nth-child(6){animation-delay:.25s}.view.intro .wd:nth-child(7){animation-delay:.3s}
+.view.intro .qa-i{animation:introUp .55s var(--ease) both}.view.intro .qa-i:nth-child(2){animation-delay:.08s}.view.intro .qa-i:nth-child(3){animation-delay:.16s}.view.intro .qa-i:nth-child(4){animation-delay:.24s}
+.view.intro .card{animation:introUp .6s .2s var(--ease) both}
+@keyframes introHero{from{opacity:0;transform:translateY(16px) scale(.98)}}@keyframes introPop{from{opacity:0;transform:scale(.6)}}@keyframes introUp{from{opacity:0;transform:translateY(18px)}}
+.hero::before{animation:heroKB 16s ease-in-out infinite alternate;transform-origin:70% 50%}
+@keyframes heroKB{to{transform:scale(1.07) translateX(-2%)}}
+.hero .forge-btn{position:relative;overflow:hidden}.hero .forge-btn::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);transform:translateX(-120%);animation:btnShine 4.5s 1.2s ease-in-out infinite;pointer-events:none}
+@keyframes btnShine{0%,70%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+/* zaliczenie serii: kafelek wypełnia się od dołu, ptaszek się rysuje */
+.sxc{position:relative;overflow:hidden;isolation:isolate}
+.sxc.just::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,var(--a1),var(--a2));transform-origin:bottom;animation:sxFill .7s var(--ease) both}
+.sxc.just svg path,.sxc.just svg polyline{stroke-dasharray:30;stroke-dashoffset:30;animation:ckDraw .4s .18s var(--ease) forwards}
+.sxc.just{animation:sxPop .45s var(--spring)}
+@keyframes sxFill{0%{transform:scaleY(0);opacity:1}55%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
+@keyframes ckDraw{to{stroke-dashoffset:0}}@keyframes sxPop{50%{transform:scale(1.08)}}
+.sd-go{transition:transform .15s var(--spring),filter .2s}.sd-go:active{transform:scale(.96)}
+/* liczby w panelu serii przewijają się jak licznik */
+.sd-f input.rup{animation:rollUp .26s var(--ease)}.sd-f input.rdn{animation:rollDn .26s var(--ease)}
+@keyframes rollUp{from{transform:translateY(55%);opacity:0}}@keyframes rollDn{from{transform:translateY(-55%);opacity:0}}
+/* przerwa: płynny pierścień, ostatnie 10 s i koniec */
+.sd-ring .rd-fg{transition:stroke-dashoffset .26s linear,stroke .4s}
+.sd-ring.fin .rd-fg{stroke:var(--gold);filter:drop-shadow(0 0 8px rgba(255,200,80,.9))}.sd-ring.fin{animation:ringPulse 1s ease-in-out infinite}.sd-ring.fin b{color:var(--gold)}
+@keyframes ringPulse{50%{transform:scale(1.06)}}
+.sdk.flash{animation:dockFlash .9s var(--ease)}
+@keyframes dockFlash{0%{box-shadow:0 0 0 0 rgba(var(--a1-rgb),.9),inset 0 0 0 2px var(--a2)}100%{box-shadow:0 0 0 26px rgba(var(--a1-rgb),0),inset 0 0 0 0 transparent}}
+/* moment rekordu */
+.pr-moment{position:fixed;inset:0;z-index:96;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,rgba(40,24,6,.55),rgba(3,4,7,.82) 70%);animation:prmBg .3s ease-out both;-webkit-tap-highlight-color:transparent}
+.pr-moment.out{animation:prmOut .35s ease-in both}
+.prm-glow{position:absolute;left:50%;top:45%;width:min(110vw,620px);aspect-ratio:1;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,transparent,rgba(255,211,77,.35),transparent 30%,rgba(var(--a1-rgb),.35),transparent 60%,rgba(255,211,77,.3),transparent);border-radius:50%;filter:blur(18px);animation:prmSpin 3s linear infinite,prmGlow .6s var(--ease) both}
+.prm-c{position:relative;display:grid;justify-items:center;gap:6px;text-align:center;padding:0 24px}
+.prm-c svg{color:var(--gold);filter:drop-shadow(0 0 18px rgba(255,211,77,.9));animation:prmTrophy .7s var(--spring) both}
+.prm-c b{font:800 44px/1 var(--fd);letter-spacing:.02em;background:linear-gradient(180deg,#fff6c9,var(--gold) 60%,#c98b1a);-webkit-background-clip:text;background-clip:text;color:transparent;animation:prmStamp .55s .12s var(--spring) both}
+.prm-c span{font:700 18px var(--fb);color:#fff;animation:introUp .5s .35s var(--ease) both}.prm-c em{font-style:normal;color:var(--tx2);font:600 15px var(--fb);animation:introUp .5s .45s var(--ease) both}
+@keyframes prmBg{from{opacity:0}}@keyframes prmOut{to{opacity:0;transform:scale(1.04)}}@keyframes prmSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}@keyframes prmGlow{from{opacity:0;transform:translate(-50%,-50%) scale(.3)}}
+@keyframes prmTrophy{from{opacity:0;transform:translateY(30px) scale(.4) rotate(-12deg)}}@keyframes prmStamp{0%{opacity:0;transform:scale(2.4)}70%{opacity:1;transform:scale(.94)}100%{transform:scale(1)}}
+/* podsumowanie treningu: kolejne elementy wjeżdżają po sobie */
+.full-sum .sum>*{animation:introUp .55s var(--ease) both}
+.full-sum .sum>*:nth-child(2){animation-delay:.12s}.full-sum .sum>*:nth-child(3){animation-delay:.24s}.full-sum .sum>*:nth-child(4){animation-delay:.36s}.full-sum .sum>*:nth-child(5){animation-delay:.48s}.full-sum .sum>*:nth-child(6){animation-delay:.6s}.full-sum .sum>*:nth-child(7){animation-delay:.72s}.full-sum .sum>*:nth-child(8){animation-delay:.84s}
+.full-sum .sum-pr>div{animation:prCard .5s var(--spring) both}.full-sum .sum-pr>div:nth-child(2){animation-delay:.55s}.full-sum .sum-pr>div:nth-child(3){animation-delay:.7s}.full-sum .sum-pr>div:nth-child(4){animation-delay:.85s}
+@keyframes prCard{from{opacity:0;transform:translateX(40px) rotate(2deg)}}
+.sum-map{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 2px;max-width:320px;justify-self:center}
+.sum-map .bodyc{animation:mapSweep 1.4s .5s var(--ease) both}
+@keyframes mapSweep{from{clip-path:inset(0 0 100% 0);filter:brightness(2.2)}60%{filter:brightness(1.3)}to{clip-path:inset(0 0 0 0)}}
+.sum-tn h4{margin:6px 0 2px}
+/* oszczędne animacje: bez przejść między ekranami i efektów dekoracyjnych */
+.motion-low .hero::before,.motion-low .hero .forge-btn::after,.motion-low .sd-ring.fin,.motion-low .prm-glow{animation:none}
+.motion-low .view.intro *{animation:none!important}
