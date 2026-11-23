@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.30.2** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.30.3** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,10 @@ Stan na 21 listopada 2026. Wersja **1.30.2** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.30.3 — usuwanie ćwiczeń w podglądzie planu z kreatora (23.11.2026)
+- Prośba właściciela: przed zapisem planu z kreatora można nie tylko zamienić, ale też usunąć ćwiczenie (× obok ⇄). W dniu zostaje min. 1 ćwiczenie; superseria z jednym ćwiczeniem przestaje być superserią; czas dnia przeliczany. Pasek „Usunięte: … — Przywróć ostatnie” (`wzDel`, `wzUndoDel`, `res.removed`).
+- Usunięte „ok.” przy wyliczonym czasie dnia i białku w podglądzie kreatora.
 
 ## v1.30.2 — kolory: czerwony siłowy, niebieski cardio (23.11.2026)
 - Decyzja właściciela: kropki czerwony = trening siłowy (#ff3b2f), niebieski = cardio (#2f8cff); stałe kolory niezależne od koloru akcentu. Pasek tygodnia, kalendarz (czerwona kropka w rogu dnia siłowego, niebieskie dni cardio z serduszkiem), etykiety w kolejce, przycisk „Dziś też cardio”.
