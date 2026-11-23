@@ -81,9 +81,9 @@
     const byDay = {}; F.S.sessions.forEach(x => { byDay[F.dayKey(x.start)] = (byDay[F.dayKey(x.start)] || 0) + 1; });
     const todayK = F.dayKey(Date.now());
     // plan tygodnia: trening siłowy (obwódka) i osobne sesje cardio (serduszko)
-    const plK = new Set((F.calQueue ? F.calQueue(8) : []).map(x => x.key)), cdK = new Set((F.cardioQueue ? F.cardioQueue(7, ws) : []).filter(x => !x.done && x.key >= todayK).map(x => x.key));
+    const plK = new Set((F.calQueue ? F.calQueue(30) : []).map(x => x.key)), cdK = new Set((F.cardioQueue ? F.cardioQueue(7, ws) : []).filter(x => !x.done && x.key >= todayK).map(x => x.key));
     const strip = ['P', 'W', 'Ś', 'C', 'P', 'S', 'N'].map((l, i) => { const ts = ws + i * 864e5, k = F.dayKey(ts), tr = byDay[k]; return `<div class="wd ${tr ? 'tr' : ''} ${k === todayK ? 'today' : ''} ${ts > Date.now() && !plK.has(k) && !cdK.has(k) ? 'fut' : ''}"><span>${l}</span><i>${tr ? ic('check', 14) : new Date(ts).getDate()}</i><b class="st-m">${!tr && plK.has(k) ? '<em class="st-s" aria-label="trening siłowy"></em>' : ''}${!tr && cdK.has(k) ? '<em class="st-c" aria-label="cardio"></em>' : ''}</b></div>`; }).join('');
-    const ct = F.cardioToday ? F.cardioToday() : null, q0 = F.calQueue ? F.calQueue(1)[0] : null, strToday = q0 && q0.key === todayK;
+    const ct = F.cardioToday ? F.cardioToday() : null, q0 = F.calQueue ? F.calQueue(60)[0] : null, strToday = !!q0 && q0.key === todayK; // calQueue(60): także trening przeniesiony na dziś z dalszego dnia
     const cdMin = dd => Math.round((+(dd.items[0] || {}).reps || 0) / 60);
     // hero
     let hero;
@@ -91,13 +91,13 @@
       const done = d.exercises.reduce((a, e) => a + e.sets.filter(x => x.done).length, 0);
       hero = `<section class="hero cut live"><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} serii zaliczonych</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
     } else if (ct && !strToday) {
-      hero = `<section class="hero cut cd"><div class="hero-k">${ic('heart', 14)} Dziś cardio</div><h2>${E(ct.day.name)}</h2>
-        <p class="hero-m"><span>${ic('timer', 15)} ${cdMin(ct.day)} min</span><span>${ic('heart', 15)} osobna sesja</span></p>
+      hero = `<section class="hero cut cd"><div class="hero-k">${ic('heart-pulse', 14)} Dziś cardio</div><h2>${E(ct.day.name)}</h2>
+        <p class="hero-m"><span>${ic('timer', 15)} ${cdMin(ct.day)} min</span><span>${ic('heart-pulse', 15)} osobna sesja</span></p>
         <button class="forge-btn" data-a="startDay" data-p="${ct.plan.id}" data-d="${ct.day.id}"><span>${ic('play', 20)} Zacznij cardio</span></button>${nx ? `<p class="hero-n">Następny trening siłowy: <b>${E(nx.day.name)}</b>${q0 ? ' — ' + F.calWhen(q0.ts) : ''}</p>` : ''}</section>`;
     } else if (nx) {
             hero = `<section class="hero cut"><div class="hero-k">${strToday ? 'Dziś' : 'Następny trening'}</div><h2>${E(nx.day.name)}</h2>
         <p class="hero-m"><span>${ic('calendar', 15)} Dzień ${nx.di + 1} z ${nx.plan.days.length}</span><span>${ic('timer', 15)} ${estMin(nx.day)} min</span><span>${ic('dumbbell', 15)} ${nx.day.items.length} ${F.plur(nx.day.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</span></p>
-        <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button>${ct ? `<button class="hero-cd" data-a="startDay" data-p="${ct.plan.id}" data-d="${ct.day.id}">${ic('heart', 16)} Dziś też cardio: ${E(ct.day.name)} · ${cdMin(ct.day)} min</button>` : ''}</section>`;
+        <button class="forge-btn" data-a="startNext"><span>${ic('play', 20)} Rozpocznij trening</span></button><button class="short-l" data-a="shortSheet">${ic('timer', 16)} Mam mało czasu</button>${ct ? `<button class="hero-cd" data-a="startDay" data-p="${ct.plan.id}" data-d="${ct.day.id}">${ic('heart-pulse', 16)} Dziś też cardio: ${E(ct.day.name.replace(/^Cardio:\s*/, ''))} · ${cdMin(ct.day)} min</button>` : ''}</section>`;
     } else {
       hero = `<section class="hero cut"><div class="hero-k">Zacznij od zera</div><h2>Pora wykuć plan</h2><p class="hero-m">Ułóż plan w kreatorze, weź gotowy plan startowy albo wgraj ten, którego używasz dotąd (PDF lub zrzut ekranu).</p>
         <div class="btn-row"><a class="btn primary" href="#/wizard" data-a="newWizard">${ic('sparkles', 18)} Kreator planu</a><a class="btn ghost" href="#/plans">${ic('clipboard-list', 18)} Plany</a></div></section>`;

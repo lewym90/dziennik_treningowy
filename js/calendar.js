@@ -74,13 +74,16 @@
     const dim = new Date(y, m + 1, 0).getDate();
     for (let d = 1; d <= dim; d++) {
       const k = y * 10000 + (m + 1) * 100 + d, tr = done.has(k), cl = [tr ? 'tr' : '', k === tk ? 'today' : '', !tr && plan[k] ? 'pl' : '', k > tk && !plan[k] && !cq[k] ? 'fut' : '', skip.has(k) && !tr ? 'sk' : '', !tr && !plan[k] && cq[k] && k >= tk ? 'cdp' : ''].join(' ');
-      g += `<button class="wd ${cl}" data-a="calDay" data-k="${k}" aria-label="${d} ${MON[m].toLowerCase()}"><i>${tr ? ic('check', 14) : d}</i>${cq[k] && k >= tk ? `<em class="cd-dot" aria-hidden="true">${ic('heart', 9)}</em>` : ''}</button>`;
+      g += `<button class="wd ${cl}" data-a="calDay" data-k="${k}" aria-label="${d} ${MON[m].toLowerCase()}"><i>${tr ? ic('check', 14) : d}</i>${cq[k] && k >= tk ? `<em class="cd-dot" aria-hidden="true">${ic('heart-pulse', 9)}</em>` : ''}</button>`;
     }
-    const cl3 = F.cardioQueue(13).filter(x => !x.done).slice(0, 3);
-    const list = q.slice(0, 3).map((x, i) => `<div class="q-row"><div class="q-d">${new Date(x.ts).getDate()}<small>${WD[wdOf(x.ts)].toLowerCase()}</small></div><button class="grow q-b" data-a="calDay" data-k="${x.key}"><b>${E(x.day.name)}</b><small>${x.key === tk ? 'dziś · ' : ''}${info(x.day)}</small></button>${i === 0 && x.key === tk ? `<button class="btn sm primary" data-a="startDay" data-p="${x.plan.id}" data-d="${x.day.id}">${ic('play', 16)} Start</button>` : ic('chevron-right', 18)}</div>`).join('');
+    // jedna kolejka dni: siłowy i cardio razem, od dziś (gdy dziś jeszcze nic nie zrobione) na kolejne dni
+    const byK = {}; F.calQueue(30).forEach(x => { (byK[x.key] = byK[x.key] || []).push(x); }); F.cardioQueue(30).filter(x => !x.done).forEach(x => { (byK[x.key] = byK[x.key] || []).push(x); });
+    const keys = Object.keys(byK).map(Number).filter(k => k >= tk).sort((a, b) => a - b).slice(0, 5);
+    const row = (x, k) => `<div class="q-it"><button class="grow q-b" data-a="calDay" data-k="${k}">${x.cardio ? `<span class="q-tag cd">${ic('heart-pulse', 12)} cardio</span>` : `<span class="q-tag">${ic('dumbbell', 12)} siłowy</span>`}<b>${E(x.cardio ? x.day.name.replace(/^Cardio:\s*/, '') : x.day.name)}</b><small>${x.cardio ? cdInfo(x.day) : info(x.day)}</small></button>${k === tk ? `<button class="btn sm primary" data-a="startDay" data-p="${x.plan.id}" data-d="${x.day.id}" aria-label="Zacznij ${E(x.day.name)}">${ic('play', 16)} Start</button>` : ''}</div>`;
+    const list = keys.map(k => { const ts = fromKey(k), its = byK[k].sort((a, b) => (a.cardio ? 1 : 0) - (b.cardio ? 1 : 0)); return `<div class="q-row q-day"><div class="q-d">${new Date(ts).getDate()}<small>${k === tk ? 'dziś' : WD[wdOf(ts)].toLowerCase()}</small></div><div class="grow q-its">${its.map(x => row(x, k)).join('')}</div></div>`; }).join('');
     return { html: `${head}<section class="card cut"><div class="cal-h"><button class="ibtn" data-a="calNav" data-d="-1" aria-label="Poprzedni miesiąc">${ic('chevron-left', 20)}</button><h3>${MON[m]} ${y}</h3><button class="ibtn" data-a="calNav" data-d="1" aria-label="Następny miesiąc">${ic('chevron-right', 20)}</button></div><div class="cal-g">${g}</div></section>
       <h3 class="sec">Kolejka</h3><section class="card cut">${list || '<p class="dim">Brak zaplanowanych treningów.</p>'}</section>
-      ${cl3.length ? `<h3 class="sec">Cardio</h3><section class="card cut">${cl3.map(x => `<div class="q-row"><div class="q-d cd">${new Date(x.ts).getDate()}<small>${WD[wdOf(x.ts)].toLowerCase()}</small></div><button class="grow q-b" data-a="calDay" data-k="${x.key}"><b>${E(x.day.name)}</b><small>${x.key === tk ? 'dziś · ' : ''}${cdInfo(x.day)}</small></button>${x.key === tk ? `<button class="btn sm primary" data-a="startDay" data-p="${x.plan.id}" data-d="${x.day.id}">${ic('play', 16)} Start</button>` : ic('chevron-right', 18)}</div>`).join('')}</section>` : ''}
+
       <button class="btn ghost wide" data-a="calDays">${ic('calendar', 18)} Dni treningowe</button>` };
   };
 
@@ -95,7 +98,7 @@
     if (sk) { F.sheet(`${title(longDay(ts), 'Pominięty trening')}<div class="menu"><button data-a="calRestore" data-k="${k}">${ic('rotate-ccw', 20)}<span>Przywróć ten trening</span></button></div>`); return; }
     const Q = F.calQueue(Math.max(75, (F.ui.calM || 0) * 31 + 62)), x = Q.find(q => q.key === k);
     const cx = k >= F.dayKey(Date.now()) ? F.cardioQueue(Math.max(75, (F.ui.calM || 0) * 31 + 62)).find(q => q.key === k && !q.done) : null;
-    const cdBtn = cx ? `<button data-a="startDay" data-p="${cx.plan.id}" data-d="${cx.day.id}">${ic('heart', 20)}<span>${k === F.dayKey(Date.now()) ? 'Zacznij teraz' : 'Zacznij'}: ${E(cx.day.name)}<small>${cdInfo(cx.day)} · osobna sesja cardio</small></span></button>` : '';
+    const cdBtn = cx ? `<button data-a="startDay" data-p="${cx.plan.id}" data-d="${cx.day.id}">${ic('heart-pulse', 20)}<span>${k === F.dayKey(Date.now()) ? 'Zacznij teraz' : 'Zacznij'}: ${E(cx.day.name)}<small>${cdInfo(cx.day)} · osobna sesja cardio</small></span></button>` : '';
     if (!x && cx) { F.sheet(`${title(longDay(ts), `${cx.day.name} · ${cdInfo(cx.day)}`)}<div class="menu">${cdBtn}<button data-a="calDays">${ic('calendar', 20)}<span>Zmień dni cardio</span></button></div>`); return; }
     if (!x) { // dzień wolny
       const tk = F.dayKey(Date.now()), nx = Q[0], past = k < tk;
@@ -127,7 +130,7 @@
   F.act.calDays = () => { const nx = F.nextWorkout(); F.ui.calWd = [...weekdays(nx && nx.plan)]; F.ui.calCwd = [...cardioWd(nx && nx.plan)]; calDaysSheet(); };
   const calDaysSheet = () => { const nx = F.nextWorkout(true), ncd = cdDays(nx && nx.plan).length;
     F.sheet(`${title('Dni treningowe', 'W które dni zwykle trenujesz?')}<h4 class="lbl">Trening siłowy</h4><div class="chips cal-chips">${WD.map((l, i) => `<button class="chip ${F.ui.calWd.includes(i) ? 'on' : ''}" data-a="calWd" data-i="${i}">${l}</button>`).join('')}</div>
-    ${ncd ? `<h4 class="lbl">Osobne sesje cardio (${ncd} w tygodniu)</h4><div class="chips cal-chips">${WD.map((l, i) => `<button class="chip ${F.ui.calCwd.includes(i) ? 'on' : ''}" data-a="calCwd" data-i="${i}">${ic('heart', 12)} ${l}</button>`).join('')}</div><p class="dim small">Najlepiej w dni bez siłowni. Zaznacz ${ncd} ${F.plur(ncd, 'dzień', 'dni', 'dni')}.</p>` : ''}
+    ${ncd ? `<h4 class="lbl">Osobne sesje cardio (${ncd} w tygodniu)</h4><div class="chips cal-chips">${WD.map((l, i) => `<button class="chip ${F.ui.calCwd.includes(i) ? 'on' : ''}" data-a="calCwd" data-i="${i}">${ic('heart-pulse', 12)} ${l}</button>`).join('')}</div><p class="dim small">Najlepiej w dni bez siłowni. Zaznacz ${ncd} ${F.plur(ncd, 'dzień', 'dni', 'dni')}.</p>` : ''}
     <p class="dim small">Zapis ustawi kolejkę od nowa. Przeniesione dni wrócą na swoje miejsca.</p><button class="btn primary wide" data-a="calWdSave">Zapisz</button>`); };
   F.act.calCwd = b => { const i = +b.dataset.i, w = F.ui.calCwd; F.ui.calCwd = w.includes(i) ? w.filter(x => x !== i) : [...w, i].sort((a, c) => a - c); calDaysSheet(); };
   F.act.calWd = b => { const i = +b.dataset.i, w = F.ui.calWd; F.ui.calWd = w.includes(i) ? w.filter(x => x !== i) : [...w, i].sort((a, c) => a - c); calDaysSheet(); };
