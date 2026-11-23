@@ -74,7 +74,7 @@
     const dim = new Date(y, m + 1, 0).getDate();
     for (let d = 1; d <= dim; d++) {
       const k = y * 10000 + (m + 1) * 100 + d, tr = done.has(k), cl = [tr ? 'tr' : '', k === tk ? 'today' : '', !tr && plan[k] ? 'pl' : '', k > tk && !plan[k] && !cq[k] ? 'fut' : '', skip.has(k) && !tr ? 'sk' : '', !tr && !plan[k] && cq[k] && k >= tk ? 'cdp' : ''].join(' ');
-      g += `<button class="wd ${cl}" data-a="calDay" data-k="${k}" aria-label="${d} ${MON[m].toLowerCase()}"><i>${tr ? ic('check', 14) : d}</i>${cq[k] && k >= tk ? `<em class="cd-dot" aria-hidden="true">${ic('heart-pulse', 9)}</em>` : ''}</button>`;
+      g += `<button class="wd ${cl}" data-a="calDay" data-k="${k}" aria-label="${d} ${MON[m].toLowerCase()}"><i>${tr ? ic('check', 14) : d}</i>${plan[k] && !tr ? '<em class="st-dot" aria-label="trening siłowy"></em>' : ''}${cq[k] && k >= tk ? `<em class="cd-dot" aria-hidden="true">${ic('heart-pulse', 9)}</em>` : ''}</button>`;
     }
     // jedna kolejka dni: siłowy i cardio razem, od dziś (gdy dziś jeszcze nic nie zrobione) na kolejne dni
     const byK = {}; F.calQueue(30).forEach(x => { (byK[x.key] = byK[x.key] || []).push(x); }); F.cardioQueue(30).filter(x => !x.done).forEach(x => { (byK[x.key] = byK[x.key] || []).push(x); });

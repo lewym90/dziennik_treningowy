@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 21 listopada 2026. Wersja **1.30.1** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
+Stan na 21 listopada 2026. Wersja **1.30.2** (tryb trenera, raport PDF, biblioteka planów, karta zawodów), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,9 @@ Stan na 21 listopada 2026. Wersja **1.30.1** (tryb trenera, raport PDF, bibliote
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.30.2 — kolory: czerwony siłowy, niebieski cardio (23.11.2026)
+- Decyzja właściciela: kropki czerwony = trening siłowy (#ff3b2f), niebieski = cardio (#2f8cff); stałe kolory niezależne od koloru akcentu. Pasek tygodnia, kalendarz (czerwona kropka w rogu dnia siłowego, niebieskie dni cardio z serduszkiem), etykiety w kolejce, przycisk „Dziś też cardio”.
 
 ## v1.30.1 — jedna kolejka dni; trening przeniesiony na dziś na górze (23.11.2026)
 - Zgłoszenie: trening siłowy przeniesiony na dziś (z dalszego dnia) nie pojawiał się na górze ekranu Dziś — `calQueue(1)` liczył tylko dni źródłowe do jutra. Teraz `calQueue(60)`; w dzień z siłowym i cardio: karta treningu + „Dziś też cardio”.
