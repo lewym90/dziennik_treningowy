@@ -193,14 +193,11 @@
     await F.savePlan(plan); F.setCurPlan(plan.id); F.closeSheet(true); F.toast('Dodano plan: ' + E(t[0]), 'hot'); F.go('#/plan/' + plan.id);
   };
 
-  // jedno zdanie nad planem: skąd liczba powtórzeń (zależnie od celu)
-  const repNote = p => { const g = (p.meta || {}).goal; const hasRange = p.days.some(d => d.items.some(i => /\d\s*[-–]\s*\d/.test(String(i.reps || '')) && !i.cardio)); if (!hasRange) return ''; return `<div class="pc-note cut"><p><b>Liczba powtórzeń to cel na najbliższy trening.</b> ${g === 'str' ? 'W ćwiczeniach głównych (ciężkie wielostawowe, np. boje) powtórzenia są stałe, a ciężar rośnie, gdy zrobisz je we wszystkich seriach. W pozostałych ćwiczeniach' : 'Przy pierwszym treningu'} zaczynasz od dołu zakresu z ciężarem, który zostawia zapas z opisu ćwiczenia. Co trening dokładasz po 1 powtórzeniu, a gdy zrobisz górę zakresu we wszystkich seriach — więcej ciężaru i znów od dołu. Aplikacja liczy to sama z Twoich wyników.</p><a class="small" href="#/guide/reps">Dlaczego zakres, a nie jedna liczba ›</a></div>`; };
   function planDetail(id) {
     const p = F.planOf(id); if (!p) return { html: head('Plan', { back: 1 }) + empty('clipboard-list', 'Nie znaleziono planu', 'Ten plan został usunięty.') };
     return {
       html: `${head(E(p.name), { back: 1, sub: `${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')}`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
       ${(F.nextWorkout() || {}).plan === p ? '' : `<div class="pc-note cut"><p>To nie jest Twój aktualny plan. Następny trening na ekranie Dziś i kalendarz biorą dni z aktualnego planu.</p><button class="btn sm primary" data-a="setCur" data-id="${p.id}">${ic('flame', 16)} Ustaw jako aktualny</button></div>`}
-      ${repNote(p)}
       ${p.days.map((d, di) => `<section class="card cut day"><div class="day-h"><div><span class="dim">Dzień ${di + 1}</span><h3>${E(d.name)}</h3></div><button class="btn sm primary" data-a="startDay" data-p="${p.id}" data-d="${d.id}">${ic('play', 16)} Start</button></div>
         ${d.items.length ? `<ul class="items">${planDetItems(d, p)}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
         <p class="dim foot">${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · wyliczony czas: ${estMin(d)} min</p></section>`).join('')}

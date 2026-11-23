@@ -997,3 +997,6 @@ body.kbd .sdk.on{padding-bottom:10px}
 .wz-btns{display:flex;gap:6px;flex:none}.wz-edh{margin:4px 2px 10px}.wz-edh svg{vertical-align:-2px}
 .wz-rm{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;margin-bottom:12px;border-radius:14px;background:rgba(var(--a1-rgb),.1);border:1px solid rgba(var(--a1-rgb),.35);font-size:14px}.wz-rm span{flex:1 1 180px}
 .items li a span small.it-sub{display:block;font:500 12px var(--fb);color:var(--tx2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xc-2.one{grid-template-columns:1fr}.xc-2.one b{font-size:20px;white-space:normal}.xc-2.one>*{padding:10px 12px}
+.fl-b{display:flex;gap:6px;align-items:center;margin:0 0 10px;color:var(--a2);font:600 14px var(--fd)}
+.sd-f small{white-space:nowrap}

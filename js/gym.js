@@ -10,7 +10,7 @@
   const save = () => F.saveSettings();
   F.gymSheet = (cb) => {
     const g = F.gyms(), cur = F.gymCur();
-    F.sheet(`<p class="sheet-p dim">Zamienniki ćwiczeń i przycisk „Zajęte” podpowiadają tylko ćwiczenia na sprzęt z wybranego miejsca.</p>
+    F.sheet(`<p class="sheet-p dim">Zamienniki ćwiczeń i „Sprzęt zajęty” (menu ⋯ na karcie) podpowiadają tylko ćwiczenia na sprzęt z wybranego miejsca.</p>
       <div class="stack">${g.map(x => `<div class="gym cut ${x.id === cur.id ? 'on' : ''}"><button class="gym-h" data-a="gymSel" data-id="${x.id}">${ic(x.id === cur.id ? 'circle-check' : 'map-pin', 20)}<b>${E(x.n)}</b><small>${x.eq.length >= EQ_ALL.length ? 'cały sprzęt' : x.eq.map(k => EQ_L[k]).join(', ') || 'tylko masa ciała'}</small></button><button class="ibtn" data-a="gymEdit" data-id="${x.id}" aria-label="Edytuj">${ic('pencil', 18)}</button></div>`).join('')}</div>
       ${g.length < 5 ? `<button class="btn ghost wide" data-a="gymAdd">${ic('plus', 18)} Dodaj miejsce</button>` : ''}`, { title: 'Miejsca treningu' });
     F._gymCb = cb || null;

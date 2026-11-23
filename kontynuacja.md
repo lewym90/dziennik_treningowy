@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.33.0** (konkretna liczba powtórzeń na każdy trening, zależna od celu; kolejność ćwiczeń oparta na badaniach), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.34.0** (prostsza karta ćwiczenia: jedna linijka celu, zapas przy powtórzeniach; konkretna liczba powtórzeń zależna od celu), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,14 @@ Stan na 23 listopada 2026. Wersja **1.33.0** (konkretna liczba powtórzeń na ka
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.34.0 — prostsza karta ćwiczenia (23.11.2026)
+- Zgłoszenie: karta miała cel 3 razy (kafel, podpowiedź, panel), dwa różne zapasy (blok „3”, notatka „2–3”), podpowiedź każącą samemu dokładać powtórzenia, plakietkę ×2, przycisk „Zajęte”, pasek bloku. Decyzje właściciela: ŻADNEJ oceny serii (szybki zapis), ramka objaśnienia nad planem usunięta, tydzień bloku raz przy starcie.
+- Karta: kafle „Poprzedni trening / Cel na dziś” → jeden kafel „Dziś 4 × 60 kg × 7” + „Ostatnio 60 kg × 7, 6, 6, 6 · +1 powtórzenie / więcej ciężaru / ten sam ciężar” albo „Pierwszy raz” (stuknięcie = wpisz cel w serie). Usunięte: podpowiedź „Pierwszy raz…”, pasek bloku, plakietka ×2 (w panelu „kg na hantlę / na stronę”), przycisk „Zajęte” (→ menu ⋯ „Sprzęt zajęty”). Notatka bez „Zapas…”, „partia priorytetowa…”, „ciężar startowy…” (`cleanNote`, także w superseriach).
+- Panel serii: „powt. · zapas N” — N z tygodnia bloku (`F.blockInfo`), bez bloku z opisu planu, odciążenie „4+” (`rirOf`). Jedno źródło zapasu.
+- Okienko „Przed treningiem”: „Blok: tydzień X z Y” (albo odciążenie).
+- Szczegóły planu: usunięta ramka `repNote`.
+- Zasada: aplikacja pamięta i liczy (cel, zapas, progresja); użytkownik tylko zalicza serie. Nie dodawać pytań ani ocen do zapisu serii.
 
 ## v1.33.0 — konkretna liczba powtórzeń zamiast samego zakresu (23.11.2026)
 - Zgłoszenie: plan pokazywał „4×6-10” — nie wiadomo, ile zrobić. Diagnoza: zakres to podwójna progresja, ale cel liczbowy był tylko w trakcie treningu i tylko z historią; bez historii serie dostawały dół zakresu bez wyjaśnienia, plan i podgląd kreatora pokazywały sam zakres.
