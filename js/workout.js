@@ -17,10 +17,11 @@
   const pgOf = it => (it.prog && it.prog !== 'auto') || it.inc || it.pct || it.scheme === 'pyr' ? { prog: it.prog || 'auto', inc: it.inc || 0, pct: it.pct || 0, scheme: it.scheme === 'pyr' ? 'pyr' : '' } : null;
 
   /* ---------- budowanie treningu ---------- */
-  function buildSets(exId, count, reps, w0, pg) {
-    pg = pg || {};
+  function buildSets(exId, count, reps, w0, pg, cx) {
+    pg = pg || {}; cx = cx || {};
     const useSug = (F.S.settings.autoProg !== false && pg.prog !== 'off') || pg.pct;
-    const ex = exOf(exId), last = F.LAST[exId], sug = useSug ? F.suggest(exId, reps, { mode: pg.prog === 'linear' ? 'linear' : 'auto', inc: pg.inc, pct: pg.pct }) : null, lo = parseRepsLo(reps); const sets = [];
+    const ex = exOf(exId), last = F.LAST[exId], sug = useSug ? F.suggest(exId, reps, { mode: pg.prog === 'linear' ? 'linear' : 'auto', inc: pg.inc, pct: pg.pct, role: cx.role, goal: cx.goal }) : null, lo = parseRepsLo(reps); const sets = [];
+    const hiR = (String(reps || '').match(/\d+(?:\s*[-–]\s*(\d+))?/) || [])[1] ? +String(reps).match(/[-–]\s*(\d+)/)[1] : lo; const startR = F.progModel(exId, cx) === 'load' ? hiR : lo; // pierwszy trening: dół zakresu (siła, boje: stała liczba = góra zakresu)
     const topW = last ? Math.max(...last.sets.map(s => s.w || 0)) : 0;
     // piramida: powtórzenia maleją od góry zakresu do dołu, ciężar rośnie tak, by zapas powtórzeń był podobny w każdej serii (wzór Epleya); ostatnia seria = ciężar „górny”
     const pyrOn = !!(pg.scheme === 'pyr' && ex && ex.type !== 'time' && ex.type !== 'br' && count >= 3); const pyrR = [], pyrW = [];
@@ -37,7 +38,8 @@
       else if (ex && ex.type === 'br') { r = prev ? prev.r : (lo || 10); }
       else if (pyrOn) { w = pyrW[i]; r = pyrR[i]; }
       else if (shaped && prev) { w = Math.max(0, Math.round((prev.w + delta) / (F.S.settings.step || 2.5)) * (F.S.settings.step || 2.5)); r = prev.r; } // zachowaj Twój schemat (np. piramidę): kolejne serie dalej cięższe, a progresja przesuwa cały schemat
-      else { w = sug ? sug.w : (prev ? prev.w : (w0 || 0)); r = prev ? prev.r : (lo || 10); if (sug && sug.w > topW && lo) r = lo; }
+      else { w = sug ? sug.w : (prev ? prev.w : (w0 || 0)); const tg = sug && !sug.pct && !sug.off ? sug.r : 0; // konkretny cel: z progresji, a bez historii — start z zakresu
+        if (tg && (sug.w > topW || sug.load || !prev)) r = tg; else if (tg) r = Math.min(Math.max(prev.r || 0, tg), hiR || 99); else r = prev ? prev.r : (startR || 10); }
       const st = { w, r, t: 'n', done: false }; if (ex && ex.muscle === 'cardio' && ex.type === 'time') st.int = (pg && pg.cint) || (prev && prev.int) || 2; sets.push(st);
     }
     return sets;
@@ -46,7 +48,7 @@
     if (F.S.draft) { F.go('#/workout'); return; }
     const d = { id: F.uid(), start: o.backdate || Date.now(), name: dayPart(), planId: null, dayId: null, note: '', backdate: !!o.backdate, exercises: [], rest: null };
     if (o.backdate) d.start = o.backdate;
-    if (o.plan && o.day) { if (F.S.settings.curPlan !== o.plan.id && F.setCurPlan) F.setCurPlan(o.plan.id); d.name = o.day.name; if (o.short) d.short = o.short; d.planId = o.plan.id; d.dayId = o.day.id; d.planName = o.plan.name; d.deload = F.deloadOn(); d.exercises = o.day.items.filter(i => exOf(i.exId)).map(i => { if (i.cardio) { const secs = +i.reps || 1800, ci = i.cardio.int || 2; return { k: F.uid(), exId: i.exId, note: i.note || '', rest: 0, target: { sets: 1, reps: String(secs) }, sets: [{ w: 0, r: secs, t: 'n', done: false, int: ci }], cardio: { int: ci, post: !!i.cardio.post } }; } const n = d.deload ? Math.max(1, Math.ceil((i.sets || 3) / 2)) : (i.sets || 3); const pg = pgOf(i); const e = { k: F.uid(), exId: i.exId, note: i.note || '', rest: i.rest || 0, target: { sets: n, reps: i.reps }, sets: buildSets(i.exId, n, i.reps, i.w, pg) }; if (i.ss) e.ss = i.ss; if (pg) e.pg = pg; return e; }); { const inf = F.ssInfo(d.exercises); inf.forEach((g, k) => { if (g && g.pos === 0) ssEqualize(g.start, g.end, d.exercises); }); } }
+    if (o.plan && o.day) { if (F.S.settings.curPlan !== o.plan.id && F.setCurPlan) F.setCurPlan(o.plan.id); d.name = o.day.name; if (o.short) d.short = o.short; d.planId = o.plan.id; d.dayId = o.day.id; d.planName = o.plan.name; d.deload = F.deloadOn(); d.exercises = o.day.items.filter(i => exOf(i.exId)).map(i => { if (i.cardio) { const secs = +i.reps || 1800, ci = i.cardio.int || 2; return { k: F.uid(), exId: i.exId, note: i.note || '', rest: 0, target: { sets: 1, reps: String(secs) }, sets: [{ w: 0, r: secs, t: 'n', done: false, int: ci }], cardio: { int: ci, post: !!i.cardio.post } }; } const n = d.deload ? Math.max(1, Math.ceil((i.sets || 3) / 2)) : (i.sets || 3); const pg = pgOf(i); const cx = { role: i.role || F.restRole(i.exId), goal: (o.plan.meta || {}).goal }; const e = { k: F.uid(), exId: i.exId, note: i.note || '', rest: i.rest || 0, role: cx.role, goal: cx.goal, target: { sets: n, reps: i.reps }, sets: buildSets(i.exId, n, i.reps, i.w, pg, cx) }; if (i.ss) e.ss = i.ss; if (pg) e.pg = pg; return e; }); { const inf = F.ssInfo(d.exercises); inf.forEach((g, k) => { if (g && g.pos === 0) ssEqualize(g.start, g.end, d.exercises); }); } }
     else if (o.fromSession) { const s = o.fromSession; d.name = s.name; d.planId = s.planId; d.dayId = s.dayId; d.exercises = s.exercises.filter(e => exOf(e.exId)).map(e => { const o2 = { k: F.uid(), exId: e.exId, note: '', rest: e.rest || 0, target: { sets: e.sets.filter(x => x.t !== 'w').length, reps: '' }, sets: e.sets.filter(x => x.t !== 'w' && x.done).map(x => ({ w: x.w, r: x.r, t: x.t || 'n', done: false })) }; if (e.ss) o2.ss = e.ss; return o2; }); }
     F.S.draft = d; F.saveDraft(); F.wakeLock(); F.haptic(30); F.go('#/workout');
   };
@@ -85,7 +87,12 @@
       <div class="num"><button data-a="nudge" data-f="r" data-d="-1" data-i="${i}" data-j="${j}" aria-label="Mniej">${ic('minus', 14)}</button><input inputmode="numeric" data-b="wk" data-f="r" data-i="${i}" data-j="${j}" value="${s.r || ''}" placeholder="0" aria-label="${isT ? 'Sekundy' : 'Powtórzenia'}"><button data-a="nudge" data-f="r" data-d="1" data-i="${i}" data-j="${j}" aria-label="Więcej">${ic('plus', 14)}</button></div>
       <button class="ck" data-a="check" data-i="${i}" data-j="${j}" aria-label="Zalicz serię" aria-pressed="${!!s.done}">${ic('check', 22)}</button>${s.pr && s.pr.length && s.done ? `<span class="sr-pr">${ic('trophy', 13)}</span>` : ''}</div>`;
   }
-  const sugOpts = e => { const pg = e.pg || {}; return { mode: pg.prog === 'linear' ? 'linear' : pg.prog === 'off' ? 'off' : 'auto', inc: pg.inc, pct: pg.pct }; };
+  const sugOpts = e => { const pg = e.pg || {}; return { mode: pg.prog === 'linear' ? 'linear' : pg.prog === 'off' ? 'off' : 'auto', inc: pg.inc, pct: pg.pct, role: e.role, goal: e.goal }; };
+  // cel na kartę ćwiczenia: konkretna liczba powtórzeń (zakres w nawiasie)
+  const tgtR = (e, sug) => { const t = e.target || {}; const m = String(t.reps || '').match(/(\d+)(?:\s*[-–]\s*(\d+))?/); if (!m) return null; const lo = +m[1], hi = +(m[2] || m[1]); const load = F.progModel(e.exId, { role: e.role, goal: e.goal }) === 'load'; return { r: sug && !sug.pct && !sug.off && sug.r ? sug.r : (load ? hi : lo), lo, hi, load }; };
+  const tgtTxt = (e, sug) => { const t = tgtR(e, sug); if (!t) return ''; return `Cel ${(e.target || {}).sets}×${t.r}${t.hi > t.lo ? ` <small>(zakres ${t.lo}–${t.hi})</small>` : ''}`; };
+  // pierwszy raz z tym ćwiczeniem: jak dobrać ciężar do konkretnej liczby powtórzeń
+  const firstTip = (e, sug, ex) => { if (sug || F.LAST[e.exId] || !ex || ex.type === 'time' || ex.type === 'br') return ''; const t = tgtR(e, null); if (!t) return ''; return `<p class="xc-note hint">${ic('target', 13)} Pierwszy raz: dobierz ciężar, z którym zrobisz ${t.r} powtórzeń i zostanie zapas z opisu ćwiczenia. ${t.load || t.hi === t.lo ? `Gdy zrobisz ${t.hi} we wszystkich seriach — więcej ciężaru.` : `Co trening dokładaj po 1 powtórzeniu; przy ${t.hi} we wszystkich seriach — więcej ciężaru i znów od ${t.lo}.`}</p>`; };
   /* ---------- strony: jedna karta = jedno ćwiczenie albo cała superseria / obwód ---------- */
   const pagesOf = () => { const d = D(), inf = F.ssInfo(d.exercises), out = []; let i = 0; while (i < d.exercises.length) { const g = inf[i]; if (g && g.pos === 0) { out.push({ st: g.start, en: g.end }); i = g.end + 1; } else { out.push({ st: i, en: i }); i++; } } return out; };
   const slides = () => { const d = D(); return pagesOf().map((p, k) => { const ids = d.exercises.slice(p.st, p.en + 1).map(e => e.exId); return `<div class="wk-slide" data-pg="${k}">${F.exArt(ids)}${p.en > p.st ? ssCard(p.st, p.en) : card(p.st)}</div>`; }).join(''); };
@@ -125,7 +132,7 @@
       const sugT = sug ? (isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w / F.wm(e.exId)) + ' ' + F.unit() + ' × ' + sug.r) : ''; const p = last && last.sets[0];
       rest = Math.max(rest, exRest(e, ex));
       hdr += `<div class="ssm"><div class="ssm-h"><span class="ss-tag">${tag}</span><a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><button class="ibtn${F.exHint(e.exId, e.target && e.target.reps) ? ' hnt' : ''}" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${k}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
-        <div class="xc-m">${F.wm(e.exId) === 2 ? `<span class="x2c">${F.x2Label(ex)}</span>` : ''}${e.target && e.target.reps ? `<span>Cel ${E(e.target.reps)} ${isT ? 's' : 'powt.'}</span>` : ''}${p ? `<span>Poprz. ${isT ? F.fmtDur(p.r) : isB ? p.r : F.fw(p.w / F.wm(e.exId)) + '×' + p.r}</span>` : ''}${sug ? `<span class="sug" data-a="applySug" data-i="${k}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
+        <div class="xc-m">${F.wm(e.exId) === 2 ? `<span class="x2c">${F.x2Label(ex)}</span>` : ''}${e.target && e.target.reps ? `<span>Cel ${isT ? E(e.target.reps) + ' s' : (() => { const t = tgtR(e, sug); return t ? `${t.r} powt.${t.hi > t.lo ? ` (${t.lo}–${t.hi})` : ''}` : E(e.target.reps) + ' powt.'; })()}</span>` : ''}${p ? `<span>Poprz. ${isT ? F.fmtDur(p.r) : isB ? p.r : F.fw(p.w / F.wm(e.exId)) + '×' + p.r}</span>` : ''}${sug ? `<span class="sug" data-a="applySug" data-i="${k}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
         ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}${e.note ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(e.note)}</p>` : ''}</div>`;
     }
     for (let j = 0; j < R; j++) {
@@ -234,7 +241,7 @@
     const d = D(), e = d.exercises[i], ex = exOf(e.exId) || { name: 'Usunięte ćwiczenie', muscle: 'full', type: 'wr' }; const last = F.LAST[e.exId];
     if (ex.muscle === 'cardio' && ex.type === 'time') return cardioCard(i, e, ex);
     const isT = ex.type === 'time', isB = ex.type === 'br'; const sug = F.suggest(e.exId, e.target && e.target.reps, sugOpts(e)); const inf = F.ssInfo(d.exercises)[i];
-    const tgt = e.target && e.target.reps ? `Cel ${e.target.sets}×${E(e.target.reps)}` : '';
+    const tgt = e.target && e.target.reps && !isT ? tgtTxt(e, sug) || `Cel ${e.target.sets}×${E(e.target.reps)}` : e.target && e.target.reps ? `Cel ${e.target.sets}×${E(e.target.reps)}` : '';
     const sugT = sug ? `${isT ? F.fmtDur(sug.r) : isB ? sug.r + ' powt.' : F.fw(sug.w / F.wm(e.exId)) + ' ' + F.unit() + ' × ' + sug.r}` : '';
     const doneN = e.sets.filter(s => s.done).length;
     return `<section class="xc cut ${doneN === e.sets.length && e.sets.length ? 'all' : ''}" id="xc-${i}">
@@ -244,7 +251,7 @@
       ${(() => { if (i !== 0 || !d.planId || d.deload) return ''; const b = F.blockInfo && F.blockInfo(F.planOf(d.planId)); if (!b || b.over) return ''; return `<p class="xc-note hint">${ic('layers', 13)} Blok: tydzień ${b.week} z ${b.weeks} — ${b.deload ? 'tydzień odciążenia: mniej serii, większy zapas' : `kończ serie z zapasem ${b.rir} ${F.plur(b.rir, 'powtórzenia', 'powtórzeń', 'powtórzeń')}`}</p>`; })()}
       <div class="sx" id="sx-${i}">${chips(i)}</div>
       <div class="xc-2"><div><small>Poprzedni trening</small><b>${lastTxt(e, ex)}</b></div><button class="${sug ? 'hot' : ''}" ${sug ? `data-a="applySug" data-i="${i}"` : ''}><small>Cel na dziś</small><b>${sug ? `${!isT && !isB ? e.sets.filter(s => s.t !== 'w').length + ' × ' : ''}${sugT}` : tgt.replace('Cel ', '') || '–'}</b></button></div>
-      ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}
+      ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}${firstTip(e, sug, ex)}
       ${e.note ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(e.note)}</p>` : ''}
 
 </section>`;

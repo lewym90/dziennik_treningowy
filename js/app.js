@@ -193,27 +193,32 @@
     await F.savePlan(plan); F.setCurPlan(plan.id); F.closeSheet(true); F.toast('Dodano plan: ' + E(t[0]), 'hot'); F.go('#/plan/' + plan.id);
   };
 
+  // jedno zdanie nad planem: skąd liczba powtórzeń (zależnie od celu)
+  const repNote = p => { const g = (p.meta || {}).goal; const hasRange = p.days.some(d => d.items.some(i => /\d\s*[-–]\s*\d/.test(String(i.reps || '')) && !i.cardio)); if (!hasRange) return ''; return `<div class="pc-note cut"><p><b>Liczba powtórzeń to cel na najbliższy trening.</b> ${g === 'str' ? 'W ćwiczeniach głównych (ciężkie wielostawowe, np. boje) powtórzenia są stałe, a ciężar rośnie, gdy zrobisz je we wszystkich seriach. W pozostałych ćwiczeniach' : 'Przy pierwszym treningu'} zaczynasz od dołu zakresu z ciężarem, który zostawia zapas z opisu ćwiczenia. Co trening dokładasz po 1 powtórzeniu, a gdy zrobisz górę zakresu we wszystkich seriach — więcej ciężaru i znów od dołu. Aplikacja liczy to sama z Twoich wyników.</p><a class="small" href="#/guide/reps">Dlaczego zakres, a nie jedna liczba ›</a></div>`; };
   function planDetail(id) {
     const p = F.planOf(id); if (!p) return { html: head('Plan', { back: 1 }) + empty('clipboard-list', 'Nie znaleziono planu', 'Ten plan został usunięty.') };
     return {
       html: `${head(E(p.name), { back: 1, sub: `${p.days.length} ${F.plur(p.days.length, 'dzień', 'dni', 'dni')}`, right: `<button class="ibtn" data-a="planMenu" data-id="${p.id}" aria-label="Więcej">${ic('ellipsis', 22)}</button>` })}
       ${(F.nextWorkout() || {}).plan === p ? '' : `<div class="pc-note cut"><p>To nie jest Twój aktualny plan. Następny trening na ekranie Dziś i kalendarz biorą dni z aktualnego planu.</p><button class="btn sm primary" data-a="setCur" data-id="${p.id}">${ic('flame', 16)} Ustaw jako aktualny</button></div>`}
+      ${repNote(p)}
       ${p.days.map((d, di) => `<section class="card cut day"><div class="day-h"><div><span class="dim">Dzień ${di + 1}</span><h3>${E(d.name)}</h3></div><button class="btn sm primary" data-a="startDay" data-p="${p.id}" data-d="${d.id}">${ic('play', 16)} Start</button></div>
-        ${d.items.length ? `<ul class="items">${planDetItems(d)}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
+        ${d.items.length ? `<ul class="items">${planDetItems(d, p)}</ul>` : `<p class="dim pad">Ten dzień jest pusty.</p>`}
         <p class="dim foot">${d.items.length} ${F.plur(d.items.length, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')} · wyliczony czas: ${estMin(d)} min</p></section>`).join('')}
       <a class="btn ghost wide" href="#/plan/${p.id}/edit">${ic('pencil', 18)} Edytuj plan</a>`
     };
   }
 
-  function planDetItems(d) {
+  // liczba powtórzeń: konkretny cel na najbliższy trening (F.repTarget), zakres w drugiej linii
+  const repCell = (it, p) => { const t = F.repTarget && F.repTarget(it, p); if (!t) return { big: E(it.reps || ''), sub: '' }; return { big: String(t.r), w: t.w, sub: t.hi > t.lo ? (t.model === 'load' ? `stałe ${t.r} powt.` : `zakres ${t.lo}–${t.hi}`) : '' }; };
+  function planDetItems(d, p) {
     const inf = F.ssInfo(d.items); let h = '', i = 0;
     while (i < d.items.length) {
       const g = inf[i];
       if (g && g.pos === 0) {
         const f = d.items[g.start];
-        h += `<li class="blk"><div class="blk-h"><span class="ssc-t">${ic('link-2', 15)} ${F.ssName(g.size)} ${g.L}</span><small>${f.sets} ${F.plur(f.sets, 'runda', 'rundy', 'rund')}${f.rest ? ' · przerwa ' + F.fmtDur(f.rest) : ''}</small></div><ul>${d.items.slice(g.start, g.end + 1).map((it, n) => `<li><a href="#/ex/${E(it.exId)}"><span class="ss-tag">${g.L}${n + 1}</span><span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}</span></a><b>${E(it.reps || '')}${it.w ? `<small> · ${F.fwtu(it.w, it.exId)}</small>` : ''}</b></li>`).join('')}</ul></li>`; i = g.end + 1;
+        h += `<li class="blk"><div class="blk-h"><span class="ssc-t">${ic('link-2', 15)} ${F.ssName(g.size)} ${g.L}</span><small>${f.sets} ${F.plur(f.sets, 'runda', 'rundy', 'rund')}${f.rest ? ' · przerwa ' + F.fmtDur(f.rest) : ''}</small></div><ul>${d.items.slice(g.start, g.end + 1).map((it, n) => `<li>${(() => { const c = repCell(it, p); return `<a href="#/ex/${E(it.exId)}"><span class="ss-tag">${g.L}${n + 1}</span><span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}${c.sub ? `<small class="it-sub">${c.sub}</small>` : ''}</span></a><b>${c.big}${(c.w || it.w) ? `<small> · ${F.fwtu(c.w || it.w, it.exId)}</small>` : ''}</b>`; })()}</li>`).join('')}</ul></li>`; i = g.end + 1;
       } else {
-        const it = d.items[i]; h += `<li><a href="#/ex/${E(it.exId)}">${mDot((exOf(it.exId) || {}).muscle)}<span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}</span></a><b>${it.cardio ? Math.round((+it.reps || 0) / 60) + ' min' : it.sets + '×' + E(it.reps || '')}${it.rest && !it.cardio ? `<small> · ${F.fmtDur(it.rest)}</small>` : ''}</b></li>`; i++;
+        const it = d.items[i]; const c = it.cardio ? null : repCell(it, p); h += `<li><a href="#/ex/${E(it.exId)}">${mDot((exOf(it.exId) || {}).muscle)}<span>${E(exName(it.exId))}${it.pct ? ` <em class="ss-chip">${it.pct}% 1RM</em>` : ''}${c && (c.sub || c.w) ? `<small class="it-sub">${[c.w ? F.fwtu(c.w, it.exId) : '', c.sub].filter(Boolean).join(' · ')}</small>` : ''}</span></a><b>${it.cardio ? Math.round((+it.reps || 0) / 60) + ' min' : it.sets + '×' + c.big}${it.rest && !it.cardio ? `<small> · ${F.fmtDur(it.rest)}</small>` : ''}</b></li>`; i++;
       }
     }
     return h;

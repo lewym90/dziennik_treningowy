@@ -77,7 +77,7 @@
     F.S.draft = draft || null;
     F.rebuild();
   };
-  F.APPVER = '1.32.0';
+  F.APPVER = '1.33.0';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');
@@ -306,16 +306,34 @@
     const st = F.stagnation(exId);
     if (dl) return { w: top.w, r: top.r, note: 'Tydzień odciążenia: ten sam ciężar, połowa serii, duży zapas powtórzeń' };
     const resetW = Math.max(0, roundTo(top.w * 0.9, F.S.settings.step));
-    if (st && st.stuck >= 2 && resetW < top.w) return { w: resetW, r: lo || top.r, note: `Stagnacja (${st.stuck} ${F.plur(st.stuck, 'trening', 'treningi', 'treningów')} bez postępu) — zbij ciężar o 10% i wejdź od nowa`, stag: true };
+    if (st && st.stuck >= 2 && resetW < top.w) return { w: resetW, r: (F.progModel(exId, opts) === 'load' ? hi : lo) || top.r, note: `Stagnacja (${st.stuck} ${F.plur(st.stuck, 'trening', 'treningi', 'treningów')} bez postępu) — zbij ciężar o 10% i wejdź od nowa`, stag: true };
     if (mode === 'linear') {
       // liniowa: cały zestaw na dolnej granicy powtórzeń → dodaj ciężar; przy dwóch porażkach pod rząd −10%
       const need = lo || hi || top.r; const topSets = sets.filter(s => s.w === top.w); const ok = topSets.length && topSets.every(s => (s.r || 0) >= need);
       if (ok) return { w: top.w + incr, r: need, note: `Liniowo +${F.fmtNum(F.toDisp(incr), 2)} ${F.unit()}` };
       return { w: top.w, r: need, note: 'Powtórz ciężar — domknij wszystkie serie' };
     }
-    const allHit = hi && sets.filter(s => s.w === top.w).every(s => (s.r || 0) >= hi);
+    const topSets = sets.filter(s => s.w === top.w); const minR = Math.min(...topSets.map(s => s.r || 0));
+    // cel Siła, ciężkie ćwiczenie wielostawowe: stałe powtórzenia (górna granica zakresu), rośnie ciężar (Plotkin 2022: progresja ciężarem nieco lepsza dla siły)
+    if (F.progModel(exId, opts) === 'load' && hi) {
+      if (topSets.every(s => (s.r || 0) >= hi)) return { w: top.w + incr, r: hi, note: 'Dołóż ciężar', load: true };
+      return { w: top.w, r: hi, note: `Ten sam ciężar — dobij do ${hi} we wszystkich seriach`, load: true };
+    }
+    // pozostałe: podwójna progresja — najpierw powtórzenia do górnej granicy we wszystkich seriach, potem ciężar i powrót do dolnej granicy
+    const allHit = hi && topSets.every(s => (s.r || 0) >= hi);
     if (allHit) return { w: top.w + incr, r: lo || top.r, note: 'Dołóż ciężar' };
-    return { w: top.w, r: Math.min((top.r || 0) + 1, hi || 99), note: 'Spróbuj +1 powtórzenie' };
+    return { w: top.w, r: Math.min(minR + 1, hi || 99), note: 'Spróbuj +1 powtórzenie' };
+  };
+  // model progresji ćwiczenia: 'load' (stałe powtórzenia, rośnie ciężar) albo 'reps' (podwójna progresja); cel i rola z planu
+  F.progModel = (exId, o = {}) => { const goal = o.goal || ((F.curPlan && F.curPlan()) || { meta: {} }).meta?.goal; const role = o.role || (F.restRole ? F.restRole(exId) : 'sec'); return goal === 'str' && role === 'main' ? 'load' : 'reps'; };
+  // konkretny cel na najbliższy trening dla pozycji planu: liczba powtórzeń (i ciężar, gdy znany) zamiast samego zakresu
+  F.repTarget = (it, plan) => {
+    const ex = F.S.ex.get(it.exId); if (!ex || it.cardio || ex.type === 'time') return null;
+    const m = String(it.reps || '').match(/(\d+)(?:\s*[-–]\s*(\d+))?/); if (!m) return null; const lo = +m[1], hi = +(m[2] || m[1]);
+    const o = { goal: plan && plan.meta && plan.meta.goal, role: it.role, pct: it.pct, inc: it.inc, mode: it.prog === 'linear' ? 'linear' : it.prog === 'off' ? 'off' : 'auto' };
+    const model = F.progModel(it.exId, o); const sg = F.suggest(it.exId, it.reps, o);
+    if (sg && !sg.off) return { r: sg.r || lo, w: sg.w || 0, lo, hi, model, first: false, note: sg.note };
+    return { r: model === 'load' ? hi : lo, w: it.w || 0, lo, hi, model, first: true, note: '' };
   };
   // wykrywanie stagnacji: ile ostatnich treningów bez poprawy względem najlepszego e1RM z wcześniejszych
   F.stagnation = exId => {

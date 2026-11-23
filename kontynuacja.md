@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.32.0** (kolejność ćwiczeń oparta na badaniach — także przy zamianie i dodawaniu ćwiczeń), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.33.0** (konkretna liczba powtórzeń na każdy trening, zależna od celu; kolejność ćwiczeń oparta na badaniach), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,14 @@ Stan na 23 listopada 2026. Wersja **1.32.0** (kolejność ćwiczeń oparta na ba
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.33.0 — konkretna liczba powtórzeń zamiast samego zakresu (23.11.2026)
+- Zgłoszenie: plan pokazywał „4×6-10” — nie wiadomo, ile zrobić. Diagnoza: zakres to podwójna progresja, ale cel liczbowy był tylko w trakcie treningu i tylko z historią; bez historii serie dostawały dół zakresu bez wyjaśnienia, plan i podgląd kreatora pokazywały sam zakres.
+- core.js: `F.progModel(exId, {goal, role})` — cel Siła + rola `main` → 'load' (stałe powtórzenia = górna granica zakresu, rośnie ciężar; Plotkin 2022), reszta → 'reps' (podwójna progresja). `F.suggest`: tryb 'load'; „+1 powtórzenie” liczone od najsłabszej serii na ciężarze roboczym (wcześniej od ostatniej); reset po stagnacji w trybie 'load' wraca do górnej granicy. `F.repTarget(it, plan)` — konkretny cel na najbliższy trening: {r, w, lo, hi, model, first}.
+- Plan (szczegóły): duża liczba = cel na najbliższy trening („4×7”), pod nazwą ciężar i „zakres 6–10” / „stałe 5 powt.”; karta nad dniami wyjaśnia zasadę zależnie od celu, link do porady. Podgląd kreatora: „4 × 6 · zakres 6–10”. Trening: serie wypełnione celem (z historią: ta sama waga → max(poprzednio, cel), bez historii → dół zakresu albo górna granica w trybie 'load'); „Cel na dziś 4×6 (zakres 6–10)”; podpowiedź „Pierwszy raz: dobierz ciężar…”; w superseriach „Cel 7 powt. (6–10)”. `role` i `goal` zapisane w ćwiczeniach treningu.
+- „Dlaczego ten plan”: akapit „Ile powtórzeń zrobić” zamiast „Progresja” (zależny od celu).
+- Źródła (PubMed, streszczenia): Schoenfeld 2017 (niskie vs wysokie obciążenia), Lopez 2021 (MSSE, metaanaliza sieciowa), Plotkin 2022 (PeerJ), Helms 2018 (Front Physiol), Larsen 2021 (PeerJ), Halperin 2022 (Sports Med), Zourdos 2016 (JSCR). Fakty `repRange`, `progReps`, `rirAuto` (77 źródeł, 57 faktów). Graham & Cleather 2021 pominięte — w PubMed brak streszczenia.
+- Porady: artykuł `reps` — sekcje „Dlaczego w planie jest zakres…” i „Ile zrobić na tym treningu”. Czat: „6 czy 10 powtórzeń”, „dlaczego zakres”, „ile powtórzeń robić” → repRange+progReps (+ cel z planu użytkownika); „jak ocenić zapas”, „RPE” → rirAuto; „cel na dziś” — zasada zależna od modelu, bez historii konkretne „4 × 6” z zapasem z planu; „cele na najbliższy trening” z `F.repTarget`.
 
 ## v1.32.0 — zamiana i dodanie ćwiczenia od razu ustawia je na właściwym miejscu (23.11.2026)
 - Zgłoszenie: w podglądzie kreatora zamiana ostatnich spięć brzucha na wyciskanie leżąc zostawiała wyciskanie na końcu dnia (z rolą, powtórzeniami i przerwą brzucha).
