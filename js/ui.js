@@ -166,7 +166,7 @@
     const dock = F.$('#dock'); if (!dock) return; const d = F.S.draft; const onW = (location.hash || '').startsWith('#/workout');
     if (!d || onW) { dock.innerHTML = ''; dock.classList.remove('on'); return; }
     const done = d.exercises.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0);
-    dock.innerHTML = `<a href="#/workout" class="dock-in"><span class="dock-pulse"></span><span class="dock-t"><b>Trening w toku</b><small>${F.esc(d.name || 'Trening')} · ${done} serii</small></span>${F.rest ? `<span class="dock-rest">${ic('timer', 16)}<b data-rest-time>0:00</b></span>` : ''}<span class="dock-time" data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span>${ic('chevron-right', 18)}${F.rest ? '<i class="dock-bar" data-rest-bar></i>' : ''}</a>`;
+    dock.innerHTML = `<a href="#/workout" class="dock-in"><span class="dock-pulse"></span><span class="dock-t"><b>Trening w toku</b><small>${F.esc(d.name || 'Trening')} · ${done} ${F.plur(done, 'seria', 'serie', 'serii')}</small></span>${F.rest ? `<span class="dock-rest">${ic('timer', 16)}<b data-rest-time>0:00</b></span>` : ''}<span class="dock-time" data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span>${ic('chevron-right', 18)}${F.rest ? '<i class="dock-bar" data-rest-bar></i>' : ''}</a>`;
     dock.classList.add('on'); F.tickRest();
   };
   setInterval(() => { const d = F.S.draft; if (!d) return; const s = F.fmtDur((Date.now() - d.start) / 1000); F.$$('[data-wtime]').forEach(el => el.textContent = s); }, 1000);

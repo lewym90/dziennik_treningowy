@@ -290,6 +290,7 @@
       else q = g >= 1000 ? fN(Math.ceil(g / 100) / 10, 1) + ' kg' : Math.ceil(g / 10) * 10 + ' g';
       return { id, nm, q, cat: catOf(id) }; });
   };
+  F.nutShopList = days => { const np = nutPlan(); if (np.missing || np.block) return null; const L = shopList(np, days); return CAT.map(([t, cs]) => [t, L.filter(x => cs.includes(x.cat))]).filter(x => x[1].length); };
   const shopText = (np, days) => { const L = shopList(np, days); return CAT.map(([t, cs]) => { const xs = L.filter(x => cs.includes(x.cat)); return xs.length ? t + ':\n' + xs.map(x => '• ' + x.nm + ' — ' + x.q).join('\n') : ''; }).filter(Boolean).join('\n\n'); };
   F.act.nutShop = b => {
     const np = nutPlan(); if (np.missing || np.block) return; const days = +(b && b.dataset.d) || 7; const L = shopList(np, days);
@@ -331,7 +332,7 @@
       <div class="meal-r"><span><b>Zapotrzebowanie</b></span><b>${fN(np.tdee)} kcal</b></div>
       <p class="dim small">Współczynniki aktywności opisują dzień bez treningów, bo treningi doliczam osobno z tego, co zapisujesz. Wzór daje średnią dla osób takich jak Ty — dlatego co 2 tygodnie sprawdzam trend masy ciała i proponuję korektę.</p></details>`;
     const macro = `<div class="nut-m"><div><small>Białko</small><b>${np.prot} g</b><em>${fN(np.prot / bw, 1)} g/kg</em></div><div><small>Tłuszcz</small><b>${np.fat} g</b><em>${Math.round(np.fatPct * 100)}% kcal</em></div><div><small>Węglowodany</small><b>${np.carb} g</b><em>${fN(cKg, 1)} g/kg</em></div></div>`;
-    const cNote = `Węglowodany: ${fN(cKg, 1)} g na kg masy ciała. Przy Twoich treningach (średnio ${fN(np.trMin)} min dziennie) zalecenie to ${np.cR.join('–')} g/kg (Thomas i in. 2016)${cKg < np.cR[0] ? ' — w deficycie mogą spaść niżej; jeśli brakuje Ci sił na treningu, zjedz część węglowodanów przed nim' : ''}.${np.fatLow ? ` Tłuszcz obniżyłem do ${Math.round(np.fatPct * 100)}% kalorii, żeby zostało więcej węglowodanów (EFSA: 20–35%; polskie normy dopuszczają 20–30% przy małej aktywności).` : ' Tłuszcz 30% kalorii (polskie normy 2024: 30–40%, EFSA: 20–35%).'}`;
+    const cNote = `Węglowodany: ${fN(cKg, 1)} g na kg masy ciała. ${np.trMin >= 1 ? `Przy Twoich treningach (średnio ${fN(np.trMin)} min dziennie) zalecenie to` : 'Bez zapisanych treningów przyjmuję lekkie obciążenie — zalecenie to'} ${np.cR.join('–')} g/kg (Thomas i in. 2016)${cKg < np.cR[0] ? ' — w deficycie mogą spaść niżej; jeśli brakuje Ci sił na treningu, zjedz część węglowodanów przed nim' : ''}.${np.fatLow ? ` Tłuszcz obniżyłem do ${Math.round(np.fatPct * 100)}% kalorii, żeby zostało więcej węglowodanów (EFSA: 20–35%; polskie normy dopuszczają 20–30% przy małej aktywności).` : ' Tłuszcz 30% kalorii (polskie normy 2024: 30–40%, EFSA: 20–35%).'}`;
     // trend i korekta
     const sg = suggestion(np); let trendCard = '';
     if (sg) {

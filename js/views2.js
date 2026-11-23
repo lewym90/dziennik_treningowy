@@ -30,7 +30,7 @@
       const d = new Date(s.start), key = d.getFullYear() + '-' + d.getMonth();
       if (key !== cur) { cur = key; out += `<h3 class="sec month">${MONTHS[d.getMonth()]} ${d.getFullYear()}</h3>`; }
       const names = s.exercises.map(e => (exOf(e.exId) || { name: '?' }).name);
-      out += `<a class="sess cut" href="#/session/${s.id}" data-vt><div class="sd"><b>${d.getDate()}</b><small>${F.MON[d.getMonth()]}</small></div><div class="sb"><h3 data-vt-src>${E(s.name || 'Trening')}</h3><p class="meta"><span>${ic('timer', 13)} ${F.fmtMin(s.dur)}</span><span>${ic('weight', 13)} ${F.fmtVol(F.sessionVolume(s))}</span><span>${ic('layers', 13)} ${F.sessionSets(s)} serii</span><span>${ic('flame', 13)} ${F.fmtNum(Math.round(F.sessKcal(s).net / 5) * 5, 0)} kcal</span></p><p class="sx">${E(names.slice(0, 3).join(', '))}${names.length > 3 ? ` +${names.length - 3}` : ''}</p></div>${s.prs && s.prs.length ? `<span class="prb">${ic('trophy', 14)}${s.prs.length}</span>` : ''}</a>`;
+      out += `<a class="sess cut" href="#/session/${s.id}" data-vt><div class="sd"><b>${d.getDate()}</b><small>${F.MON[d.getMonth()]}</small></div><div class="sb"><h3 data-vt-src>${E(s.name || 'Trening')}</h3><p class="meta"><span>${ic('timer', 13)} ${F.fmtMin(s.dur)}</span><span>${ic('weight', 13)} ${F.fmtVol(F.sessionVolume(s))}</span><span>${ic('layers', 13)} ${F.sessionSets(s)} ${F.plur(F.sessionSets(s), 'seria', 'serie', 'serii')}</span><span>${ic('flame', 13)} ${F.fmtNum(Math.round(F.sessKcal(s).net / 5) * 5, 0)} kcal</span></p><p class="sx">${E(names.slice(0, 3).join(', '))}${names.length > 3 ? ` +${names.length - 3}` : ''}</p></div>${s.prs && s.prs.length ? `<span class="prb">${ic('trophy', 14)}${s.prs.length}</span>` : ''}</a>`;
     });
     return out;
   }
@@ -58,7 +58,7 @@
   F.restoreSheet = data => {
     if (!data || data.app !== 'FORGE') { F.toast('To nie jest kopia FORGE', 'err'); return; }
     F.sheet(`<p class="sheet-p">W pliku: <b>${(data.sessions || []).length}</b> treningów, <b>${(data.plans || []).length}</b> planów, <b>${(data.exercises || []).length}</b> ćwiczeń.</p><div class="menu"><button data-a="restMerge">${ic('layers', 20)}<span>Połącz z obecnymi danymi<small>Dodaje brakujące, nic nie kasuje</small></span></button><button class="danger" data-a="restReplace">${ic('rotate-ccw', 20)}<span>Zastąp wszystko<small>Obecne dane zostaną usunięte</small></span></button></div>`, { title: 'Przywracanie kopii' });
-    const run = async mode => { try { const r = await F.importAll(data, mode); F.closeSheet(true); F.toast(`Wczytano ${r.sessions} treningów i ${r.plans} planów`, 'hot'); F.render(); } catch (e) { F.toast(e.message, 'err'); } };
+    const run = async mode => { try { const r = await F.importAll(data, mode); F.closeSheet(true); F.toast(`Wczytano ${r.sessions} ${F.plur(r.sessions, 'trening', 'treningi', 'treningów')} i ${r.plans} ${F.plur(r.plans, 'plan', 'plany', 'planów')}`, 'hot'); F.render(); } catch (e) { F.toast(e.message, 'err'); } };
     F.act.restMerge = () => run('merge'); F.act.restReplace = async () => { if (await F.confirm({ title: 'Zastąpić wszystko?', text: 'Wszystkie obecne dane zostaną nadpisane danymi z pliku.', ok: 'Zastąp', danger: true })) run('replace'); };
   };
 
@@ -149,7 +149,7 @@
     ${F.progressHtml()}
     <section class="card cut rank"><div class="rank-top">${F.rankImg(rk.i, 72)}<div class="grow"><span class="dim">Ranga</span><h3 class="rk">${rk.name}</h3></div><div class="xp">${F.fmtNum(rk.xp, 0)} <small>XP</small></div></div><div class="bar"><i style="width:${(rk.pct * 100).toFixed(1)}%"></i></div><p class="dim">${rk.next ? `Do rangi ${rk.next}: ${F.fmtNum(rk.toNext, 0)} XP.` : 'Maksymalna ranga.'} Punkty zdobywasz za tonaż, serie, treningi i rekordy.</p></section>
     ${achHtml}
-    ${top.length ? `<h3 class="sec">Najczęściej trenowane</h3><div class="exlist">${top.map(([id, c]) => { const ex = exOf(id); return ex ? `<a class="exrow" href="#/ex/${E(id)}">${F.mDot(ex.muscle)}<span><b>${E(ex.name)}</b><small>${c} treningów</small></span>${ic('chevron-right', 16)}</a>` : ''; }).join('')}</div>` : ''}`;
+    ${top.length ? `<h3 class="sec">Najczęściej trenowane</h3><div class="exlist">${top.map(([id, c]) => { const ex = exOf(id); return ex ? `<a class="exrow" href="#/ex/${E(id)}">${F.mDot(ex.muscle)}<span><b>${E(ex.name)}</b><small>${c} ${F.plur(c, 'trening', 'treningi', 'treningów')}</small></span>${ic('chevron-right', 16)}</a>` : ''; }).join('')}</div>` : ''}`;
   }
   function statsPR() {
     const items = Object.entries(F.PR).map(([id, p]) => ({ id, ex: exOf(id), p })).filter(x => x.ex).sort((a, b) => Math.max(...Object.values(b.p.ts || { 0: 0 })) - Math.max(...Object.values(a.p.ts || { 0: 0 })));
@@ -248,7 +248,7 @@
       <h3 class="sec">Dane i kopia</h3><p class="sec-d">Wszystko jest tylko w tym telefonie. Rób kopię, żeby niczego nie stracić.</p><section class="card cut list">
         <button class="lrow" data-a="doBackupBtn">${ic('download', 20)}<span><b>Kopia zapasowa (JSON, ze zdjęciami)</b><small>${s.lastBackup ? 'Ostatnia: ' + F.fmtDate(s.lastBackup) : 'Jeszcze nie robiona'}</small></span></button>
         <button class="lrow" data-a="doBackupLite">${ic('file-json', 20)}<span><b>Kopia bez zdjęć (lżejsza)</b><small>Historia, plany, pomiary — bez zdjęć sylwetki</small></span></button>
-        <button class="lrow" data-a="expCsv">${ic('file-spreadsheet', 20)}<span><b>Eksport historii (CSV)</b><small>${t.count} treningów, ${t.sets} serii</small></span></button>
+        <button class="lrow" data-a="expCsv">${ic('file-spreadsheet', 20)}<span><b>Eksport historii (CSV)</b><small>${t.count} ${F.plur(t.count, 'trening', 'treningi', 'treningów')}, ${t.sets} ${F.plur(t.sets, 'seria', 'serie', 'serii')}</small></span></button>
         <button class="lrow" data-a="snapOpen">${ic('rotate-ccw', 20)}<span><b>Automatyczne zabezpieczenie</b><small>Aplikacja sama zapisuje kopię treningów w telefonie — dotknij, aby zobaczyć lub przywrócić</small></span></button>
         <button class="lrow" data-a="expRestore">${ic('upload', 20)}<span><b>Przywróć z kopii</b><small>Plik JSON z FORGE</small></span></button>
         <button class="lrow" data-a="persist">${ic('lock', 20)}<span><b>Chroń dane przed czyszczeniem</b><small id="stor">Prośba o trwałe przechowywanie w przeglądarce</small></span></button>

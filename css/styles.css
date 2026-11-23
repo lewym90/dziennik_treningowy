@@ -1140,3 +1140,9 @@ html.vt-run .view.enter{animation:none}
 /* oszczędne animacje: bez przejść między ekranami i efektów dekoracyjnych */
 .motion-low .hero::before,.motion-low .hero .forge-btn::after,.motion-low .sd-ring.fin,.motion-low .prm-glow{animation:none}
 .motion-low .view.intro *{animation:none!important}
+/* tytuł i opis w kafelkach opcji zawsze w dwóch liniach */
+.wz-o>span{display:grid;gap:3px;min-width:0}
+/* bez kreski nad pierwszym wierszem w karcie i w okienku */
+.card>.sw:first-child,.card>.stp:first-child,.card>.lrow:first-child,.sheet-b>.sw:first-child,.sheet-b>.lrow:first-child{border-top:0}
+.card>.sw:first-child:last-child{padding:4px 0}
+@media (max-width:370px){.nut-m{gap:6px}.nut-m>div{padding:8px 7px}.nut-m small{font-size:11px;letter-spacing:-.01em}.nut-m b{font-size:17px}}

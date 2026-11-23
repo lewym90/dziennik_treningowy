@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.38.0** (audyt: żywienie przebudowane — współczynnik aktywności wg FAO i polskich norm, korekta kalorii z trendu masy, jadłospis na 7 dni z przepisami, zamienniki, wykluczenia, lista zakupów, woda/błonnik/witamina D, bezpieczna redukcja; animacje i przejścia między ekranami z ustawieniem Pełne/Oszczędne; serie rozgrzewkowe z planu; podsumowanie tygodnia w niedzielę; testy scenariuszy w repo), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.39.0** (grafiki 3 nowych artykułów, czat zna wszystkie nowości i wykonuje polecenia żywienia, pełny audyt: odstępy w kafelkach opcji, liczebniki, pisownia, „poprzednio” przy seriach rozgrzewkowych, README), opublikowana i sprawdzona online. Serwer powiadomień zaktualizowany przez właściciela (trasa `/week`).
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -75,6 +75,21 @@ Stan na 23 listopada 2026. Wersja **1.38.0** (audyt: żywienie przebudowane — 
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.39.0 — grafiki, czat i pełny audyt (23.11.2026)
+- Grafiki artykułów `energy`, `protmeal`, `carbfat` (480×480 webp, w `HAS` i CORE).
+- Czat: polecenia żywienia (`nutCmd` w ask2.js): tryb (redukcja/utrzymanie/masa), liczba posiłków, wykluczenia na stałe („nie jem ryb”, „mam celiakię”, „jestem weganinem”, „przywróć jajka”, „bez wykluczeń”), korekta kalorii („obniż kalorie o 150”, „usuń korektę kalorii”), „nowy jadłospis”. Odpowiedzi: lista zakupów w czacie (`H.shop`, `F.nutShopList`), „jadłospis dzień N”. Czat-kreator planu pyta o serie rozgrzewkowe. FEAT: bezpieczeństwo danych, jadłospis na 7 dni; opisy animacji i rozgrzewki zaktualizowane; „Co umiem” i podpowiedzi uzupełnione.
+- Audyt (narzędzia w scratchpadzie `lit/audit.js`, `lit/chatui.js`, `/tmp/sp/spell.mjs` — słownik nspell + dictionary-pl):
+  - 22 ekrany + 9 kroków kreatora + trening, 320/375/430 px, konto puste i pełne, ok. 240 kliknięć na przebieg: 0 błędów JS, 0 „undefined/NaN”, nic poza ekranem.
+  - Kafelki opcji kreatora (`.wz-o`): tytuł i opis sklejone w jednej linii (zgłoszenie właściciela) — opis teraz pod tytułem. Wykrywacz „sklejonych” tytułów dodany do testów (ekrany, okienka, kreator, czat — 107 odpowiedzi).
+  - Kreska nad pierwszym przełącznikiem w karcie usunięta.
+  - Liczebniki: 21 miejsc z liczbą i rzeczownikiem przez `F.plur` (np. „2 serie zaliczone”, „22 lata”, „Dodano 5 serii rozgrzewkowych”, „4 tygodnie”).
+  - Pisownia: „Nie szarp tułowiem” (było „szarpiej”), „2 nowe ćwiczenia” przy imporcie.
+  - „Poprzednio” i „użyj poprzedniego” liczone dla serii roboczych (`prevOf`) — wcześniej seria rozgrzewkowa pokazywała wynik serii roboczej. Notka „rozgrzewka: 2–3 lżejsze serie” ukryta, gdy serie rozgrzewkowe już są na liście.
+  - Żywienie: przy braku treningów tekst o węglowodanach nie mówi „średnio 0 min dziennie”; kafle makro na 320 px.
+  - `F.act.feelSkip` odporne na brak treningu.
+  - README: aktualna lista funkcji, testy, powiadomienia jednym przyciskiem, podsumowanie tygodnia.
+- Testy: `tests/e2e.test.js` rozszerzone (polecenia żywienia w czacie, odstępy tytułów w ekranach i kreatorze): 116/116, obliczenia 27/27, serwer OK.
 
 ## v1.38.0 — audyt: żywienie, animacje, rozgrzewka, testy (23.11.2026)
 Decyzje właściciela do audytu (numery z propozycji): 1 tak (ale jako pytanie w kreatorze i przełącznik w planie), 2 nie, 3 nie, 4 tak, 5 tak, 6 nie, 7 tak, 8 tak (domyślnie Pełne), 9–10 tak, 11 nie (karty treningu przesuwa się palcem), 12–20 tak, 21 „zrób idealnie”, 22–31 tak.

@@ -83,7 +83,7 @@
       F.S.settings.migUni1 = 1; F.saveSettings(); } catch (e) { console.warn('migUni', e); } }
     F.rebuild();
   };
-  F.APPVER = '1.38.0';
+  F.APPVER = '1.39.0';
   F.autoSnap = async (ex, plans, sessions, bw, meas, set) => {
     if (!sessions.length && !plans.length) return;
     const cur = await F.kvGet('snap'); const ver = await F.kvGet('appVer');

@@ -42,6 +42,6 @@
     const avg = a => a.length ? a.reduce((x, s) => x + F.sessionVolume(s), 0) / a.length : 0;
     const row = (k, l) => { const hi = ss.filter(s => s.feel[k] >= 4), lo = ss.filter(s => s.feel[k] <= 2); if (hi.length < 2 || lo.length < 2) return ''; const a = avg(hi), b = avg(lo); return `<div class="fe-r"><b>${l}</b><span>dobry: ${F.fmtVol(a)} <small>(${hi.length} tr.)</small></span><span>słaby: ${F.fmtVol(b)} <small>(${lo.length} tr.)</small></span></div>`; };
     const h = row('sleep', 'Sen') + row('energy', 'Energia'); if (!h) return '';
-    return `<h3 class="sec">Samopoczucie a wyniki</h3><section class="card cut">${h}<p class="dim small">Średni tonaż treningu z Twoich ocen przed treningiem (${ss.length} treningów z oceną).</p></section>`;
+    return `<h3 class="sec">Samopoczucie a wyniki</h3><section class="card cut">${h}<p class="dim small">Średni tonaż treningu z Twoich ocen przed treningiem (${ss.length} ${F.plur(ss.length, 'trening', 'treningi', 'treningów')} z oceną).</p></section>`;
   };
 })();

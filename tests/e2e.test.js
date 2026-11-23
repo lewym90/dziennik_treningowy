@@ -119,7 +119,9 @@ async function crawl(b) {
     for (let i = 0; i < 12; i++) { const d = res.plan.days[i % 3]; await F.addSession({ id: 'c' + i, start: Date.now() - (i * 3 + 1) * 864e5, end: Date.now() - (i * 3 + 1) * 864e5 + 36e5, dur: 3600, name: d.name, planId: res.plan.id, dayId: d.id, exercises: d.items.map(it => ({ exId: it.exId, sets: [{ w: 52 - i, r: 8, t: 'n', done: true }, { w: 52 - i, r: 8, t: 'n', done: true }] })), prs: [] }); await F.addBW(82 + i * 0.1, Date.now() - (i * 3 + 1) * 864e5); }
     await F.saveSettings(); });
   const routes = ['#/home', '#/plans', '#/history', '#/stats', '#/nutrition', '#/guide', '#/guide/energy', '#/guide/protmeal', '#/guide/carbfat', '#/guide/protein', '#/guide/goals', '#/settings', '#/tools', '#/ask', '#/report', '#/calendar', '#/exercises', '#/recap', '#/wizard'];
-  for (const r of routes) { await q.evaluate(h => { location.hash = h; }, r); await sleep(450); const bad = await q.evaluate(() => (document.querySelector('#view').innerText.match(/undefined|NaN|\[object/) || [])[0]); ok('ekran ' + r + ' bez „undefined/NaN”', !bad, bad); }
+  const glueOf = () => q.evaluate(() => { const g = []; document.querySelectorAll('#view b, .sheet b').forEach(bb => { const nx = bb.nextSibling; if (!nx || nx.nodeType !== 1 || !/^(SMALL|SPAN|EM)$/.test(nx.tagName)) return; const a = bb.getBoundingClientRect(), z = nx.getBoundingClientRect(); if (a.width && z.width && Math.abs(a.top - z.top) < 6 && z.left - a.right < 3 && z.left >= a.right - 1) g.push(bb.textContent); }); return g; });
+  for (const r of routes) { await q.evaluate(h => { location.hash = h; }, r); await sleep(450); const bad = await q.evaluate(() => (document.querySelector('#view').innerText.match(/undefined|NaN|\[object/) || [])[0]); ok('ekran ' + r + ' bez „undefined/NaN”', !bad, bad); const g = await glueOf(); ok('ekran ' + r + ': tytuły oddzielone od opisów', !g.length, g); }
+  for (const st of ['about', 'health', 'exp', 'goal', 'cardio', 'sched', 'equip', 'limits']) { await q.evaluate(st => { location.hash = '#/wizard'; setTimeout(() => { F.wz.quick = false; F.wz.step = st; F.render(); }, 50); }, st); await sleep(350); const g = await glueOf(); ok('kreator ' + st + ': tytuły oddzielone od opisów', !g.length, g); }
   await q.evaluate(() => { location.hash = '#/stats'; }); await sleep(500);
   for (let t = 0; t < 4; t++) { await q.evaluate(t => document.querySelectorAll('[data-a="statTab"]')[t].click(), t); await sleep(500); const n = await q.evaluate(() => document.querySelectorAll('#view .seg button, #view .chips .chip').length); for (let k = 0; k < Math.min(n, 8); k++) { await q.evaluate(k => { const x = document.querySelectorAll('#view .seg button, #view .chips .chip')[k]; if (x && x.dataset.a !== 'statTab') x.click(); }, k); await sleep(300); } }
   ok('ekrany: brak błędów JS', !errs.length, errs); await c.close();
@@ -134,6 +136,10 @@ async function chat(b) {
   ok('czat: witamina D', /1000–2000/.test(r['Czy brać witaminę D?'])); ok('czat: współczynnik aktywności', /FAO/.test(r['Dlaczego tak mało kalorii?'])); ok('czat: lista zakupów', /Lista zakupów/.test(r['Gdzie jest lista zakupów?']));
   ok('czat: bez glutenu', /bez glutenu/.test(r['Jadłospis bez glutenu']) && !/Chleb żytni|Makaron|Kuskus|Bulgur|Płatki owsiane/.test(r['Jadłospis bez glutenu']), r['Jadłospis bez glutenu'].slice(0, 300));
   ok('czat: kalorie z wyjaśnieniem', /Jak liczę/.test(r['Ile kalorii potrzebuję?']));
+  const r2 = await q.evaluate(async () => { F.askDry = false; const o = {}; for (const x of ['Przejdź na redukcję', 'Jem 5 posiłków dziennie', 'Nie jem ryb', 'Mam celiakię', 'Obniż kalorie o 150 kcal', 'Lista zakupów na 3 dni', 'Jadłospis dzień 3', 'Wyłącz animacje']) o[x] = String((await F.ask(x)).html).replace(/<[^>]+>/g, ' '); o.nut = JSON.stringify(F.S.settings.nut); o.motion = F.S.settings.motion; return o; });
+  const nut = JSON.parse(r2.nut); ok('czat: polecenia żywienia zapisane', nut.mode === 'cut' && nut.meals === 5 && nut.ex.fish && nut.ex.gluten && nut.adj === -150, nut);
+  ok('czat: lista zakupów w odpowiedzi', /Lista zakupów z Twojego jadłospisu na dni 1–3/.test(r2['Lista zakupów na 3 dni'])); ok('czat: jadłospis na wybrany dzień', /Dzień 3 jadłospisu/.test(r2['Jadłospis dzień 3']));
+  ok('czat: wyłącz animacje', r2.motion === 'low');
   ok('czat: brak błędów JS', !errs.length, errs); await c.close();
 }
 

@@ -3,7 +3,7 @@
   const T = {
     bench_dec: ['Zablokuj nogi pod wałkami, łopatki ściągnij i oprzyj o ławkę.', 'Opuszczaj sztangę do dolnej części klatki, łokcie ok. 45–60° od tułowia.', 'Przy dużym ciężarze ćwicz z asekuracją.'],
     chest_mach: ['Ustaw siedzisko tak, by uchwyty były na wysokości środka klatki.', 'Łopatki trzymaj przy oparciu, wypychaj bez unoszenia barków.', 'Wracaj wolno, bez odbijania stosu obciążenia.'],
-    row_tbar: ['Stań na podestach, kolana lekko ugięte, plecy proste przez cały ruch.', 'Przyciągaj uchwyty do dolnej części klatki, prowadząc łokcie w tył.', 'Nie szarpiej tułowiem, opuszczaj ciężar pod kontrolą.'],
+    row_tbar: ['Stań na podestach, kolana lekko ugięte, plecy proste przez cały ruch.', 'Przyciągaj uchwyty do dolnej części klatki, prowadząc łokcie w tył.', 'Nie szarp tułowiem, opuszczaj ciężar pod kontrolą.'],
     row_mach: ['Ustaw oparcie tak, by klatka opierała się o nie, a ramiona były wyprostowane.', 'Zacznij od ściągnięcia łopatek, potem przyciągnij łokcie w tył.', 'Nie odrywaj klatki od oparcia.'],
     pullover: ['Oprzyj górę pleców na ławce, hantlę trzymaj oburącz nad klatką.', 'Lekko ugnij łokcie i opuszczaj hantlę za głowę, aż poczujesz rozciąganie.', 'Wracaj tym samym łukiem, bez wyginania lędźwi.'],
     lateral_c: ['Stań bokiem do wyciągu, uchwyt ustaw nisko, tułów nieruchomo.', 'Unoś rękę bokiem do wysokości barku, łokieć lekko ugięty.', 'Opuszczaj wolno, nie pomagaj sobie ruchem tułowia.'],

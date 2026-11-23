@@ -161,7 +161,7 @@
     return {
       html: `${F.head('Sprawdź plan', { back: 1, sub: 'Popraw, zanim zapiszesz' })}
       <div class="rsum cut"><div><b>${total}</b><small>ćwiczeń</small></div><div class="g"><b>${ok}</b><small>pewnych</small></div><div class="y"><b>${chk}</b><small>do sprawdzenia</small></div><div class="r"><b>${nw}</b><small>nowych</small></div></div>
-      ${p.restInfo && p.restInfo.applied ? `<div class="card cut notice">${ic('timer', 18)}<div><b>Przerwy z planu: ${p.restInfo.applied} ćwiczeń</b><small>${E(p.restInfo.lines.join(' · ').slice(0, 160))} — zastosuję je automatycznie (możesz je poprawić w polu „Przerwa”).</small></div></div>` : ''}
+      ${p.restInfo && p.restInfo.applied ? `<div class="card cut notice">${ic('timer', 18)}<div><b>Przerwy z planu: ${p.restInfo.applied} ${F.plur(p.restInfo.applied, 'ćwiczenie', 'ćwiczenia', 'ćwiczeń')}</b><small>${E(p.restInfo.lines.join(' · ').slice(0, 160))} — zastosuję je automatycznie (możesz je poprawić w polu „Przerwa”).</small></div></div>` : ''}
       <label class="fld"><span>Nazwa planu</span><input data-b="ipname" value="${E(p.name)}" maxlength="60"></label>
       ${p.days.map((d, di) => `<section class="card cut day edit"><div class="day-h"><label class="fld grow"><span>Dzień ${di + 1}</span><input data-b="ipday" data-di="${di}" value="${E(d.name)}" maxlength="50"></label><button class="ibtn" data-a="ipDayDel" data-di="${di}" aria-label="Usuń dzień">${ic('trash-2', 18)}</button></div>${d.items.map((it, ii) => itemHtml(it, di, ii)).join('')}<button class="btn ghost wide" data-a="ipAdd" data-di="${di}">${ic('plus', 18)} Dodaj ćwiczenie</button></section>`).join('') || F.empty('search', 'Nic nie znaleziono', 'Popraw rozpoznany tekst poniżej i przetwórz ponownie.')}
       <details class="card cut raw"><summary>${ic('scan-text', 18)} Rozpoznany tekst <small class="dim">(popraw i przetwórz ponownie)</small></summary><textarea data-b="imptext" rows="10">${E(im.text)}</textarea><button class="btn ghost wide" data-a="ipReparse">${ic('rotate-ccw', 18)} Przetwórz ponownie</button></details>
@@ -188,7 +188,7 @@
     }
     F.invalidateIdx();
     const plan = { id: F.uid(), name: (p.name || '').trim() || 'Zaimportowany plan', created: Date.now(), days: p.days.filter(d => d.items.some(i => i.exId)).map(d => ({ id: F.uid(), name: d.name || 'Trening', items: d.items.filter(i => i.exId).map(i => { const ex = F.S.ex.get(i.exId); const o = { id: F.uid(), exId: i.exId, sets: Math.max(1, i.sets || 3), reps: i.reps || '8-12', rest: i.rest || (ex && ex.compound ? 120 : 75), w: i.w || 0, note: (i.note || '').replace(/(?:^|,\s*)Superset(?=,|$)/i, '').replace(/^,\s*/, '') }; if (i.ss) o.ss = i.ss; if (i.pct) o.pct = i.pct; return o; }) })) };
-    plan.days.forEach(d => { F.cleanSS(d.items); const inf = F.ssInfo(d.items); d.items.forEach((it, k) => { const g = inf[k]; if (g && g.pos > 0) { const f = d.items[g.start]; it.sets = f.sets; it.rest = Math.max(f.rest || 0, it.rest || 0); f.rest = it.rest; } }); d.items.forEach((it, k) => { const g = inf[k]; if (g && g.pos === 0) { for (let q = g.start; q <= g.end; q++) d.items[q].rest = Math.max(...d.items.slice(g.start, g.end + 1).map(x => x.rest || 0)); } }); }); await F.savePlan(plan); im.stage = 'idle'; im.plan = null; F.toast(`Zapisano plan „${E(plan.name)}”${created ? ` i ${created} now${created === 1 ? 'e ćwiczenie' : 'ych ćwiczeń'}` : ''}`, 'hot', 3500); F.go('#/plan/' + plan.id);
+    plan.days.forEach(d => { F.cleanSS(d.items); const inf = F.ssInfo(d.items); d.items.forEach((it, k) => { const g = inf[k]; if (g && g.pos > 0) { const f = d.items[g.start]; it.sets = f.sets; it.rest = Math.max(f.rest || 0, it.rest || 0); f.rest = it.rest; } }); d.items.forEach((it, k) => { const g = inf[k]; if (g && g.pos === 0) { for (let q = g.start; q <= g.end; q++) d.items[q].rest = Math.max(...d.items.slice(g.start, g.end + 1).map(x => x.rest || 0)); } }); }); await F.savePlan(plan); im.stage = 'idle'; im.plan = null; F.toast(`Zapisano plan „${E(plan.name)}”${created ? ` i ${created} ${F.plur(created, 'nowe ćwiczenie', 'nowe ćwiczenia', 'nowych ćwiczeń')}` : ''}`, 'hot', 3500); F.go('#/plan/' + plan.id);
   };
 
   /* ---------- plik planu FORGE (JSON) ---------- */
@@ -210,7 +210,7 @@
       F.closeSheet(true); F.toast('Importuję…'); for (const e of r.newEx) await F.saveEx(e); F.invalidateIdx();
       const have = new Set(F.S.sessions.map(s => Math.round(s.start / 60000) + '|' + (s.name || ''))); const fresh = r.sessions.filter(s => !have.has(Math.round(s.start / 60000) + '|' + (s.name || '')));
       await F.dbPutMany('sessions', fresh); F.S.sessions.push(...fresh); F.S.sessions.sort((a, b) => b.start - a.start); F.rebuild(); await F.recomputeAllPRs();
-      F.toast(`Zaimportowano ${fresh.length} treningów`, 'hot', 3500); F.go('#/history');
+      F.toast(`Zaimportowano ${fresh.length} ${F.plur(fresh.length, 'trening', 'treningi', 'treningów')}`, 'hot', 3500); F.go('#/history');
     };
   }
 })();

@@ -12,30 +12,29 @@ Instalowalna aplikacja (PWA) dla ludzi, którzy podnoszą ciężko. Działa offl
 - **iPhone (Safari):** Udostępnij → „Do ekranu początkowego".
 
 ## Funkcje
-- Trening na pełnoekranowych kartach przesuwanych palcem, superserie i obwody na jednej karcie.
-- Sprzęt na karcie ćwiczenia: 31 grafik przypisanych ręcznie, tylko gdy pokazują dokładnie ten sprzęt.
-- Dziennik: własna biblioteka ćwiczeń (886 gotowych + własne), serie, powtórzenia, ciężar, RPE, rozgrzewki, drop sety.
-- Plany tworzone przez użytkownika, plany startowe (PPL, Góra/Dół, 5×5, Full Body, Pośladki i nogi).
-- Trening na żywo: podpowiedź celu (progresja), poprzedni wynik, automatyczny stoper przerw (dźwięk, wibracja, ekran nie gaśnie), wykrywanie rekordów z animacją.
-- Wykresy 1RM / ciężaru / objętości, rekordy życiowe, tonaż tygodniowy, podział partii, waga ciała, rangi i osiągnięcia.
-- Kalendarz i kolejka treningów: przenoszenie, przesuwanie i pomijanie dni.
-- Regeneracja mięśni na mapie ciała (szacunek), wnioski po treningu, raporty: tydzień, miesiąc, rok, cele miesięczne.
-- Kalkulatory: talerze, 1RM, rozgrzewka.
+- **Trening** na pełnoekranowych kartach przesuwanych palcem: duża grafika sprzętu i pulsujących mięśni, panel serii (ciężar, powtórzenia, „Zalicz serię”), stoper przerwy z ostrzeżeniem, przejście do następnego ćwiczenia po przerwie, superserie, „Sprzęt zajęty”, „Boli przy tym ćwiczeniu”, głosowe zapisywanie serii, serie rozgrzewkowe z wyliczonym ciężarem.
+- **Kreator planu** oparty na badaniach (cel, staż, dni, sprzęt, ograniczenia, cardio): kolejność ćwiczeń, konkretna liczba powtórzeń, objętość, przerwy, bloki z odciążeniem, uzasadnienie ze źródłami. Plany startowe, edycja planu, tryb trenera (plan przez link/QR).
+- **Postępy**: przegląd, mapa mięśni z liczbą serii, siła (maksy, rekordy, poziomy, trójbój), ciało (waga, pomiary, zdjęcia), cele z prognozą, podsumowania miesiąca i roku, raport PDF.
+- **Żywienie**: zapotrzebowanie (Mifflin–St Jeor / Katch–McArdle × aktywność wg FAO i polskich norm + treningi), korekta z trendu masy ciała, białko, tłuszcz i węglowodany ze źródłami, jadłospis na 7 dni z przepisami, wykluczenia, zamienniki produktów, lista zakupów, woda, błonnik, witamina D.
+- **Porady i nauka**: ponad 20 artykułów, każdy fakt ze źródłem (przeglądy, metaanalizy, stanowiska towarzystw).
+- **Zapytaj FORGE**: czat offline bez AI — odpowiada z Twoich danych i z bazy wiedzy, wykonuje polecenia (z „Cofnij”).
+- Kalendarz z przenoszeniem i pomijaniem treningów, osobne sesje cardio, kalkulatory (talerze, 1RM, rozgrzewka, podejścia na zawody).
+- Animacje i przejścia między ekranami (Ustawienia → Wygląd: Pełne / Oszczędne).
 - Nieograniczona historia (IndexedDB), eksport JSON i CSV, kopia i przywracanie, karta treningu do udostępnienia.
-- **Import planów:** PDF (tekst i skany), zrzuty ekranu, zdjęcia (OCR po polsku/angielsku), wklejony tekst, CSV; import historii ze Strong, Hevy, FitNotes. Przed zapisem sprawdzasz i poprawiasz wynik. Na Androidzie można też wysłać zrzut przez menu „Udostępnij".
+- **Import planów:** PDF (tekst i skany), zrzuty ekranu, zdjęcia (OCR po polsku/angielsku), wklejony tekst, CSV; import historii ze Strong, Hevy, FitNotes. Przed zapisem sprawdzasz i poprawiasz wynik.
 
 ## Uwagi
-- Testy obliczeń: `node tests/calc.test.js` (potrzebny Playwright).
-- Moduły OCR i PDF (~11 MB) pobierają się przy pierwszym użyciu importu. Przycisk „Pobierz moduły offline" w ekranie Import robi to z góry.
-- Po zmianie plików zwiększ `VERSION` w `sw.js`, aby użytkownicy dostali aktualizację.
-- Dane są w pamięci przeglądarki. Rób kopie zapasowe (Ustawienia → Dane).
-- Ikony: Lucide (ISC). Fonty: Barlow (SIL OFL). OCR: Tesseract.js (Apache-2.0). PDF: PDF.js (Apache-2.0).
+- Testy przed każdym wydaniem: `bash tests/run.sh` (obliczenia, scenariusze w przeglądarce, serwer powiadomień; potrzebny Playwright z Chromium).
+- Moduły OCR i PDF (~11 MB) pobierają się przy pierwszym użyciu importu. Przycisk „Pobierz moduły offline” w ekranie Import robi to z góry.
+- Po zmianie plików zwiększ `VERSION` w `sw.js` i `F.APPVER` w `js/core.js`, aby użytkownicy dostali aktualizację.
+- Dane są w pamięci przeglądarki (aplikacja prosi o trwałe przechowywanie). Rób kopie zapasowe (Ustawienia → Dane i kopia).
+- Ikony: Lucide (ISC). Fonty: Barlow (SIL OFL). OCR: Tesseract.js (Apache-2.0). PDF: PDF.js (Apache-2.0). Wartości odżywcze: USDA FoodData Central (SR Legacy, domena publiczna).
 
 ## Powiadomienia o końcu przerwy (serwer Web Push)
 
 Przy zablokowanym telefonie system usypia aplikację, więc koniec przerwy musi przyjść z serwera. Folder `server/` zawiera małą usługę Web Push (Node, `web-push`) dla własnego VPS-a, w tym samym stylu co Kalendarz i Poczta:
 
 1. Jako root na serwerze: `bash <(curl -fsSL https://raw.githubusercontent.com/lewym90/dziennik_treningowy/main/server/install.sh)`. Instalator tworzy osobnego użytkownika, usługę `forge-push` na `127.0.0.1:8793` i trasę `/forge-push/` w Caddy (z walidacją i wycofaniem). Wypisuje adres i kod połączenia.
-2. W FORGE (z ekranu początkowego): Ustawienia → Powiadomienia z serwera → wpisz kod → „Połącz”.
+2. W FORGE (na iPhonie z ekranu początkowego): Ustawienia → Dźwięk i powiadomienia → „Włącz powiadomienia”. Kod połączenia jest potrzebny tylko, gdy serwer ma `REQUIRE_CODE=1`.
 
-Każdy telefon ma własny identyfikator i token, a serwer trzyma osobny timer dla każdego urządzenia, więc każdy dostaje wyłącznie swoje powiadomienia. Kod połączenia służy tylko do pierwszej rejestracji. Nic nie gra w tle, więc muzyka nie jest przerywana. Testy: `cd server && npm install && npm test`.
+Każdy telefon ma własny identyfikator i token, a serwer trzyma osobny timer dla każdego urządzenia, więc każdy dostaje wyłącznie swoje powiadomienia. Osobno serwer wysyła niedzielne podsumowanie tygodnia (trasa `/week`), które telefon planuje sam. Nic nie gra w tle, więc muzyka nie jest przerywana. Testy: `cd server && npm install && npm test`.

@@ -96,7 +96,7 @@
     let hero;
     if (d) {
       const done = d.exercises.reduce((a, e) => a + e.sets.filter(x => x.done).length, 0);
-      hero = `<section class="hero cut live" data-vt><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} serii zaliczonych</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
+      hero = `<section class="hero cut live" data-vt><div class="hero-k">Trening w toku</div><h2>${E(d.name || 'Trening')}</h2><p class="hero-m"><span data-wtime>${F.fmtDur((Date.now() - d.start) / 1000)}</span> · ${done} ${F.plur(done, 'seria zaliczona', 'serie zaliczone', 'serii zaliczonych')}</p><a class="forge-btn" href="#/workout"><span>${ic('play', 22)} Wróć do treningu</span></a></section>`;
     } else if (cdFirst) {
       hero = `<section class="hero cut cd"><div class="hero-k">${ic('heart-pulse', 14)} ${ct ? 'Dziś cardio' : `${cap(F.calWhen(cn.ts))} — cardio`}</div><h2>${E(cn.day.name)}</h2>
         <p class="hero-m"><span>${ic('timer', 15)} ${cdMin(cn.day)} min</span><span>${ic('heart-pulse', 15)} osobna sesja</span></p>

@@ -16,6 +16,8 @@
   F.ssName = n => n >= 3 ? 'Obwód' : 'Superseria';
   const pgOf = it => (it.prog && it.prog !== 'auto') || it.inc || it.pct || it.scheme === 'pyr' ? { prog: it.prog || 'auto', inc: it.inc || 0, pct: it.pct || 0, scheme: it.scheme === 'pyr' ? 'pyr' : '' } : null;
 
+  // poprzedni wynik tej samej serii roboczej (serie rozgrzewkowe nie mają odpowiednika w historii)
+  const prevOf = (e, j) => { const s = e.sets[j], last = F.LAST[e.exId]; if (!last || !s || s.t === 'w') return null; let k = 0; for (let x = 0; x < j; x++) if (e.sets[x].t !== 'w') k++; return last.sets[k] || null; };
   /* ---------- budowanie treningu ---------- */
   function buildSets(exId, count, reps, w0, pg, cx) {
     pg = pg || {}; cx = cx || {};
@@ -91,7 +93,7 @@
 
   function setRow(e, i, j) {
     const ex = exOf(e.exId) || { type: 'wr' }; const s = e.sets[j]; const last = F.LAST[e.exId];
-    const prev = last && last.sets[j]; const isT = ex.type === 'time', isB = ex.type === 'br'; const noW = isT || isB; const m = F.wm(e.exId);
+    const prev = prevOf(e, j); const isT = ex.type === 'time', isB = ex.type === 'br'; const noW = isT || isB; const m = F.wm(e.exId);
     let n = 0; for (let k = 0; k <= j; k++) if (e.sets[k].t !== 'w') n++;
     const lab = s.t === 'w' ? 'R' : s.t === 'd' ? 'D' : s.t === 'f' ? 'F' : n;
     const wv = s.w ? F.fw(s.w / m) : ''; const pv = prev ? (isT ? F.fmtDur(prev.r) : isB ? prev.r : `${F.fw(prev.w / m)}×${prev.r}`) : '–';
@@ -108,7 +110,7 @@
   const tgtR = (e, sug) => { const t = e.target || {}; const m = String(t.reps || '').match(/(\d+)(?:\s*[-–]\s*(\d+))?/); if (!m) return null; const lo = +m[1], hi = +(m[2] || m[1]); const load = F.progModel(e.exId, { role: e.role, goal: e.goal }) === 'load'; return { r: sug && !sug.pct && !sug.off && sug.r ? sug.r : (load ? hi : lo), lo, hi, load }; };
   const tgtTxt = (e, sug) => { const t = tgtR(e, sug); if (!t) return ''; return `Cel ${(e.target || {}).sets}×${t.r}${t.hi > t.lo ? ` <small>(zakres ${t.lo}–${t.hi})</small>` : ''}`; };
   // notatka na karcie: bez „Zapas…”, „partia priorytetowa…”, „ciężar startowy…” — to liczy aplikacja (zapas jest w panelu serii)
-  const cleanNote = n => String(n || '').split(' · ').filter(x => !/^(Zapas:|partia priorytetowa|ciężar startowy)/.test(x.trim())).join(' · ');
+  const cleanNote = (n, e) => String(n || '').split(' · ').filter(x => !/^(Zapas:|partia priorytetowa|ciężar startowy)/.test(x.trim()) && !(e && /^rozgrzewka:/.test(x.trim()) && e.sets.some(z => z.t === 'w'))).join(' · '); // gdy serie rozgrzewkowe już są na liście, notka o rozgrzewce jest zbędna
   // zapas powtórzeń na tę serię: tydzień bloku (jeśli plan ma blok), inaczej z opisu ćwiczenia w planie
   const rirOf = e => { const d = D(); if (d && d.deload) return '4+'; const b = d && d.planId && F.blockInfo && F.blockInfo(F.planOf(d.planId)); if (b && !b.over && !b.deload && b.rir != null) return String(b.rir); const m = String(e.note || '').match(/Zapas:\s*([\d–-]+\+?)/); return m ? m[1].replace('-', '–') : ''; };
   // jedna linijka celu: „Dziś 4 × 60 kg × 7”, pod spodem co było ostatnio i co się zmieniło
@@ -118,7 +120,7 @@
     const why = sug ? (sug.load ? (/Dołóż/.test(sug.note) ? 'więcej ciężaru' : 'ten sam ciężar') : WHY[sug.note] || '') : '';
     const L0 = F.LAST[e.exId]; const ws = L0 ? L0.sets.filter(x => x.t !== 'w') : []; const lt = !L0 ? '' : isT || isB || new Set(ws.map(x => x.w || 0)).size > 1 ? lastTxt(e, ex) : `${F.fw((ws[0] || {}).w / m || 0)} ${F.unit()} × ${ws.map(x => x.r).join(', ')}`;
     const sub = L0 ? `Ostatnio ${lt}${why ? ' · ' + why : ''}` : 'Pierwszy raz';
-    const nt = cleanNote(e.note); return `<div class="xt"><button class="xt-b ${sug ? 'hot' : ''}" ${sug ? `data-a="applySug" data-i="${i}"` : ''}><span class="xt-r"><span class="xt-k">Dziś</span><b class="xt-v">${big}</b></span><small class="xt-s">${sub}</small></button>${nt ? `<p class="xt-n">${ic('flame', 14)} ${E(nt)}</p>` : ''}</div>`; };
+    const nt = cleanNote(e.note, e); return `<div class="xt"><button class="xt-b ${sug ? 'hot' : ''}" ${sug ? `data-a="applySug" data-i="${i}"` : ''}><span class="xt-r"><span class="xt-k">Dziś</span><b class="xt-v">${big}</b></span><small class="xt-s">${sub}</small></button>${nt ? `<p class="xt-n">${ic('flame', 14)} ${E(nt)}</p>` : ''}</div>`; };
   /* ---------- strony: jedna karta = jedno ćwiczenie albo cała superseria / obwód ---------- */
   const pagesOf = () => { const d = D(), inf = F.ssInfo(d.exercises), out = []; let i = 0; while (i < d.exercises.length) { const g = inf[i]; if (g && g.pos === 0) { out.push({ st: g.start, en: g.end }); i = g.end + 1; } else { out.push({ st: i, en: i }); i++; } } return out; };
   const slides = () => { const d = D(); return pagesOf().map((p, k) => { const ids = d.exercises.slice(p.st, p.en + 1).map(e => e.exId); return `<div class="wk-slide" data-pg="${k}">${F.exArt(ids)}${p.en > p.st ? ssCard(p.st, p.en) : card(p.st)}</div>`; }).join(''); };
@@ -162,7 +164,7 @@
       rest = Math.max(rest, exRest(e, ex));
       hdr += `<div class="ssm"><div class="ssm-h"><span class="ss-tag">${tag}</span><a class="xc-n" href="#/ex/${E(e.exId)}"><h3>${E(ex.name)}</h3></a><button class="ibtn${F.exHint(e.exId, e.target && e.target.reps) ? ' hnt' : ''}" data-a="techOpen" data-id="${E(e.exId)}" aria-label="Technika">${ic('info', 20)}</button><button class="ibtn" data-a="exMenu" data-i="${k}" aria-label="Opcje ćwiczenia">${ic('ellipsis', 22)}</button></div>
         <div class="xc-m">${F.wm(e.exId) === 2 ? `<span class="x2c">${F.x2Label(ex)}</span>` : ''}${e.target && e.target.reps ? `<span>Cel ${isT ? E(e.target.reps) + ' s' : (() => { const t = tgtR(e, sug); return t ? `${t.r} powt.${t.hi > t.lo ? ` (${t.lo}–${t.hi})` : ''}` : E(e.target.reps) + ' powt.'; })()}</span>` : ''}${p ? `<span>Poprz. ${isT ? F.fmtDur(p.r) : isB ? p.r : F.fw(p.w / F.wm(e.exId)) + '×' + p.r}</span>` : ''}${sug ? `<span class="sug" data-a="applySug" data-i="${k}">${ic('target', 12)} ${sugT}</span>` : ''}</div>
-        ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}${cleanNote(e.note) ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(cleanNote(e.note))}</p>` : ''}</div>`;
+        ${sug && (sug.stag || sug.pct || sug.off || d.deload) ? `<p class="xc-note hint ${sug.stag ? 'warn' : ''}">${ic(sug.stag ? 'zap' : 'target', 13)} ${E(sug.note)}</p>` : ''}${cleanNote(e.note, e) ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(cleanNote(e.note, e))}</p>` : ''}</div>`;
     }
     for (let j = 0; j < R; j++) {
       let lines = '', all = true, any = false; for (let k = st; k <= en; k++) { const s = d.exercises[k].sets[j]; lines += ssLine(k, j, F.ssInfo(d.exercises)[k].tag); if (s) { any = true; if (!s.done) all = false; } }
@@ -181,7 +183,7 @@
       ${e.later ? '' : `<div class="cd-main"><div class="num"><button data-a="cdNudge" data-d="-1" data-i="${i}" aria-label="Mniej">${ic('minus', 14)}</button><input inputmode="numeric" data-b="wkcm" data-i="${i}" value="${mins || ''}" placeholder="0" aria-label="Minuty"><button data-a="cdNudge" data-d="1" data-i="${i}" aria-label="Więcej">${ic('plus', 14)}</button></div><span class="cd-u">min</span></div>
       <div class="chips tiny">${[1, 2, 3].map(x => `<button class="chip ${it === x ? 'on' : ''}" data-a="cdInt" data-i="${i}" data-v="${x}">${CI[x]}</button>`).join('')}</div>`}
       <div class="cd-btns"><button class="btn sm ${s.done ? 'primary' : 'ghost'}" data-a="cdDone" data-i="${i}">${ic('check', 16)} Zrobione</button><button class="btn sm ghost ${e.later ? 'on' : ''}" data-a="cdLater" data-i="${i}">Zrobię później</button><button class="btn sm ghost ${e.skip ? 'on' : ''}" data-a="cdSkip" data-i="${i}">Pomiń</button></div>
-      ${e.later ? `<p class="xc-note hint">${ic('timer', 13)} Zakończ trening — to cardio dopiszesz później (przypomnienie na ekranie głównym przez 48 godzin).</p>` : ''}${cleanNote(e.note) ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(cleanNote(e.note))}</p>` : ''}</section>`;
+      ${e.later ? `<p class="xc-note hint">${ic('timer', 13)} Zakończ trening — to cardio dopiszesz później (przypomnienie na ekranie głównym przez 48 godzin).</p>` : ''}${cleanNote(e.note, e) ? `<p class="xc-note">${ic('notebook-pen', 13)} ${E(cleanNote(e.note, e))}</p>` : ''}</section>`;
   }
   F.bind.wkcm = el => { const e = D().exercises[+el.dataset.i], s = e.sets[0]; const v = num(el.value) || 0; s.r = Math.round(v * 60); persist(); if (s.done) updStats(); };
   F.act.cdNudge = b => { const i = +b.dataset.i, e = D().exercises[i], s = e.sets[0]; s.r = Math.max(0, (s.r || 0) + (+b.dataset.d) * 300); F.haptic(8); F.saveDraft(); redraw(i); };
@@ -222,7 +224,7 @@
     const i = pg.st, e = d.exercises[i], ex = exOf(e.exId) || { type: 'wr' };
     if (!e || (ex.muscle === 'cardio' && ex.type === 'time')) { el.className = 'sdk'; el.innerHTML = ''; return; }
     const j = selOf(i); if (j < 0) { el.className = 'sdk on' + (el.classList.contains('flash') ? ' flash' : ''); el.innerHTML = `<div class="sd-done">${ic('circle-check', 22)} <span>Wszystkie serie zaliczone</span><button class="btn sm ghost" data-a="addSet" data-i="${i}">${ic('plus', 16)} Seria</button><button class="btn sm primary" data-a="wkNextEx">Dalej ${ic('chevron-right', 16)}</button></div>`; return; }
-    const s = e.sets[j], isT = ex.type === 'time', isB = ex.type === 'br', m = F.wm(e.exId), last = F.LAST[e.exId], prev = last && last.sets[j];
+    const s = e.sets[j], isT = ex.type === 'time', isB = ex.type === 'br', m = F.wm(e.exId), last = F.LAST[e.exId], prev = prevOf(e, j);
     const fld = (f, val, unit, mode) => `<div class="sd-f"><button data-a="pNudge" data-f="${f}" data-d="-1" data-i="${i}" data-j="${j}" aria-label="Mniej">${ic('minus', 22)}</button><label><input inputmode="${mode}" data-b="wk" data-f="${f}" data-i="${i}" data-j="${j}" value="${val}" placeholder="0" aria-label="${unit}"><small>${unit}</small></label><button data-a="pNudge" data-f="${f}" data-d="1" data-i="${i}" data-j="${j}" aria-label="Więcej">${ic('plus', 22)}</button></div>`;
     el.className = 'sdk on' + (el.classList.contains('flash') ? ' flash' : '');
     el.innerHTML = `<div class="sd-top"><b>${s.t === 'w' ? 'Rozgrzewka' : 'Seria ' + setNo(e, j) + ' z ' + workN(e)}${s.done ? ' · zaliczona' : ''}</b><span>${prev ? 'poprzednio ' + short(ex, e, prev) : ''}</span>${F.voiceOk && !s.done ? `<button class="ibtn" data-a="pVoice" data-i="${i}" data-j="${j}" aria-label="Powiedz wynik">${ic('mic', 19)}</button>` : ''}<button class="ibtn" data-a="setMenu" data-i="${i}" data-j="${j}" aria-label="Opcje serii">${ic('ellipsis', 20)}</button></div>
@@ -269,7 +271,7 @@
   const feelHtml = () => { const row = (k, l) => `<div class="fl-r"><span>${l}</span><div>${[1, 2, 3, 4, 5].map(v => `<button data-a="feelSet" data-k="${k}" data-v="${v}" class="${(F.ui.feel || {})[k] === v ? 'on' : ''}" aria-label="${l} ${v} z 5">${v}</button>`).join('')}</div></div>`; const d0 = D(), bi = d0 && d0.planId && !d0.deload && F.blockInfo && F.blockInfo(F.planOf(d0.planId)); const bl = bi && !bi.over ? `<p class="fl-b">${ic('layers', 14)} Blok: tydzień ${bi.week} z ${bi.weeks}${bi.deload ? ' — tydzień odciążenia' : ''}</p>` : d0 && d0.deload ? `<p class="fl-b">${ic('layers', 14)} Tydzień odciążenia</p>` : ''; return `<div class="feel" id="feel">${bl}<p class="fl-q">Jak się dziś czujesz? Dwa dotknięcia — po kilku treningach pokażę, jak sen i energia łączą się z Twoimi wynikami.</p>${row('sleep', 'Sen')}${row('energy', 'Energia')}<button class="btn ghost wide fl-skip" data-a="feelSkip">Pomiń</button></div>`; };
   F.feelAsk = () => { const d = D(); if (!d || d.feel || d.feelSkip || d.backdate || F.$('#feel')) return; F.sheet(feelHtml(), { title: 'Przed treningiem', cls: 'compact', onclose: () => { const dd = D(); if (dd && !dd.feel) { dd.feelSkip = 1; F.saveDraft(); } } }); };
   F.act.feelSet = b => { const f = F.ui.feel = F.ui.feel || {}; f[b.dataset.k] = +b.dataset.v; if (f.sleep && f.energy) { const d = D(); d.feel = { sleep: f.sleep, energy: f.energy }; F.ui.feel = null; F.saveDraft(); F.closeSheet(true); if (f.sleep <= 2 || f.energy <= 2) F.toast('Słabszy dzień. Dobieraj ciężar po zapasie powtórzeń: jeśli pierwsza seria jest wyraźnie cięższa niż zwykle, zmniejsz ciężar.'); else F.toast('Zapisane. Dobrego treningu!'); } else { const el = F.$('#feel'); if (el) el.outerHTML = feelHtml(); } };
-  F.act.feelSkip = () => { D().feelSkip = 1; F.saveDraft(); F.closeSheet(true); };
+  F.act.feelSkip = () => { if (D()) { D().feelSkip = 1; F.saveDraft(); } F.closeSheet(true); };
   function card(i) {
     const d = D(), e = d.exercises[i], ex = exOf(e.exId) || { name: 'Usunięte ćwiczenie', muscle: 'full', type: 'wr' }; const last = F.LAST[e.exId];
     if (ex.muscle === 'cardio' && ex.type === 'time') return cardioCard(i, e, ex);
@@ -344,7 +346,7 @@
     const row = F.$('#sr-' + i + '-' + j); if (!row) return; const wi = row.querySelector('input[data-f=w]'), ri = row.querySelector('input[data-f=r]');
     if (wi) wi.value = s.w ? F.fw(s.w / m) : ''; if (ri) ri.value = s.r || ''; F.haptic(8); persist(); if (s.done) updStats();
   };
-  F.act.usePrev = b => { const i = +b.dataset.i, j = +b.dataset.j, e = D().exercises[i]; const last = F.LAST[e.exId]; const p = last && last.sets[j]; if (!p) return; e.sets[j].w = p.w; e.sets[j].r = p.r; persist(); redraw(i); };
+  F.act.usePrev = b => { const i = +b.dataset.i, j = +b.dataset.j, e = D().exercises[i]; const p = prevOf(e, j); if (!p) return; e.sets[j].w = p.w; e.sets[j].r = p.r; persist(); redraw(i); };
   F.act.applySug = b => { const i = +b.dataset.i, e = D().exercises[i]; const sug = F.suggest(e.exId, e.target && e.target.reps, sugOpts(e)); if (!sug) return; e.sets.forEach(s => { if (!s.done && s.t !== 'w') { s.w = sug.w; s.r = sug.r; } }); persist(); redraw(i); F.toast('Ustawiono cel: ' + sug.note); };
   F.act.addSet = b => { const i = +b.dataset.i, e = D().exercises[i]; const l = [...e.sets].reverse().find(s => s.t !== 'w') || e.sets[e.sets.length - 1] || { w: 0, r: 0 }; e.sets.push({ w: l.w, r: l.r, t: 'n', done: false }); F.saveDraft(); redraw(i); };
 
@@ -353,7 +355,7 @@
     const d = D(), e = d.exercises[i], s = e.sets[j], ex = exOf(e.exId); if (!s) return null;
     s.done = !s.done;
     if (!s.done) { s.pr = null; return { on: false }; }
-    if (ex && ex.type !== 'time') { const last = F.LAST[e.exId]; const p = last && last.sets[j]; if (p) { if (!s.r) s.r = p.r; if (!s.w && ex.type !== 'br') s.w = p.w; } }
+    if (ex && ex.type !== 'time') { const p = prevOf(e, j); if (p) { if (!s.r) s.r = p.r; if (!s.w && ex.type !== 'br') s.w = p.w; } }
     const prs = F.checkPR(wkIdx, ex, s, d.start); s.pr = prs.map(p => p.k); if (ex && F.isWork(s)) F.addToIdx(wkIdx, ex, s, d.start);
     return { on: true, prs, s, ex };
   }
@@ -443,7 +445,7 @@
   F.act.exUnlink = b => { const i = +b.dataset.i, a = D().exercises; delete a[i].ss; F.cleanSS(a); F.saveDraft(); F.closeSheet(true); F.render(true); };
   F.act.exWarm = b => {
     const i = +b.dataset.i, e = D().exercises[i]; const work = e.sets.find(s => s.t !== 'w' && s.w); if (!work) { F.closeSheet(true); F.toast('Najpierw wpisz ciężar roboczy'); return; }
-    const ws = F.warmupSets(work.w).map(x => ({ w: x.w, r: x.r, t: 'w', done: false })); e.sets = [...ws, ...e.sets.filter(s => s.t !== 'w')]; F.saveDraft(); F.closeSheet(true); redraw(i); F.toast(`Dodano ${ws.length} serie rozgrzewkowe`);
+    const ws = F.warmupSets(work.w).map(x => ({ w: x.w, r: x.r, t: 'w', done: false })); e.sets = [...ws, ...e.sets.filter(s => s.t !== 'w')]; F.saveDraft(); F.closeSheet(true); redraw(i); F.toast(`Dodano ${ws.length} ${F.plur(ws.length, 'serię rozgrzewkową', 'serie rozgrzewkowe', 'serii rozgrzewkowych')}`);
   };
   F.act.exNote = async b => { const i = +b.dataset.i; const e = D().exercises[i]; F.closeSheet(true); const v = await F.prompt({ title: 'Notatka', label: 'Co warto zapamiętać? (np. ustawienie maszyny)', value: e.note || '' }); if (v != null) { e.note = v; F.saveDraft(); redraw(i); } };
   F.act.exRestSet = async b => { const i = +b.dataset.i; const e = D().exercises[i]; F.closeSheet(true); const v = await F.prompt({ title: 'Czas przerwy', label: 'Sekundy', value: String(exRest(e, exOf(e.exId))), type: 'number' }); if (v != null && +v > 0) { e.rest = +v; F.saveDraft(); redraw(i); } };

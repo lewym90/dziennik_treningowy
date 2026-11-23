@@ -93,7 +93,7 @@
       const lab = D.wb.map(w => { const d = new Date(w.s); return d.getDate() + '.' + String(d.getMonth() + 1).padStart(2, '0'); });
       sec('Tonaż tygodniowy'); doc.addImage(barChart(D.wb.map(w => F.toDisp(w.v)), lab, W - 2 * M, 62, v => v >= 1000 ? F.fmtNum(v / 1000, 0) + ' t' : F.fmtNum(v, 0)), 'PNG', M, y, W - 2 * M, 62); y += 68;
       sec('Treningi w tygodniu'); doc.addImage(barChart(D.wb.map(w => w.n), lab, W - 2 * M, 46, v => F.fmtNum(v, 0)), 'PNG', M, y, W - 2 * M, 46); y += 50;
-      para(`Cel tygodniowy w aplikacji: ${F.S.settings.weeklyGoal || 3} treningi. Tonaż = ciężar × powtórzenia ze wszystkich serii roboczych.`, 8);
+      para(`Cel tygodniowy w aplikacji: ${F.S.settings.weeklyGoal || 3} ${F.plur(F.S.settings.weeklyGoal || 3, 'trening', 'treningi', 'treningów')}. Tonaż = ciężar × powtórzenia ze wszystkich serii roboczych.`, 8);
 
       // ---- strona 2: siła i rekordy ----
       newPage('SIŁA I REKORDY');
