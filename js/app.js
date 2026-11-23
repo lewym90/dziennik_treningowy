@@ -296,7 +296,10 @@
   F.act.dayUp = b => { const i = +b.dataset.di, d = E_().days; [d[i - 1], d[i]] = [d[i], d[i - 1]]; F.render(true); };
   F.act.itUp = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i - 1], it[i]] = [it[i], it[i - 1]]; F.cleanSS(it); F.render(true); };
   F.act.itDown = b => { const it = E_().days[+b.dataset.di].items, i = +b.dataset.ii; [it[i + 1], it[i]] = [it[i], it[i + 1]]; F.cleanSS(it); F.render(true); };
-  F.act.itSwap = async b => { const day = E_().days[+b.dataset.di], it = day.items[+b.dataset.ii]; const id = await F.swapSheet(it.exId, day.items.map(x => x.exId)); if (!id) return; const r0 = it.role || F.restRole(it.exId), r1 = F.restRole(id); if ((r0 === 'iso') !== (r1 === 'iso')) { it.rest = F.restFor(id, E_(), r1); it.role = r1; } it.exId = id; F.render(true); };
+  // po zamianie lub dodaniu ćwiczenie od razu trafia na właściwe miejsce w dniu (reguły kolejności z kreatora); reszta dnia zostaje w Twojej kolejności
+  F.placeInPlan = (plan, day, idx) => { if (!F.PLN || !F.PLN.placeItem) return null; const m = plan.meta || {}; const r = F.PLN.placeItem(day.items, idx, { goal: m.goal, prio: m.prio || [] }); if (!r) return null; day.items = r.perm.map(k => day.items[k]); return r; };
+  const placedToast = (rs) => { rs = rs.filter(x => x && x.r); if (!rs.length) return; F.toast(rs.map(x => E(F.PLN.placeMsg(x.n, x.r))).join('<br>'), '', 4500); };
+  F.act.itSwap = async b => { const day = E_().days[+b.dataset.di], it = day.items[+b.dataset.ii]; const id = await F.swapSheet(it.exId, day.items.map(x => x.exId)); if (!id) return; const r0 = it.role || F.restRole(it.exId), r1 = F.restRole(id); if ((r0 === 'iso') !== (r1 === 'iso')) it.rest = F.restFor(id, E_(), r1); const kc = F.PLN && F.PLN.keyOf ? { goal: (E_().meta || {}).goal, prio: (E_().meta || {}).prio || [] } : null; const k0 = kc && F.PLN.keyOf(it, kc).join(); it.role = r1; it.exId = id; const r = kc && F.PLN.keyOf(it, kc).join() !== k0 ? F.placeInPlan(E_(), day, day.items.indexOf(it)) : null; F.render(true); placedToast([{ n: (exOf(id) || {}).name || id, r }]); };
   F.act.itDel = b => { const it = E_().days[+b.dataset.di].items; it.splice(+b.dataset.ii, 1); F.cleanSS(it); F.render(true); };
   const unify = (items, st, en, src) => { for (let k = st; k <= en; k++) { items[k].sets = src.sets; items[k].rest = src.rest; } };
   F.act.itLink = b => {
@@ -312,7 +315,7 @@
   F.act.itAddSS = async b => { const day = E_().days[+b.dataset.di], i = +b.dataset.ii; const ids = await F.pickExercises(); if (!ids || !ids.length) return; const g = F.ssInfo(day.items)[i]; const first = day.items[g.start]; const add = ids.map(id => { const ex = exOf(id); return { id: F.uid(), exId: id, sets: first.sets, reps: ex && ex.type === 'time' ? '45' : '10', rest: first.rest, ss: first.ss }; }); day.items.splice(g.end + 1, 0, ...add); F.render(true); };
   F.act.itAdd = async b => {
     const ids = await F.pickExercises(); if (!ids || !ids.length) return; const day = E_().days[+b.dataset.di];
-    ids.forEach(id => { const ex = exOf(id); const role = F.restRole(id); day.items.push({ id: F.uid(), exId: id, sets: 3, reps: ex && ex.type === 'time' ? '45' : '8-12', rest: F.restFor(id, E_(), role), role }); }); F.render(true);
+    const rs = []; ids.forEach(id => { const ex = exOf(id); const role = F.restRole(id); const it = { id: F.uid(), exId: id, sets: 3, reps: ex && ex.type === 'time' ? '45' : '8-12', rest: F.restFor(id, E_(), role), role }; day.items.push(it); rs.push({ n: (ex || {}).name || id, r: F.placeInPlan(E_(), day, day.items.length - 1) }); }); F.render(true); placedToast(rs);
   };
   F.act.planSave = async () => {
     const p = E_(); p.meta = p.meta || {}; if (!p.meta.rest) p.meta.rest = { ...F.restProfile(p) }; p.days.forEach(d => F.cleanSS(d.items)); if (!p.name.trim()) p.name = 'Plan bez nazwy'; p.days.forEach(d => { d.items.forEach(i => { if (!i.sets || i.sets < 1) i.sets = 1; }); });

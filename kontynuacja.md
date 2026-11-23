@@ -1,6 +1,6 @@
 # FORGE — stan prac i kontynuacja
 
-Stan na 23 listopada 2026. Wersja **1.31.1** (kolejność ćwiczeń w kreatorze oparta na badaniach + grafika artykułu), opublikowana i sprawdzona online.
+Stan na 23 listopada 2026. Wersja **1.32.0** (kolejność ćwiczeń oparta na badaniach — także przy zamianie i dodawaniu ćwiczeń), opublikowana i sprawdzona online.
 
 - Repozytorium: `lewym90/dziennik_treningowy`, gałąź `main`, GitHub Pages.
 - Aplikacja: https://lewym90.github.io/dziennik_treningowy/
@@ -73,6 +73,13 @@ Stan na 23 listopada 2026. Wersja **1.31.1** (kolejność ćwiczeń w kreatorze 
 - Dodanie ćwiczenia (plan i trening): przerwa z profilu według roli. Zamiana: przerwa zostaje, chyba że zmienia się klasa wielostawowe ↔ izolowane. Trening bez planu i stoper z czatu: profil aktualnego planu.
 - Usunięte z Ustawień: „Domyślna przerwa” (`settings.restSet` nieużywane). W czacie ustawienia pokazują „Przerwy w planie: X / Y / Z”.
 - Porada „Przerwy” ma akapit o profilu przerw.
+
+## v1.32.0 — zamiana i dodanie ćwiczenia od razu ustawia je na właściwym miejscu (23.11.2026)
+- Zgłoszenie: w podglądzie kreatora zamiana ostatnich spięć brzucha na wyciskanie leżąc zostawiała wyciskanie na końcu dnia (z rolą, powtórzeniami i przerwą brzucha).
+- planner.js: wspólny klucz `F.PLN.keyOf(it, {goal, prio})` (faza, priorytet, wielkość partii) dla pozycji kreatora i zwykłych pozycji planu; `orderDay` na nim; `F.PLN.placeItem(items, idx, ctx)` przesuwa tylko zmienione ćwiczenie (z superserią), resztę dnia zostawia w kolejności użytkownika; nie rusza, gdy miejsce już jest zgodne. `F.PLN.placeMsg` — komunikat „X → miejsce N (powód)”.
+- Podgląd kreatora: `F.PLN.swapInRes` — nowa partia/rodzaj ćwiczenia → nowa rola, slot (zamienniki z właściwej puli), powtórzenia, przerwa z profilu planu, ciężar startowy z historii nowego ćwiczenia (wcześniej zostawał ciężar starego), potem miejsce. Zamiana na ten sam rodzaj i partię nie przesuwa. `F.PLN.refreshDay` po zamianie, usunięciu i przywróceniu: opisy (rozgrzewka wg nowej pozycji, „partia priorytetowa”), czas dnia, tygodniowe serie na partię (`F.PLN.volumeOf` — wcześniej po usunięciu się nie aktualizowały).
+- Edycja planu (`itSwap`, `itAdd`) i zamiana z analizy planu (`coachSwap`): `F.placeInPlan(plan, day, idx)` + komunikat. Plany z kreatora zapisują `meta.prio`; starsze plany — bez priorytetów (reszta reguł działa). Strzałki w edycji i trening na żywo bez automatu.
+- Refaktor: opis pozycji (`noteOf`), powtórzenia (`repsOf`), ciężar startowy (`startWOf`), `F.PLN.prioOf` wspólne dla generatora i podglądu — 270 planów identycznych przed/po.
 
 ## v1.31.0 — kolejność ćwiczeń w kreatorze oparta na badaniach (23.11.2026)
 - Zgłoszenie właściciela: w planie z kreatora (Góra/Dół, priorytety klatka/barki/plecy) wiosłowanie stało w dniu dołu między RDL a uginaniem nóg — kolejność wyglądała na przypadkową. Diagnoza: sortowanie działało tylko przy priorytetach i limicie czasu; poza tym zostawała kolejność szablonu + ćwiczenia dokładane na koniec (np. hip thrust po brzuchu, prostowanie nóg przed wejściami). Automat na 18 792 dniach planów: 12 776 par „izolowane przed wielostawowym”, 7 422 z nich na ten sam mięsień (wstępne zmęczenie).

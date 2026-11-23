@@ -237,7 +237,8 @@
     F.sheet(`${alts.length ? '<p class="dim small wz-swh">Na tę samą partię, pod Twój sprzęt</p>' : ''}<div class="stack">${alts.map(id => `<button class="exrow ${id === i.exId ? 'sel' : ''}" data-a="wzPick" data-di="${di}" data-ii="${ii}" data-id="${id}"><span><b>${E(P.exName(id))}</b><small>${E((F.S.ex.get(id) || {}).equip || '')}</small></span><i>${ic('check', 16)}</i></button>`).join('') || '<p class="dim pad center">Brak alternatyw przy Twoim sprzęcie i ograniczeniach.</p>'}</div><button class="btn ghost wide wz-any" data-a="wzAny" data-di="${di}" data-ii="${ii}">${ic('search', 18)} Wybierz dowolne z bazy</button>`, { title: 'Zamień ćwiczenie' });
   };
   F.act.wzAny = async b => { const di = +b.dataset.di, ii = +b.dataset.ii; const cur = F.S.ex.get(Z().res.days[di].items[ii].exId); F.closeSheet(true); const ids = await F.pickExercises({ single: true, muscle: (cur && cur.muscle) || '' }); if (!ids || !ids.length) return; F.act.wzPick({ dataset: { di, ii, id: ids[0] } }); };
-  F.act.wzPick = b => { const z = Z(); const di = +b.dataset.di, ii = +b.dataset.ii; z.res.days[di].items[ii].exId = b.dataset.id; z.res.plan.days[di].items[ii].exId = b.dataset.id; F.closeSheet(true); rerender(); };
+  // zamiana: nowa rola, powtórzenia i przerwa według rodzaju ćwiczenia, a ćwiczenie od razu trafia na właściwe miejsce w dniu (F.PLN.orderDay / placeItem)
+  F.act.wzPick = b => { const z = Z(); const di = +b.dataset.di, ii = +b.dataset.ii; const r = P.swapInRes(z.res, di, ii, b.dataset.id); F.closeSheet(true); rerender(); if (r) F.toast(E(P.placeMsg(P.exName(b.dataset.id), r)), '', 4500); };
 
   // usuwanie ćwiczenia z ułożonego planu (przed zapisem); można cofnąć
   F.act.wzDel = b => {
@@ -246,13 +247,12 @@
     const item = d.items[ii], pitem = pd.items[ii]; d.items.splice(ii, 1); pd.items.splice(ii, 1);
     // superseria, w której zostało jedno ćwiczenie, przestaje być superserią
     let partner = null; if (pitem.ss) { const left = pd.items.filter(x => x.ss === pitem.ss); if (left.length === 1) { partner = left[0].id; delete left[0].ss; } }
-    d.min = P.estMin(pd.items.slice(0, d.items.length));
-    (z.res.removed = z.res.removed || []).push({ di, ii, item, pitem, removedSsPartner: partner }); rerender();
+    (z.res.removed = z.res.removed || []).push({ di, ii, item, pitem, removedSsPartner: partner }); P.refreshDay(z.res, di); rerender();
   };
   F.act.wzUndoDel = () => { const z = Z(), r = z.res; const x = (r.removed || []).pop(); if (!x) return; r.days[x.di].items.splice(x.ii, 0, x.item); r.plan.days[x.di].items.splice(x.ii, 0, x.pitem);
     // przywrócone ćwiczenie z superserii: partner odzyskuje oznaczenie
     if (x.pitem.ss) { const ps = r.plan.days[x.di].items; [ps[x.ii - 1], ps[x.ii + 1]].forEach(y => { if (y && !y.ss && !y.cardio && x.removedSsPartner === y.id) y.ss = x.pitem.ss; }); }
-    r.days[x.di].min = P.estMin(r.plan.days[x.di].items.slice(0, r.days[x.di].items.length)); rerender(); };
+    P.refreshDay(r, x.di, x.ii); rerender(); };
 
   /* ---------- podgląd ---------- */
   const fmtRest = s => s >= 60 ? (Math.floor(s / 60) + (s % 60 ? ':' + String(s % 60).padStart(2, '0') : '') + ' min') : s + ' s';

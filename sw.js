@@ -1,5 +1,5 @@
 /* FORGE — service worker: działanie offline, odświeżanie w tle, odbiór plików z menu „Udostępnij” */
-const VERSION = 'forge-v1.31.1';
+const VERSION = 'forge-v1.32.0';
 const LIBS = 'forge-libs-1'; // moduły OCR i PDF (ok. 11 MB): osobna pamięć, która przetrwa aktualizacje aplikacji; zmień numer przy podmianie plików w vendor/
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'css/styles.css',
   'js/icons.js', 'js/data.js', 'js/exinfo.js', 'js/exdb.js', 'js/extips.js', 'js/calendar.js', 'js/insights.js', 'js/kb.js', 'js/features.js', 'js/kcal.js', 'js/body-data.js', 'js/body.js', 'js/alert.js', 'js/inputs.js', 'js/core.js', 'js/charts.js', 'js/ui.js', 'js/parser.js', 'js/app.js', 'js/views2.js', 'js/workout.js', 'js/importer.js', 'js/planner.js', 'js/cardio.js', 'js/wizard.js', 'js/coach.js', 'js/guide.js', 'js/ask.js', 'js/pdf.js', 'js/recap.js', 'js/goals2.js', 'lib/jspdf.umd.min.js', 'lib/pdf-fonts.js', 'js/voice.js', 'js/gym.js', 'js/short.js', 'js/trainer.js', 'js/ask2.js', 'lib/qrcode.min.js', 'js/tour.js', 'js/main.js',

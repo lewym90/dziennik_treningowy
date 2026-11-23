@@ -211,14 +211,39 @@
      w każdej grupie: najpierw partie priorytetowe użytkownika (Simão 2010, Spineti 2010), potem większe partie przed mniejszymi (ACSM 2009).
      Superserie przesuwane są jako całość. Przy remisie zostaje kolejność z szablonu dnia. */
   const LIFTS = new Set(['sq_main', 'bench_main', 'dl_main', 'ohp_main']);
+  const LIFT_IDS = new Set(['squat', 'front_sq', 'bench', 'deadlift', 'sumo', 'ohp']); // boje w planach bez zapisanego slotu (cel Siła)
   const SIZE = { quads: 0, hams: 0, glutes: 0, back: 1, chest: 1, shoulders: 2, triceps: 3, biceps: 3, calves: 4, forearms: 5, abs: 6 };
-  const phaseOf = i => { if (LIFTS.has(i.slot)) return 0; if (i.role === 'main') return 1; if (i.role === 'sec') return 2; const ex = F.S.ex.get(i.exId) || {}; return ex.compound && ex.type !== 'time' ? 2.5 : 3; };
-  F.PLN.orderDay = (items, prioM = []) => {
-    const blocks = []; const seen = new Set();
-    items.forEach(i => { if (i.ss) { if (seen.has(i.ss)) return; seen.add(i.ss); blocks.push(items.filter(x => x.ss === i.ss)); } else blocks.push([i]); });
-    const key = b => [Math.min(...b.map(phaseOf)), b.some(x => prioM.includes(x.m)) ? 0 : 1, Math.min(...b.map(x => SIZE[x.m] ?? 5))];
-    return blocks.map((b, ix) => ({ b, k: [...key(b), ix] })).sort((a, c) => { for (let n = 0; n < 4; n++) if (a.k[n] !== c.k[n]) return a.k[n] - c.k[n]; return 0; }).flatMap(x => x.b);
+  const isCardio = it => { const ex = F.S.ex.get(it.exId) || {}; return !!it.cardio || ex.muscle === 'cardio' || ex.type === 'cardio'; };
+  // klucz pozycji: [faza, priorytet, wielkość partii]; działa dla pozycji kreatora (slot, m, role) i zwykłych pozycji planu (exId, role)
+  F.PLN.keyOf = (it, ctx = {}) => {
+    if (isCardio(it)) return [9, 1, 9];
+    const ex = F.S.ex.get(it.exId) || {}; const m = it.m || ex.muscle; const role = it.role || F.PLN.roleOf(it.exId);
+    const lift = it.slot ? LIFTS.has(it.slot) : ctx.goal === 'str' && LIFT_IDS.has(it.exId);
+    const ph = lift ? 0 : role === 'main' ? 1 : role === 'sec' ? 2 : ex.compound && ex.type !== 'time' ? 2.5 : 3;
+    return [ph, (ctx.prio || []).includes(m) ? 0 : 1, SIZE[m] ?? 5];
   };
+  const cmpK = (a, c) => { for (let n = 0; n < a.length; n++) if (a[n] !== c[n]) return a[n] - c[n]; return 0; };
+  const blocksOf = items => { const out = []; items.forEach((it, k) => { const last = out[out.length - 1]; if (it.ss && last && items[last[1]].ss === it.ss) last[1] = k; else out.push([k, k]); }); return out; };
+  const blockKey = (items, [a, b], ctx) => { const ks = items.slice(a, b + 1).map(x => F.PLN.keyOf(x, ctx)); return [0, 1, 2].map(n => Math.min(...ks.map(k => k[n]))); };
+  F.PLN.orderDay = (items, prioM = [], goal) => {
+    const ctx = { prio: prioM, goal };
+    return blocksOf(items).map((bl, ix) => ({ bl, k: [...blockKey(items, bl, ctx), ix] })).sort((a, c) => cmpK(a.k, c.k)).flatMap(x => items.slice(x.bl[0], x.bl[1] + 1));
+  };
+  // przesuwa jedno ćwiczenie (z jego superserią) na miejsce wynikające z reguł; reszta dnia zostaje w kolejności użytkownika.
+  // Zwraca permutację indeksów (nowa lista = perm.map(i => items[i])) albo null, gdy nic się nie zmienia.
+  F.PLN.placeItem = (items, idx, ctx = {}) => {
+    const bls = blocksOf(items); const bi = bls.findIndex(([a, b]) => idx >= a && idx <= b); if (bi < 0) return null;
+    const k = blockKey(items, bls[bi], ctx); if (k[0] >= 9) return null;
+    // miejsce już zgodne z regułami (nic wcześniej nie ma „późniejszego” klucza, nic dalej „wcześniejszego”) — nie ruszamy
+    if (bls.slice(0, bi).every(bl => cmpK(blockKey(items, bl, ctx), k) <= 0) && bls.slice(bi + 1).every(bl => cmpK(blockKey(items, bl, ctx), k) >= 0)) return null;
+    const rest = bls.filter((_, j) => j !== bi); let t = rest.findIndex(bl => cmpK(blockKey(items, bl, ctx), k) > 0); if (t < 0) t = rest.length;
+    const order = [...rest.slice(0, t), bls[bi], ...rest.slice(t)]; const perm = order.flatMap(([a, b]) => Array.from({ length: b - a + 1 }, (_, n) => a + n));
+    if (perm.every((v, n) => v === n)) return null;
+    const pos = perm.indexOf(bls[bi][0]); const why = ({ 0: 'boje na początku', 1: 'ciężkie wielostawowe na początku', 2: 'wielostawowe przed izolowanymi', 2.5: 'wielostawowe przed izolowanymi' }[k[0]] || 'izolowane po wielostawowych') + (k[1] === 0 && k[0] > 0 ? ', partia priorytetowa' : '');
+    return { perm, pos, why };
+  };
+  // komunikat po przesunięciu
+  F.PLN.placeMsg = (name, r) => `${name} → miejsce ${r.pos + 1} (${r.why})`;
   const firstNum = s => parseInt(String(s).split('-')[0], 10) || 8;
   const lastNum = s => parseInt(String(s).split('-').pop(), 10) || 12;
 
@@ -243,6 +268,56 @@
     out.sort((a, b) => b.sc - a.sc); return out;
   };
 
+  /* ---------- opis pozycji planu (wspólny dla generatora i zmian w podglądzie) ---------- */
+  const PRIO_MAP = { arms: ['biceps', 'triceps'], legs: ['quads', 'hams', 'glutes', 'calves'], back: ['back'], chest: ['chest'], shoulders: ['shoulders'], glutes: ['glutes'], abs: ['abs'] };
+  F.PLN.prioOf = prio => (prio || []).flatMap(p => PRIO_MAP[p] || [p]);
+  const startWOf = (exId, reps, rirTxt) => { try { const step = F.S.settings.step || 2.5; const e1 = F.bestE1(exId); if (!e1) return 0; const r = firstNum(reps) + Math.max(1, lastNum(rirTxt)); return Math.max(0, Math.round(e1 / (1 + r / 30) / step) * step); } catch (_) { return 0; } };
+  const repsOf = (w, tag, role) => { const r = tag === 'pw' ? KB.repsPower[role] : tag === 'hy' ? KB.repsHyp[role] : (KB.reps[w.goal] || KB.reps.hyp)[role]; return w.age >= 60 && w.goal === 'str' && role === 'main' ? '6-8' : r; };
+  const noteOf = (i, ii, items, tplMs, o) => {
+    const parts = [`Zapas: ${o.rir[i.role]} powt. (RIR)${o.cautious ? ', zostaw więcej' : ''}`];
+    if (i.role === 'main') { const seenM = items.slice(0, ii).some(x => x.m === i.m); if (ii === 0) parts.push('rozgrzewka: 2–3 lżejsze serie'); else if (!seenM) parts.push('rozgrzewka: 1–2 lżejsze serie'); }
+    if (o.prio.includes(i.m) && tplMs && !tplMs.has(i.m)) parts.push('partia priorytetowa: dodatkowe serie w tym dniu');
+    if (o.pyr) parts.push('serie narastająco: ciężar rośnie, powtórzeń coraz mniej'); if (o.wk) parts.push('ciężar startowy z Twojej historii');
+    return parts.join(' · ');
+  };
+  const tplMsOf = tid => T[tid] ? new Set(T[tid][1].map(sl => SL[sl].m)) : null;
+  // tygodniowe serie na partię z gotowego wyniku kreatora (ten sam sposób liczenia co w generatorze)
+  F.PLN.volumeOf = res => {
+    const w = res.work, prioM = F.PLN.prioOf(w.prio); const all = res.days.flatMap(d => d.items); const out = {};
+    const ms = [...new Set(all.map(i => i.m))];
+    ms.forEach(m => { const direct = all.filter(i => i.m === m).reduce((a, i) => a + i.sets, 0); const ind = all.reduce((a, i) => { if (i.m === m) return a; const ex = F.S.ex.get(i.exId); const inf = F.EXINFO && F.EXINFO[i.exId]; const sec = (ex && ex.sec) || (inf && inf.s) || []; return a + (ex && ex.compound && sec.includes(m) ? 0.5 * i.sets : 0); }, 0);
+      const c = direct + (MAJOR.includes(m) || KB.volSmall[m] || prioM.includes(m) ? 0 : ind); out[m] = { sets: Math.round(c * 10) / 10, range: rangeOf(w.goal, w.exp, m), freq: (res.volume && res.volume[m] && res.volume[m].freq) || res.days.filter(d => d.items.some(i => i.m === m)).length }; });
+    return out;
+  };
+  // zamiana ćwiczenia w podglądzie kreatora: nowa partia i rodzaj ćwiczenia → nowa rola, powtórzenia, przerwa, ciężar startowy, a potem właściwe miejsce w dniu
+  F.PLN.swapInRes = (res, di, ii, id) => {
+    const d = res.days[di], pd = res.plan.days[di]; const gi = d.items[ii], pi = pd.items[ii]; const w = res.work;
+    const ctx = { prio: F.PLN.prioOf(w.prio), goal: w.goal }; const k0 = F.PLN.keyOf(gi, ctx);
+    const ex = F.S.ex.get(id) || {}, old = F.S.ex.get(gi.exId) || {}; gi.exId = id; pi.exId = id;
+    if (ex.muscle !== gi.m || !!ex.compound !== !!old.compound) {
+      const role = ex.compound && ex.type !== 'time' ? F.PLN.roleOf(id) : 'iso'; const m = ex.muscle;
+      gi.m = m; gi.role = role; pi.role = role;
+      const ks = Object.keys(SL); gi.slot = ks.find(k => SL[k].m === m && SL[k].role === role && SL[k].pool.all.includes(id)) || ks.find(k => SL[k].m === m && SL[k].role === role) || ks.find(k => SL[k].m === m) || gi.slot;
+      if (ex.type !== 'time') pi.reps = repsOf(w, d.tag, role);
+      pi.rest = (res.plan.meta.rest || {})[role] || KB.restOf(w.goal, w.exp, role, { special: !!w.special, cautious: !!w.cautious });
+      if (pi.scheme && role !== 'main') delete pi.scheme;
+    }
+    pi.w = ex.type !== 'time' ? startWOf(id, pi.reps, KB.rir[w.exp][gi.role]) : 0;
+    // ten sam rodzaj ćwiczenia na tę samą partię — miejsce zostaje
+    return F.PLN.refreshDay(res, di, cmpK(F.PLN.keyOf(gi, ctx), k0) ? ii : null);
+  };
+  // po zmianie w dniu: właściwe miejsce zmienionego ćwiczenia, opisy, czas dnia i tygodniowe serie
+  F.PLN.refreshDay = (res, di, moved) => {
+    const d = res.days[di], pd = res.plan.days[di], w = res.work, n = d.items.length; const prioM = F.PLN.prioOf(w.prio);
+    let r = null;
+    if (moved != null && moved < n) { r = F.PLN.placeItem(pd.items.slice(0, n), moved, { prio: prioM, goal: w.goal }); if (r) { const g = r.perm.map(k => d.items[k]), p = r.perm.map(k => pd.items[k]); d.items = g; pd.items = [...p, ...pd.items.slice(n)]; } }
+    F.cleanSS(pd.items); const inf = F.ssInfo(pd.items); pd.items.forEach((it, k) => { const g = inf[k]; if (g && k < n) it.rest = Math.max(...pd.items.slice(g.start, g.end + 1).map(x => x.rest || 0)); });
+    const o = { rir: KB.rir[w.exp], cautious: !!w.cautious, prio: prioM }; const tm = tplMsOf(d.tid);
+    d.items.forEach((gi, k) => { const pi = pd.items[k]; pi.note = noteOf(gi, k, d.items, tm, { ...o, pyr: pi.scheme === 'pyr', wk: pi.w }); });
+    d.min = F.PLN.estMin(pd.items.slice(0, n)); res.volume = F.PLN.volumeOf(res);
+    return r;
+  };
+
   /* ---------- generator planu ---------- */
   F.planGen = (w0, variant = 0) => {
     const w = { days: [0, 2, 4], time: 60, goal: 'hyp', exp: 'beg', equip: null, bench: true, rack: true, inj: [], avoid: [], fav: [], prio: [], split: 'auto', sleep: 3, active: true, age: 0, bmi: 0, cardioMin: 0, cardioAdd: false, cardioPref: 'walk', ...w0 };
@@ -252,7 +327,7 @@
     const ranking = F.PLN.rank({ ...w, days: w.days });
     const splitId = w.split && w.split !== 'auto' && SPLITS[w.split] && SPLITS[w.split].nd === nd && F.PLN.goalOk(goal, w.split) ? w.split : (ranking[0] ? ranking[0].id : (goal === 'str' ? 'str3' : 'fbw3'));
     const sp = SPLITS[splitId];
-    const prioM = (w.prio || []).flatMap(p => ({ arms: ['biceps', 'triceps'], legs: ['quads', 'hams', 'glutes', 'calves'], back: ['back'], chest: ['chest'], shoulders: ['shoulders'], glutes: ['glutes'], abs: ['abs'] }[p] || [p]));
+    const prioM = F.PLN.prioOf(w.prio);
     const used = {};
     const days = sp.days.map((tid, di) => {
       const t = T[tid]; const items = []; const inDay = new Set();
@@ -372,7 +447,7 @@
     // minimum 4 serii tygodniowo na dużą partię także przy bardzo krótkim czasie (Iversen i in. 2021) — nawet kosztem limitu czasu
     MAJOR.forEach(m => { let g4 = 12; while (counted(m) < 4 && g4--) { const e0 = allI().filter(i => i.m === m && i.sets < capOf(i)).sort((a, b) => (b.role === 'main') - (a.role === 'main'))[0]; if (e0) { setS(e0, e0.sets + 1); continue; } const d = days.filter(dd => dd.items.some(i => i.m === m) && dd.items.length < 9).sort((a, b) => minutes(a) - minutes(b))[0]; if (!d) break; const inD = new Set(d.items.map(i => i.exId)); let ok = false; for (const slot of (EXTRA[m] || [])) { const pool = poolOf(slot, w).filter(id => !inD.has(id)); if (!pool.length) continue; d.items.push({ slot, m, role: SL[slot].role, exId: pool[(used[slot] || 0) % pool.length], sets: 2 }); used[slot] = (used[slot] || 0) + 1; ok = true; break; } if (!ok) break; } });
     // ---- kolejność ćwiczeń: ta sama reguła dla każdego dnia (F.PLN.orderDay) ----
-    days.forEach(d => { d.items = F.PLN.orderDay(d.items, prioM); });
+    days.forEach(d => { d.items = F.PLN.orderDay(d.items, prioM, goal); });
     const muscles = musclesNow();
     { let extra = 0; muscles.forEach(m => { const lo = rangeOf(goal, exp, m)[0], c = counted(m); if (c < lo - 0.5 && (MAJOR.includes(m) || prioM.includes(m))) { const it = allI().find(i => i.m === m) || { role: 'sec' }; const d0 = dayOf(it) || days[0]; extra += (lo - c) * (workOf(d0, it) + restOf(it)); } });
       if (extra > 0 && w.time && Math.ceil((Math.max(...days.map(minutes)) + extra / 60 / nd) / 5) * 5 > w.time) { const per = Math.ceil((Math.max(...days.map(minutes)) / 1 + extra / 60 / nd) / 5) * 5; notes.unshift(`Na pełną objętość dla Twojego celu potrzebujesz ${per} min na trening${nd < 6 ? ' albo jednego dnia treningowego więcej' : ''}. Przy ${w.time} min część partii dostaje mniej serii niż zalecane — zmień odpowiedzi, jeśli możesz.`); } }
@@ -387,14 +462,13 @@
     if (w.sleep === 1) notes.push('Śpisz mniej niż 6 godzin — ograniczyłem objętość. Konsensus towarzystw zaleca regularnie co najmniej 7 godzin snu dla dorosłych.');
     const volume = {}; muscles.forEach(m => { volume[m] = { sets: Math.round(counted(m) * 10) / 10, range: rangeOf(goal, exp, m), freq: mfreq[m] || 0 }; });
     // ---- plan FORGE ----
-    const reps0 = KB.reps[goal]; const rirB = KB.rir[exp];
-    const repsFor = (d, role) => { let r = d.tag === 'pw' ? KB.repsPower[role] : d.tag === 'hy' ? KB.repsHyp[role] : reps0[role]; if (older && goal === 'str' && role === 'main') r = '6-8'; return r; };
-    const step = F.S.settings.step || 2.5; const rnd = v => Math.max(0, Math.round(v / step) * step);
-    const startW = (exId, reps, rirTxt) => { try { const e1 = F.bestE1(exId); if (!e1) return 0; const r = firstNum(reps) + Math.max(1, lastNum(rirTxt)); return rnd(e1 / (1 + r / 30)); } catch (_) { return 0; } };
+    const rirB = KB.rir[exp];
+    const repsFor = (d, role) => repsOf(w, d.tag, role);
+    const startW = startWOf;
     const plan = {
       id: F.uid(), created: Date.now(), name: `${({ hyp: 'Masa', str: 'Siła', sculpt: 'Rzeźba', endur: 'Wytrzymałość', health: 'Zdrowie' })[goal] || F.PLN.GOALS[goal][0]} — ${sp.n.replace(/ \(.*\)/, '')}`,
-      meta: { gen: 2, goal, exp, split: splitId, weekdays: w.days, time: w.time, inj: w.inj, meso: KB.meso[exp], rest: { main: KB.restOf(goal, exp, 'main', restO), sec: KB.restOf(goal, exp, 'sec', restO), iso: KB.restOf(goal, exp, 'iso', restO) } },
-      days: days.map((d, di) => ({ id: F.uid(), name: dayLabel(w.days[di], d.name), items: d.items.map((i, ii) => { const reps = repsFor(d, i.role); const rir = rirB[i.role] + (w.cautious ? '+' : ''); const wk = i.m && F.S.ex.get(i.exId).type !== 'time' ? startW(i.exId, reps, rirB[i.role]) : 0; const parts = [`Zapas: ${rirB[i.role]} powt. (RIR)${w.cautious ? ', zostaw więcej' : ''}`]; if (i.role === 'main' || i.role === 'sec') { const seenM = d.items.slice(0, ii).some(x => x.m === i.m); if (ii === 0 && i.role === 'main') parts.push('rozgrzewka: 2–3 lżejsze serie'); else if (!seenM && i.role === 'main') parts.push('rozgrzewka: 1–2 lżejsze serie'); } if (prioM.includes(i.m) && !T[d.tid][1].some(sl => SL[sl].m === i.m)) parts.push('partia priorytetowa: dodatkowe serie w tym dniu'); const pyr = w.scheme === 'pyr' && !w.cautious && !w.special && i.role === 'main' && i.sets >= 3 && ['hyp', 'str', 'sculpt'].includes(goal); if (pyr) parts.push('serie narastająco: ciężar rośnie, powtórzeń coraz mniej'); if (wk) parts.push('ciężar startowy z Twojej historii'); const it = { id: F.uid(), exId: i.exId, sets: i.sets, reps, rest: restOf(i), role: i.role, w: wk, note: parts.join(' · ') }; if (i.ss) it.ss = i.ss; if (pyr) it.scheme = 'pyr'; return it; }) }))
+      meta: { gen: 2, goal, exp, prio: prioM, split: splitId, weekdays: w.days, time: w.time, inj: w.inj, meso: KB.meso[exp], rest: { main: KB.restOf(goal, exp, 'main', restO), sec: KB.restOf(goal, exp, 'sec', restO), iso: KB.restOf(goal, exp, 'iso', restO) } },
+      days: days.map((d, di) => ({ id: F.uid(), name: dayLabel(w.days[di], d.name), items: d.items.map((i, ii) => { const reps = repsFor(d, i.role); const wk = i.m && F.S.ex.get(i.exId).type !== 'time' ? startW(i.exId, reps, rirB[i.role]) : 0; const pyr = w.scheme === 'pyr' && !w.cautious && !w.special && i.role === 'main' && i.sets >= 3 && ['hyp', 'str', 'sculpt'].includes(goal); const note = noteOf(i, ii, d.items, tplMsOf(d.tid), { rir: rirB, cautious: !!w.cautious, prio: prioM, pyr, wk }); const it = { id: F.uid(), exId: i.exId, sets: i.sets, reps, rest: restOf(i), role: i.role, w: wk, note }; if (i.ss) it.ss = i.ss; if (pyr) it.scheme = 'pyr'; return it; }) }))
     };
     plan.days.forEach(d => { F.cleanSS(d.items); const inf = F.ssInfo(d.items); d.items.forEach((it, k) => { const g = inf[k]; if (g) { const mx = Math.max(...d.items.slice(g.start, g.end + 1).map(x => x.rest || 0)); it.rest = mx; } }); });
     // ---- cardio (opcjonalne dni) ----
